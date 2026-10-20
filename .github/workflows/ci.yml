@@ -46,17 +46,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cp .env.example .env
-      - run: docker compose build
-      - run: docker compose up -d --wait --wait-timeout 120
-      - run: curl --fail --retry 5 --retry-delay 2 http://localhost:8080/
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: aio/Dockerfile
+          load: true
+          tags: alpha-hackathon:ci
+          cache-from: type=gha,scope=demo
+          cache-to: type=gha,scope=demo,mode=max
+      - run: docker run -d --name demo -p 8080:8080 alpha-hackathon:ci
+      - name: Wait until healthy
+        run: |
+          for i in $(seq 1 30); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' demo)" = healthy ] && exit 0
+            sleep 2
+          done
+          exit 1
+      - run: curl --fail http://localhost:8080/
       - run: curl --fail http://localhost:8080/api/health
       - name: Logs on failure
         if: failure()
-        run: docker compose logs
-      - name: Shutdown
-        if: always()
-        run: docker compose down -v
+        run: docker logs demo
 
   publish:
     needs: [smoke]
@@ -65,9 +76,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    strategy:
-      matrix:
-        service: [client, server, ml]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -83,7 +91,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/alpha-hackathon-${{ matrix.service }}
+          images: ghcr.io/${{ github.repository_owner }}/alpha-hackathon
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -91,9 +99,9 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.service }}/Dockerfile
+          file: aio/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+          cache-from: type=gha,scope=demo
+          cache-to: type=gha,scope=demo,mode=max
