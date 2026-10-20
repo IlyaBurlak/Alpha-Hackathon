@@ -25,6 +25,9 @@ const app = express();
 
   const helloController = container.get<SupportController>(TYPES.supportController);
   app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get(['/health', '/api/health'], (_req, res) => {
+  res.json({ status: 'ok' });
+});
   app.use(helloController.router);
 
   app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
