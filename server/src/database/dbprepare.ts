@@ -2,10 +2,14 @@
 import { Umzug, SequelizeStorage } from 'umzug';
 
 import { sequelize } from './dbconfig';
+import { User } from './models/User';
+import { UserToOrganization } from './models/UserToOrganization';
+import { Organization } from './models/Organization';
+import { Operator } from './models/Operator';
 
 export class BdCongigClass {
     static prepareModels() {
-          const models = {  };
+          const models = { User, UserToOrganization, Organization, Operator };
 
           Object.values(models).forEach((model: any) => {
             if (typeof model.associate === 'function') {

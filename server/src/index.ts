@@ -24,10 +24,15 @@ const app = express();
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
   const helloController = container.get<SupportController>(TYPES.supportController);
+  const userController = container.get<SupportController>(TYPES.userController);
+  const applicationController = container.get<SupportController>(TYPES.applicationController);
   app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ status: 'ok' });
-});
+    res.json({ status: 'ok' });
+  });
+
+  app.use(`/api/users`, userController.router)
+  app.use(`/api/applications`, applicationController.router)
   app.use(helloController.router);
 
   app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

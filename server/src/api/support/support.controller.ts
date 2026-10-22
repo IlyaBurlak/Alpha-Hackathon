@@ -4,6 +4,7 @@ import { ISupportService } from './support.service.interface';
 import { TYPES } from '../../types';
 import { BaseController } from '../common/base.controller';
 import { ISupportController } from './support.controller.interface';
+import passport from '../../auth/passport.config';
 
 
 
@@ -18,6 +19,7 @@ export class SupportController extends BaseController implements ISupportControl
         path: '/hello',
         method: 'get',
         func: this.getHello,
+        middleware: [passport.authenticate('jwt', { session: false })] 
       },
      
     ]);
