@@ -11,6 +11,7 @@
     "rebuild:clean": "docker compose -f ../docker-compose.yml down && docker compose -f ../docker-compose.yml build --no-cache && docker compose -f ../docker-compose.yml up -d --wait",
     "build": "tsc -b && vite build",
     "lint": "oxlint && steiger ./src",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "oxlint": "^1.88.0",
     "steiger": "^0.8.0",
     "typescript": "~6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }

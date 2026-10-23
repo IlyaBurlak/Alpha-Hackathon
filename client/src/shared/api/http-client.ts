@@ -15,7 +15,7 @@ interface HttpClientOptions {
 }
 
 interface RequestOptions {
-  method: 'GET' | 'POST'
+  method: 'GET' | 'POST' | 'PUT'
   body?: unknown
 }
 
@@ -56,6 +56,10 @@ class HttpClient {
 
   post(path: string, body: unknown): Promise<unknown> {
     return this.request(path, { method: 'POST', body })
+  }
+
+  put(path: string): Promise<unknown> {
+    return this.request(path, { method: 'PUT' })
   }
 
   private async request(path: string, { method, body }: RequestOptions): Promise<unknown> {

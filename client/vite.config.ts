@@ -1,12 +1,17 @@
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
+  test: {
+    include: ['src/**/*.test.{ts,tsx}'],
+    restoreMocks: true,
+    unstubGlobals: true,
   },
   server: {
     proxy: {

@@ -1,0 +1,9 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-16);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--gap-48) var(--gap-16);
+}
