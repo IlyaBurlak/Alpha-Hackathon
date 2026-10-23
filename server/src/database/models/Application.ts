@@ -14,6 +14,8 @@ export class Application extends Model {
     public status!: number;
     public createdAt!: Date;
     public loanIssuanceDate!: Date;
+    public productId!: number;
+    public productConditions!: any;
 
 
     static associate(models: { Organization: typeof Organization }) {
@@ -32,6 +34,14 @@ Application.init(
       primaryKey: true,
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    productId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    productConditions: {
+      type: DataTypes.JSON,
+      allowNull: true,
     },
     userId: {
       type: DataTypes.INTEGER,

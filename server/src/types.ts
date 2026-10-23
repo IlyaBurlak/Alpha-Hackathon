@@ -10,6 +10,8 @@ export const TYPES = {
     applicationController: Symbol.for('applicationController'),
     applicationService: Symbol.for('applicationService'),
     applicationRepository: Symbol.for('applicationRepository'),
+
+    gatewayService: Symbol.for('gatewayService'),
     
 
 }
