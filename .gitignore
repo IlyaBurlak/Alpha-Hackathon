@@ -44,3 +44,5 @@ npm-debug.log*
 # Claude Code
 CLAUDE.md
 .claude/
+
+docker-compose.override.yml

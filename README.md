@@ -18,12 +18,16 @@ docker compose up -d --build --wait
 
 ## Локальная разработка
 
+Бэк и ML в Docker, фронт с hot reload:
+
 ```bash
-cd server && cp .env.example .env && npm install && npm run dev   # :3001 (задайте JWT_SECRET в server/.env)
-cd client && npm install && npm run dev   # :5173
+docker compose up -d --build --wait server ml   # server :3001, ml :8000 (порты открывает docker-compose.override.yml)
+cd client && npm install && npm run dev          # :5173, /api проксируется на :3001
 ```
 
-ML: `cd ml && pip install -r requirements-dev.txt && uvicorn app.main:app --reload`
+Остановить бэк: `docker compose down`.
+
+Без Docker: `cd server && cp .env.example .env && npm install && npm run dev` (задайте `JWT_SECRET` в `server/.env`), ML: `cd ml && pip install -r requirements-dev.txt && uvicorn app.main:app --reload`.
 
 ## Проверки
 
