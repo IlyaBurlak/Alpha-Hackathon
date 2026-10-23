@@ -6,10 +6,12 @@ import { User } from './models/User';
 import { UserToOrganization } from './models/UserToOrganization';
 import { Organization } from './models/Organization';
 import { Operator } from './models/Operator';
+import { Application } from './models/Application';
+import { ApplicationScore } from './models/ApplicationScoring';
 
 export class BdCongigClass {
     static prepareModels() {
-          const models = { User, UserToOrganization, Organization, Operator };
+          const models = { User, UserToOrganization, Organization, Operator, Application, ApplicationScore };
 
           Object.values(models).forEach((model: any) => {
             if (typeof model.associate === 'function') {

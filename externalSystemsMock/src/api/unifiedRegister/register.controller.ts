@@ -16,8 +16,6 @@ export class RegisterController extends BaseController implements IRegisterContr
   ) {
     super();
     this.bindRoute([
-     
-      
       {
         path: '/legal',
         method: 'get',
@@ -89,9 +87,13 @@ export class RegisterController extends BaseController implements IRegisterContr
            
            ]
 
-           const inn = req.query.inn as string;
-           const result = data.find(item => item.inn === inn);
-           res.json(result || { error: 'No credit history found for the provided INN' });
+          const inn = req.query.inn as string;
+          const result = data.find(item => item.inn === inn);
+          if ((global as any).registerisActive) {
+              res.json(result || { error: 'No credit history found for the provided INN' });
+          } else {
+             res.status(503).json({ error: 'Service is currently inactive' });
+          }
  
         }  catch (err) {
               next(err);
@@ -126,9 +128,16 @@ export class RegisterController extends BaseController implements IRegisterContr
             }
            ]
 
-           const inn = req.query.inn as string;
-           const result = data.find(item => item.inn === inn);
-           res.json(result || { error: 'No credit history found for the provided INN' });
+
+
+          const inn = req.query.inn as string;
+          const result = data.find(item => item.inn === inn);
+          if ((global as any).registerisActive) {
+              res.json(result || { error: 'No credit history found for the provided INN' });
+          } else {
+             res.status(503).json({ error: 'Service is currently inactive' });
+          }
+         
  
         }  catch (err) {
             next(err);

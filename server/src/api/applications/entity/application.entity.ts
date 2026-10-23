@@ -1,4 +1,5 @@
 import { OrganizationEntity } from "../../organizations/entity/organization.entity";
+import { ApplicationScoreEntity } from "./application.score.entity";
 
 export enum CreditTimeUnits {
     DAY = 1,
@@ -25,6 +26,7 @@ export class ApplicationEntity {
     sum!: number;
     productId!: number;
     product?: any;
+    applicationScore?: ApplicationScoreEntity;
     status!: number;
     createdAt!: Date;
     creditTime: CreditTime;
@@ -41,10 +43,11 @@ export class ApplicationEntity {
             units: model.creditTimeUnits,
             value: model.creditValue
         }
-        this.loanIssuanceDate = model.loanIssuanceDate;
-        this.productId = model.productId;
-        if (model.productConditions) {
-            this.product = model.productConditions;
+       
+        if (model.applicationScore) {
+            this.applicationScore = new ApplicationScoreEntity(model.applicationScore);
         }
+        this.loanIssuanceDate = model.loanIssuanceDate;
+        
     }
 }

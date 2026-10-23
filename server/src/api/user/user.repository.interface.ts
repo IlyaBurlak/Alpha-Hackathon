@@ -5,5 +5,6 @@ export interface IUserRepository {
  
   getCounter(): Promise<number>;
   getUserByLogin(login: string): Promise<UserEntity>;
-  getUserById(id: number, transaction?: Transaction): Promise<UserEntity>
+  getUserById(id: number, transaction?: Transaction): Promise<UserEntity>;
+  getOperatorByLogin(login: string): Promise<UserEntity>;
 }

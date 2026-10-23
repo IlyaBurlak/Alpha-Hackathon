@@ -6,4 +6,6 @@ export interface IApplicationService {
   getApplicationById(id: number, userId: number): Promise<ApplicationEntity>;
   getApplicationByUserId(userId: number): Promise<ApplicationEntity[]>;
   confirmApplication(applicationId: number, userId: number, productId: number): Promise<ApplicationEntity>;
+  restartScoring(applicationId: number): Promise<void>;
+  getApplicationWithScore(id: number): Promise<ApplicationEntity>;
 }

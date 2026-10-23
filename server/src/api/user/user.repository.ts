@@ -4,6 +4,7 @@ import { User } from '../../database/models/User';
 import { Organization } from '../../database/models/Organization';
 import { UserEntity } from './entity/user.entity';
 import { Transaction } from 'sequelize';
+import { Operator } from '../../database/models/Operator';
 
 
 
@@ -39,4 +40,13 @@ export class UserRepository implements IUserRepository {
         return new UserEntity(model);
     }
 
+    async getOperatorByLogin(login: string): Promise<UserEntity> {
+        const model = await Operator.findOne({
+            where: { login },
+           })
+        if (!model) {
+            throw new Error(`Неверный логин или пароль`);
+        }
+        return new UserEntity(model);
+    }
 }
