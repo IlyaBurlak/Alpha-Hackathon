@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { ExternalServicesStoreContext } from '@/entities/external-service'
 import { SessionStoreContext } from '@/entities/session'
 import { UserStoreContext } from '@/entities/user'
 
@@ -17,7 +18,9 @@ export function StoreProvider({ children }: StoreProviderProps) {
 
   return (
     <SessionStoreContext value={rootStore.session}>
-      <UserStoreContext value={rootStore.user}>{children}</UserStoreContext>
+      <UserStoreContext value={rootStore.user}>
+        <ExternalServicesStoreContext value={rootStore.externalServices}>{children}</ExternalServicesStoreContext>
+      </UserStoreContext>
     </SessionStoreContext>
   )
 }
