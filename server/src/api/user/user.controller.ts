@@ -38,13 +38,29 @@ export class UserController extends BaseController implements IUserController {
 
   /**
    * @swagger
-   * /login:
+   * /api/users/login:
    *   post:
-   *     summary: Вход в систему
-   *     description: Возвращает сообщение о входе в систему
+   *     tags: [Users]
+   *     summary: Авторизация пользователя
+   *     description: Возвращает JWT-токен, действительный в течение одних суток.
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [login, password]
+   *             properties:
+   *               login:
+   *                 type: string
+   *                 example: alfaAngelika
+   *               password:
+   *                 type: string
+   *                 format: password
+   *                 example: "1234"
    *     responses:
    *       200:
-   *         description: Успешный ответ
+   *         description: Пользователь успешно авторизован
    *         content:
    *           application/json:
    *             schema:
@@ -52,7 +68,11 @@ export class UserController extends BaseController implements IUserController {
    *               properties:
    *                 token:
    *                   type: string
-   *                   example: "aaaaaa"
+   *                   example: eyJhbGciOiJIUzI1NiIs...
+   *       400:
+   *         description: Не переданы логин или пароль
+   *       401:
+   *         description: Неверный логин или пароль
    */
 
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -78,6 +98,24 @@ export class UserController extends BaseController implements IUserController {
     }
   }
 
+  /**
+   * @swagger
+   * /api/users/info:
+   *   get:
+   *     tags: [Users]
+   *     summary: Получить данные текущего пользователя
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Данные пользователя и доступные ему организации
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Требуется действительный JWT-токен
+   */
   async getUserInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
       try {
           const login = (req.user as { login?: string } | undefined)?.login;

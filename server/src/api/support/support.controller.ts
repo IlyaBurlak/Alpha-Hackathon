@@ -30,11 +30,14 @@ export class SupportController extends BaseController implements ISupportControl
    * @swagger
    * /hello:
    *   get:
+   *     tags: [Support]
    *     summary: Приветствие
-   *     description: Возвращает приветственное сообщение
+   *     description: Проверяет доступность защищённого маршрута поддержки.
+   *     security:
+   *       - bearerAuth: []
    *     responses:
    *       200:
-   *         description: Успешный ответ
+   *         description: Приветственное сообщение
    *         content:
    *           text/plain:
    *             schema:
