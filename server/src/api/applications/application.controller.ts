@@ -45,6 +45,28 @@ export class ApplicationController extends BaseController implements IApplicatio
   }
 
 
+  /**
+   * @swagger
+   * /api/applications/:
+   *   post:
+   *     tags: [Applications]
+   *     summary: Создать заявку
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/ApplicationCreate'
+   *     responses:
+   *       200:
+   *         description: Заявка создана
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Application'
+   */
     async createApplication(req: Request, res: Response, next: NextFunction): Promise<void> { 
         try {
             const applicationData = req.body;
@@ -54,11 +76,35 @@ export class ApplicationController extends BaseController implements IApplicatio
             res.json(plainToInstance(ApplicationDto, result))
         }
                  
-           catch (err) {
-              next(err);
-          }
+        catch (err) {
+            next(err);
+        }
     }
 
+    /**
+     * @swagger
+     * /api/applications/{id}:
+     *   get:
+     *     tags: [Applications]
+     *     summary: Получить заявку по идентификатору
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema:
+     *           type: integer
+     *         example: 1
+     *     responses:
+     *       200:
+     *         description: Заявка владельца
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Application'
+
+     */
     async getApplicationById(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const applicationId = Number(req.params.id);
@@ -70,10 +116,29 @@ export class ApplicationController extends BaseController implements IApplicatio
             const result = await this.applicationService.getApplicationById(applicationId, userId);
             res.json(plainToInstance(ApplicationDto, result))
         }  catch (err) {
-              next(err);
+            next(err);
         } 
     }
 
+    /**
+     * @swagger
+     * /api/applications/my:
+     *   get:
+     *     tags: [Applications]
+     *     summary: Получить мои заявки
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Список заявок текущего пользователя
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Application'
+  
+     */
     async getMyApplications(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = (req.user as { id?: number } | undefined)?.id;
