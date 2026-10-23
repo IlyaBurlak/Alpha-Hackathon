@@ -13,6 +13,15 @@ COPY server .
 RUN npm run build
 RUN rm -rf node_modules && npm ci --omit=dev
 
+# No package-lock.json in externalSystemsMock yet, so `npm install` instead of `npm ci`.
+FROM node:24.4.1-slim AS external-build
+WORKDIR /repo/externalSystemsMock
+COPY externalSystemsMock/package.json ./
+RUN npm install
+COPY externalSystemsMock .
+RUN npm run build
+RUN rm -rf node_modules && npm install --omit=dev
+
 FROM python:3.12.12-slim-trixie AS ml-build
 RUN python -m venv /venv
 COPY ml/requirements.txt .
@@ -34,6 +43,9 @@ WORKDIR /app
 COPY --from=server-build --chown=appuser /repo/server/node_modules server/node_modules
 COPY --from=server-build /repo/server/package.json server/package.json
 COPY --from=server-build /repo/server/dist server/dist
+COPY --from=external-build /repo/externalSystemsMock/node_modules external-systems/node_modules
+COPY --from=external-build /repo/externalSystemsMock/package.json external-systems/package.json
+COPY --from=external-build /repo/externalSystemsMock/dist external-systems/dist
 COPY ml/app ml/app
 COPY --from=client-build /repo/client/dist /usr/share/nginx/html
 COPY aio/nginx.conf /etc/nginx/nginx.conf

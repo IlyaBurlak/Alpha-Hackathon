@@ -1,0 +1,22 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-24);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--gap-24);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+}
+
+.item > * {
+  flex: 1;
+}
