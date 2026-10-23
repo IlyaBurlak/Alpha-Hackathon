@@ -18,21 +18,29 @@ docker compose up -d --build --wait
 
 ## Локальная разработка
 
-Бэк и ML в Docker, фронт с hot reload:
-
 ```bash
-docker compose up -d --build --wait server ml   # server :3001, ml :8000 (порты открывает docker-compose.override.yml)
-cd client && npm install && npm run dev          # :5173, /api проксируется на :3001
+cd client && npm install && npm run dev
 ```
 
-Остановить бэк: `docker compose down`.
+`npm run dev` сам поднимает в Docker бэк и ML (server :3001, ml :8000, порты открывает `docker-compose.dev.yml`) и запускает Vite на :5173 с hot reload; `/api` проксируется на :3001.
+
+Команды из `client/`:
+
+| Команда | Что делает |
+| --- | --- |
+| `npm run dev` | бэк и ML в Docker + фронт с hot reload |
+| `npm run backend:down` | остановить бэк и ML (данные БД сохраняются) |
+| `npm run rebuild` | пересобрать и перезапустить всё приложение целиком (ml, server, client) на :8080 |
+| `npm run rebuild:clean` | то же без кэша Docker (дольше, для чистой проверки) |
+
+После правок в `server/` или `ml/` повторите `npm run backend:up`.
 
 Без Docker: `cd server && cp .env.example .env && npm install && npm run dev` (задайте `JWT_SECRET` в `server/.env`), ML: `cd ml && pip install -r requirements-dev.txt && uvicorn app.main:app --reload`.
 
 ## Проверки
 
 ```bash
-cd client && npm run lint && npm run build
+cd client && npm run lint && npm run build   # lint включает проверку границ FSD (steiger)
 cd server && npm run typecheck && npm run build
 cd ml && ruff check . && pytest
 ```

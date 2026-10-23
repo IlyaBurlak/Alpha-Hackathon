@@ -1,0 +1,12 @@
+# Dev only, used by `npm run dev` in client/ together with docker-compose.yml:
+# exposes backend ports on localhost so the Vite dev server can reach them.
+services:
+  ml:
+    ports:
+      - "127.0.0.1:8000:8000"
+  external-systems:
+    ports:
+      - "127.0.0.1:5006:5006"
+  server:
+    ports:
+      - "127.0.0.1:3001:3001"

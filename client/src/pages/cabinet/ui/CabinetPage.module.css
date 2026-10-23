@@ -8,18 +8,11 @@
   padding: var(--gap-48) var(--gap-16);
 }
 
-.components {
+.organizations {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--gap-8);
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.demo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap-16);
-  width: 100%;
 }
