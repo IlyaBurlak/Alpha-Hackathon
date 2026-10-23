@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { formatCreditTime, formatMoney } from '../lib/format'
 import type { ProductOffer } from '../model/types'
 import styles from './ApplicationCard.module.css'
+import { LoanTerms } from './LoanTerms'
 
 interface ProductOfferCardProps {
   offer: ProductOffer
@@ -29,6 +30,7 @@ export function ProductOfferCard({ offer, action }: ProductOfferCardProps) {
       <Typography.Text view="primary-small" color="secondary" defaultMargins={false}>
         Выплаты: {offer.payments}
       </Typography.Text>
+      <LoanTerms sum={offer.sum} interestRate={offer.interestRate} creditTime={offer.creditTime} />
       {action}
     </article>
   )

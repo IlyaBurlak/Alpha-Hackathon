@@ -8,13 +8,13 @@ import type { FormEvent } from 'react'
 
 import { CREDIT_TIME_UNIT_LABELS, CREDIT_TIME_UNITS } from '@/entities/application'
 import type { Application, CreditTimeUnit } from '@/entities/application'
-import type { Organization } from '@/entities/user'
 
 import { CreateApplicationFormStore } from '../model/create-application-form-store'
 import styles from './CreateApplicationForm.module.css'
 
 interface CreateApplicationFormProps {
-  organizations: Organization[]
+  /** The form is bound to one organization: remount it (`key`) when the organization changes. */
+  organizationId: number
   onCreated: (application: Application) => void
 }
 
@@ -28,15 +28,10 @@ function isCreditTimeUnit(value: string): value is CreditTimeUnit {
 }
 
 export const CreateApplicationForm = observer(function CreateApplicationForm({
-  organizations,
+  organizationId,
   onCreated,
 }: CreateApplicationFormProps) {
-  const [form] = useState(() => new CreateApplicationFormStore(organizations[0]?.id ?? null))
-
-  const organizationOptions = organizations.map((organization) => ({
-    key: String(organization.id),
-    content: organization.name,
-  }))
+  const [form] = useState(() => new CreateApplicationFormStore(organizationId))
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -46,13 +41,6 @@ export const CreateApplicationForm = observer(function CreateApplicationForm({
 
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
-      <Select
-        label="Организация"
-        block
-        options={organizationOptions}
-        selected={form.organizationId === null ? null : String(form.organizationId)}
-        onChange={({ selected }) => selected && form.setOrganizationId(Number(selected.key))}
-      />
       <Input
         label="Сумма, ₽"
         block
