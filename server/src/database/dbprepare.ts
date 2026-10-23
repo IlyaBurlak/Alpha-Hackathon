@@ -22,7 +22,7 @@ export class BdCongigClass {
     try {
       const umzug = new Umzug({
         migrations: {
-          glob: ['migrations/*.ts', { cwd: __dirname }],
+          glob: ['migrations/*.{ts,js}', { cwd: __dirname }],
         },
         context: sequelize,
         storage: new SequelizeStorage({ sequelize }),

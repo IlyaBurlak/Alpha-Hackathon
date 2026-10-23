@@ -44,6 +44,21 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
 
+  external-systems:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: externalSystemsMock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # No lock file in this service yet, so `npm install` instead of `npm ci`.
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm run build
+
   ml:
     runs-on: ubuntu-latest
     defaults:
@@ -61,7 +76,7 @@ jobs:
       - run: pytest
 
   smoke:
-    needs: [client, server, ml]
+    needs: [client, server, external-systems, ml]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +99,7 @@ jobs:
           exit 1
       - run: curl --fail http://localhost:8080/
       - run: curl --fail http://localhost:8080/api/health
+      - run: curl --fail http://localhost:8080/external-api/banks/products
       - name: Logs on failure
         if: failure()
         run: docker logs demo
