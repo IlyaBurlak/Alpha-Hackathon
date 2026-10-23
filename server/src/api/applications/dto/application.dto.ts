@@ -29,17 +29,17 @@ export class ApplicationCreateDto {
     
 }
 
-class ProductDto {
- 
-  @Type(() => CreditTimeDto)
-  creditTime!: CreditTimeDto
-}
-
 class CreditTimeDto {
   value!: number
   @Transform(({ value }) => CreditTimeUnits[value as keyof typeof CreditTimeUnits] ?? value)
 
   units!: CreditTimeUnits
+}
+
+class ProductDto {
+ 
+  @Type(() => CreditTimeDto)
+  creditTime!: CreditTimeDto
 }
 
 export class ApplicationDto {

@@ -8,6 +8,9 @@ import { GuestOnly, RequireAuth } from './guards'
 
 const LoginPage = lazy(() => import('@/pages/login').then((module) => ({ default: module.LoginPage })))
 const AdminPage = lazy(() => import('@/pages/admin').then((module) => ({ default: module.AdminPage })))
+const ApplicationPage = lazy(() =>
+  import('@/pages/application').then((module) => ({ default: module.ApplicationPage })),
+)
 const CabinetPage = lazy(() => import('@/pages/cabinet').then((module) => ({ default: module.CabinetPage })))
 
 const router = createBrowserRouter([
@@ -19,7 +22,10 @@ const router = createBrowserRouter([
   },
   {
     element: <RequireAuth />,
-    children: [{ path: ROUTES.cabinet, element: <CabinetPage /> }],
+    children: [
+      { path: ROUTES.cabinet, element: <CabinetPage /> },
+      { path: ROUTES.application, element: <ApplicationPage /> },
+    ],
   },
 ])
 

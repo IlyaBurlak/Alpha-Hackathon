@@ -1,11 +1,14 @@
-FROM node:24.4.1-alpine AS client-build
+FROM node:26.12.1-alpine AS client-build
 WORKDIR /repo/client
 COPY client/package.json client/package-lock.json ./
 RUN npm ci
 COPY client .
 RUN npm run build
 
-FROM node:24.4.1-slim AS server-build
+FROM node:26.12.1-slim AS server-build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo/server
 COPY server/package.json server/package-lock.json ./
 RUN npm ci
@@ -14,7 +17,7 @@ RUN npm run build
 RUN rm -rf node_modules && npm ci --omit=dev
 
 # No package-lock.json in externalSystemsMock yet, so `npm install` instead of `npm ci`.
-FROM node:24.4.1-slim AS external-build
+FROM node:26.12.1-slim AS external-build
 WORKDIR /repo/externalSystemsMock
 COPY externalSystemsMock/package.json ./
 RUN npm install
@@ -27,7 +30,7 @@ RUN python -m venv /venv
 COPY ml/requirements.txt .
 RUN /venv/bin/pip install --no-cache-dir -r requirements.txt
 
-FROM node:24.4.1-slim AS node-runtime
+FROM node:26.12.1-slim AS node-runtime
 
 FROM python:3.12.12-slim-trixie
 ENV PATH="/venv/bin:$PATH" PYTHONUNBUFFERED=1 NODE_ENV=production \
