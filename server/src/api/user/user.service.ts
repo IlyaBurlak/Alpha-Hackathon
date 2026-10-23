@@ -33,6 +33,19 @@ export class UserService implements IUserService {
         return user;
     }
 
+    async loginOperator(login: string, password: string): Promise<UserEntity> {
+        const user = await this.userRepository.getOperatorByLogin(login);
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            throw new Error(`Неверный логин или пароль`);
+        }
+        return user;
+    }
+
+     async getOperatorByLogin(login: string): Promise<UserEntity> {
+        return await this.userRepository.getOperatorByLogin(login);
+    }
+
     
 
 }

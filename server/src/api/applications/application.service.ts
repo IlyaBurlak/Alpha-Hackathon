@@ -3,11 +3,12 @@ import { TYPES } from '../../types';
 import bcrypt from 'bcryptjs';
 import { IApplicationService } from './application.service.interface';
 import { IApplicationRepository } from './application.repository.interface';
-import { ApplicationEntity, CreditTime, CreditTimeUnits } from './entity/application.entity';
+import { ApplicationEntity, ApplicationStatus, CreditTime, CreditTimeUnits } from './entity/application.entity';
 import { OrganizationEntity, OrganizationType } from '../organizations/entity/organization.entity';
 import { IUserRepository } from '../user/user.repository.interface';
 import { IGatewayService } from '../gateway/gateway.service.interface';
 import { sequelize } from '../../database/dbconfig';
+import { AnalysisStatus } from './entity/application.score.entity';
 
 
 
@@ -38,7 +39,7 @@ export class ApplicationService implements IApplicationService {
         let allProducts = await this.gatewayService.getBanksProducts();
         let availableProducts = undefined;
 
-        allProducts = allProducts.map((product: any) => { 
+        if (allProducts) allProducts = allProducts.map((product: any) => { 
             product.minCreditTime.units = CreditTimeUnits[product.minCreditTime.units as keyof typeof CreditTimeUnits];
             product.maxCreditTime.units = CreditTimeUnits[product.maxCreditTime.units as keyof typeof CreditTimeUnits];
             return product
@@ -75,11 +76,65 @@ export class ApplicationService implements IApplicationService {
         if (availableProducts) {
             const handledProducts = await this.handleProducts(application, availableProducts);
             (application as any).products = handledProducts;
-            
         }
        
         return application;
     }
+
+    private async handleApplication(application: ApplicationEntity, org: OrganizationEntity): Promise<void> {
+        
+        await this.applicationRepository.createApplicationScore(application.id);
+        await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.PENDINGCRREDITHISTORY);
+        await this.applicationRepository.updateApplicationScoringInfo(application.id, { });
+        const history = await this.gatewayService.getCreditBureauHistory(org.inn);
+       
+        if (history) {
+            await this.applicationRepository.updateApplicationScoringInfo(application.id, { history });
+        }
+       
+        
+        await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.PENDINGREGISTER);
+        const registerInfo = await this.gatewayService.getRegisterInfo(org.inn, org.type);
+        if (registerInfo) {
+            await this.applicationRepository.updateApplicationScoringInfo(application.id, { registerInfo });
+        }
+
+        const t = {
+        pd:0.1,
+        model_version:"stub-0.0",
+        factors:[
+                "revenue_cv",
+              "profit_cv",
+              "assets_cv",
+              "liabilities_cv",
+              "equity_cv",
+        ],}
+       
+        await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITNGSCORING);
+        const scoringResult = await this.gatewayService.getMlScoring(application);
+        if (scoringResult) {
+            await this.applicationRepository.updateApplicationScore(application.id, t);
+        }
+        await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITONGOPERATOR);
+        
+    }
+    
+
+    async restartScoring(applicationId: number): Promise<void> {
+        const application = await this.applicationRepository.getApplicationWithScore(applicationId);
+        if (application.status !== ApplicationStatus.SUBMITTED) {
+            throw new Error(`Заявка не находится в статусе SUBMITTED: возможно она еще не была отправлена или уже была обработана`);
+        }
+        const userInfo = await this.userRepository.getUserById(application.userId);
+        const org = userInfo.organizations.find((org: OrganizationEntity) => org.id === application.organizationId);
+        this.handleApplication(application, org!);
+        
+    }
+
+    async getApplicationWithScore(id: number): Promise<ApplicationEntity> {
+        return this.applicationRepository.getApplicationWithScore(id);
+    }
+
 
     async createApplication(application: ApplicationEntity ): Promise<ApplicationEntity> {
         return sequelize.transaction(async (transaction) => {
@@ -98,7 +153,10 @@ export class ApplicationService implements IApplicationService {
 
 
     async confirmApplication(applicationId: number, userId: number, productId: number): Promise<ApplicationEntity> {
-        return sequelize.transaction(async (transaction) => {
+        let applicationForHandler: ApplicationEntity;
+        let orgForHandler: OrganizationEntity;
+
+        const confirmed = await sequelize.transaction(async (transaction) => {
             const application = await this.applicationRepository.getApplicationById(applicationId, transaction);
             const userInfo = await this.userRepository.getUserById(application.userId, transaction);
             const org = userInfo.organizations.find((org: OrganizationEntity) => org.id === application.organizationId);
@@ -121,8 +179,16 @@ export class ApplicationService implements IApplicationService {
                 throw new Error(`Выбранный продукт недоступен для данной заявки`);
             }
 
+            applicationForHandler = application;
+            orgForHandler = org;
+
             return this.applicationRepository.confirmApplication(applicationId, product, transaction);
         });
+
+        
+        void this.handleApplication(applicationForHandler!, orgForHandler!)
+
+        return confirmed;
     }
 
 
@@ -149,8 +215,6 @@ export class ApplicationService implements IApplicationService {
     async getApplicationByUserId(userId: number): Promise<ApplicationEntity[]> {
         return await this.applicationRepository.getApplicationByUserId(userId);
     }
-   
 
-    
 
 }

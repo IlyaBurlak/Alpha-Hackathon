@@ -1,11 +1,5 @@
 import { Container } from 'inversify';
 import { TYPES } from './types';
-import { SupportController } from './api/support/support.controller';
-import { SupportService } from './api/support/support.service';
-import { SupportRepository } from './api/support/support.repository';
-import { ISupportController } from './api/support/support.controller.interface';
-import { ISupportService } from './api/support/support.service.interface';
-import { ISupportRepository } from './api/support/support.repository.interface';
 import { UserRepository } from './api/user/user.repository';
 import { IUserRepository } from './api/user/user.repository.interface';
 import { UserService } from './api/user/user.service';
@@ -22,10 +16,6 @@ import { GatewayService } from './api/gateway/gateway.service';
 import { IGatewayService } from './api/gateway/gateway.service.interface';
 
 const container = new Container();
-
-container.bind<ISupportController>(TYPES.supportController).to(SupportController);
-container.bind<ISupportService>(TYPES.supportService).to(SupportService);
-container.bind<ISupportRepository>(TYPES.supportRepository).to(SupportRepository);
 
 container.bind<IUserController>(TYPES.userController).to(UserController);
 container.bind<IUserService>(TYPES.userService).to(UserService);

@@ -1,7 +1,8 @@
 import { Exclude, Transform, Type } from "class-transformer"
 import { OrganizationDto } from "../../organizations/dto/organization.dto"
-import { IsEmpty, IsNotEmpty } from "class-validator";
+import { IsEmpty, IsNotEmpty, IsOptional } from "class-validator";
 import { ApplicationStatus, CreditTime, CreditTimeUnits } from "../entity/application.entity";
+import { ApplicationScoreDto } from "./application.score";
 
 export class ApplicationCreateDto {
     @IsNotEmpty()
@@ -48,7 +49,12 @@ export class ApplicationDto {
     @Transform(({ value }) => ApplicationStatus[value as keyof typeof ApplicationStatus] ?? value)
     status!: number;
 
+    @IsOptional()
     @Type(() => ProductDto)
     products!: ProductDto[];
+
+    @IsOptional()
+    @Type(() => ApplicationScoreDto)
+    applicationScore!: ApplicationScoreDto;
     
 }

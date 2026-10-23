@@ -162,15 +162,14 @@ inn - инн запрашиваемой компании
 Пример ответа: 
 <pre>
 {
-    "inn": "7701234568",
-    "fullName": "ООО \"Ромашка\"",
-    "isActive": true,
-    "registrationDate": "2020-01-15",
-    "liquidationDate": null,
-    "authCapital": 10000,
-    "employeesCount": 10,
-    "annualIncome": 500000,
-    "annualExpenses": 200000
+  "inn": "5401234563",
+  "fullName": "ИП Динозавриков Сергей",
+  "isActive": true,
+  "registrationDate": "2025-01-15",
+  "liquidationDate": null,
+  "employeesCount": 3,
+  "annualIncome": 300000,
+  "annualExpenses": 100000
 }
 </pre>
 Пример ответа при недоступности сервиса: 
