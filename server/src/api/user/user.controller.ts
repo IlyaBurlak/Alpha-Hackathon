@@ -26,6 +26,12 @@ export class UserController extends BaseController implements IUserController {
         middleware: [] 
       },
       {
+        path: '/admin-login',
+        method: 'post',
+        func: this.loginOperator,
+        middleware: [] 
+      },
+      {
         path: '/info',
         method: 'get',
         func: this.getUserInfo,
@@ -129,6 +135,29 @@ export class UserController extends BaseController implements IUserController {
       } catch (err) {
           next(err);
       }
+  }
+
+  async loginOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+      const { login, password } = req.body;
+
+      if (typeof login !== 'string' || typeof password !== 'string' || login.trim().length === 0 || password.length === 0) {
+          res.status(400).json({ error: 'login и password обязательны' });
+          return;
+      }
+
+      const user = await this.userService.loginOperator(login, password);
+      const token = jwt.sign(
+          { login: user.login, id: user.id, isAdmin: true }, 
+          process.env.JWT_SECRET!,
+          { expiresIn: '1d' }
+      );
+      
+     res.json({ token });
+      
+    } catch (err) {
+      next(err);
+    }
   }
 
   

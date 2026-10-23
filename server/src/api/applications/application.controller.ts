@@ -45,7 +45,20 @@ export class ApplicationController extends BaseController implements IApplicatio
         method: 'get',
         func: this.getApplicationById,
         middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
+        path: '/:id/score',
+        method: 'get',
+        func: this.getApplicationWithScore,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+       {
+        path: '/:id/restart',
+        method: 'post',
+        func: this.restartScoring,
+        middleware: [passport.authenticate('jwt', { session: false })]
       }
+    
      
     ]);
   }
@@ -216,5 +229,48 @@ export class ApplicationController extends BaseController implements IApplicatio
             next(err);
         }
       }
+
+      async restartScoring(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
+            if (!adminAccess) {
+                res.status(403).json({ error: 'Access denied' });
+                return;
+            }
+            const applicationId = Number(req.params.id);
+            if (!applicationId) {
+                res.status(400).json({ error: 'Не указан ID заявки' });
+                return;
+            }
+            this.applicationService.restartScoring(applicationId);
+            res.json(true)
+        }  catch (err) {
+            next(err);
+        }
+        
+      }
+
+      async getApplicationWithScore(req: Request, res: Response, next: NextFunction): Promise<void> {
+          try {
+              const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
+              if (!adminAccess) {
+                  res.status(403).json({ error: 'Access denied' });
+                  return;
+              }
+              const applicationId = Number(req.params.id);
+              if (!applicationId) {
+                  res.status(400).json({ error: 'Не указан ID заявки' });
+                  return;
+              }
+              const result = await this.applicationService.getApplicationWithScore(applicationId);
+              res.json(plainToInstance(ApplicationDto, result))
+          }  catch (err) {
+              next(err);
+          }
+      }
+
+      
+
+      
   
 }

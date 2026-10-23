@@ -4,11 +4,12 @@ import path from 'node:path';
 import 'dotenv/config';
 import { container } from './container';
 import { TYPES } from './types';
-import { SupportController } from './api/support/support.controller';
 import { sequelize } from './database/dbconfig';
 import { BdCongigClass } from './database/dbprepare';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
+import { IApplicationController } from './api/applications/application.controller.interface';
+import { IUserController } from './api/user/user.controller.interface';
 
 const app = express();
 
@@ -22,9 +23,9 @@ const app = express();
   app.use(express.urlencoded({ extended: true }));
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
-  const helloController = container.get<SupportController>(TYPES.supportController);
-  const userController = container.get<SupportController>(TYPES.userController);
-  const applicationController = container.get<SupportController>(TYPES.applicationController);
+
+  const userController = container.get<IUserController>(TYPES.userController);
+  const applicationController = container.get<IApplicationController>(TYPES.applicationController);
   app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.get(['/health', '/api/health'], (_req, res) => {
     res.json({ status: 'ok' });
@@ -32,7 +33,7 @@ const app = express();
 
   app.use(`/api/users`, userController.router)
   app.use(`/api/applications`, applicationController.router)
-  app.use(helloController.router);
+
 
   app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(err);
@@ -40,7 +41,7 @@ const app = express();
   });
 
   if (!process.env.PORT) {
-    throw new Error("Не указан BACKPORT в настройках. Проверьте env файл")
+    throw new Error("Не указан PORT в настройках. Проверьте env файл")
   }
 
   app.listen(process.env.PORT, () => {

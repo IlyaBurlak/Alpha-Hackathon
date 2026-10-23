@@ -2,6 +2,7 @@ import { DataTypes, Model, NOW } from 'sequelize';
 import { sequelize } from '../dbconfig';
 import { Organization } from './Organization';
 import { UserToOrganization } from './UserToOrganization';
+import { ApplicationScore } from './ApplicationScoring';
 
 
 export class Application extends Model {
@@ -20,8 +21,12 @@ export class Application extends Model {
 
     static associate(models: { Organization: typeof Organization }) {
         this.belongsTo(Organization, {
-        foreignKey: 'organizationId',
-        as: 'organization',
+          foreignKey: 'organizationId',
+          as: 'organization',
+        });
+        this.hasOne(ApplicationScore, {
+            foreignKey: 'applicationId',
+            as: 'applicationScore',
         });
     }
 

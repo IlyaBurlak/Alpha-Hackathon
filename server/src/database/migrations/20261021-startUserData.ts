@@ -15,8 +15,8 @@ export const up = async ({ context: sequelize }: Ctx): Promise<void> => {
     {  id: 6,  login: 'alfaAlex', password: bcrypt.hashSync('alfaAlex!', saltRounds), fullName: "Котов Александр" },
   ]);
   await sequelize.getQueryInterface().bulkInsert('operators', [
-    {  id: 1, login: 'alfaOperator1', password: 'alfaOperator1!', fullName: "Кошмариков Антон" },
-    {  id: 2, login: 'alfaOperator2', password: 'alfaOperator2!', fullName: "Супов Владислав" },
+    {  id: 1, login: 'alfaOperator1', password: bcrypt.hashSync('alfaOperator1!', saltRounds), fullName: "Кошмариков Антон" },
+    {  id: 2, login: 'alfaOperator2', password: bcrypt.hashSync('alfaOperator2!', saltRounds), fullName: "Супов Владислав" },
   ]);
   await sequelize.getQueryInterface().bulkInsert('organizations', [
     {  id: 1, inn: '7701234568', fullName: 'ООО "Ромашка"', type: 1 },
