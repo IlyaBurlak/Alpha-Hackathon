@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test:integration": "tsx --test --import allure-node-test/setup --test-reporter spec --test-reporter-destination stdout --test-reporter allure-node-test/reporter --test-reporter-destination stdout tests/integration/**/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +41,9 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "allure": "^3.22.1",
+    "allure-js-commons": "^3.14.0",
+    "allure-node-test": "^3.14.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"

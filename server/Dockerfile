@@ -6,6 +6,9 @@ RUN npm ci
 COPY server .
 RUN npm run build
 
+FROM build AS integration-test
+CMD ["npm", "run", "test:integration"]
+
 FROM node:26.12.1-alpine
 ENV NODE_ENV=production
 WORKDIR /app
