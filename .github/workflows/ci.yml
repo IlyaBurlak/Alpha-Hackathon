@@ -12,6 +12,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - 'docker-compose.test.yml'
+
   client:
     runs-on: ubuntu-latest
     defaults:
@@ -76,8 +90,39 @@ jobs:
       - run: ruff check .
       - run: pytest
 
+  server-integration:
+    needs: [changes, server]
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f docker-compose.test.yml build
+      - run: docker compose -f docker-compose.test.yml run --rm integration-tests
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.test.yml logs
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate allure-results --clean -o allure-report
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v --remove-orphans
+
   smoke:
-    needs: [client, server, external-systems, ml]
+    needs: [client, server, external-systems, ml, server-integration]
+    if: |
+      always() &&
+      needs.client.result == 'success' &&
+      needs.server.result == 'success' &&
+      needs.external-systems.result == 'success' &&
+      needs.ml.result == 'success' &&
+      (needs.server-integration.result == 'success' || needs.server-integration.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

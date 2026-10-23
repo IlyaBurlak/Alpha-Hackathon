@@ -29,6 +29,10 @@ ml/models/weights/
 *.pth
 *.onnx
 
+# Test reports
+allure-results/
+allure-report/
+
 # Logs
 logs/
 *.log
