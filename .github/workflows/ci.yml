@@ -116,8 +116,14 @@ jobs:
       - name: Carry history into this run's results
         if: always()
         run: |
-          mkdir -p allure-results/history
-          [ -d gh-pages/history ] && cp -r gh-pages/history/. allure-results/history/ || true
+          # allure-results/ was written by root inside the integration-tests
+          # container (bind mount, no USER set in the build stage) — the
+          # runner user can read it but can't create new entries, hence sudo.
+          sudo mkdir -p allure-results/history
+          if [ -d gh-pages/history ]; then
+            sudo cp -r gh-pages/history/. allure-results/history/
+          fi
+          sudo chown -R "$(id -u):$(id -g)" allure-results
       - name: Generate Allure report
         if: always()
         run: npx allure generate allure-results --clean -o allure-report
