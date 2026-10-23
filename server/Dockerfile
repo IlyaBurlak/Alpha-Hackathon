@@ -1,4 +1,4 @@
-FROM node:24.4.1-alpine AS build
+FROM node:26.12.1-alpine AS build
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY server/package.json server/package-lock.json ./
@@ -6,14 +6,10 @@ RUN npm ci
 COPY server .
 RUN npm run build
 
-FROM node:26.12.1-alpine AS integration-test
-WORKDIR /app
-COPY server/package.json server/package-lock.json ./
-RUN npm ci
-COPY server .
+FROM build AS integration-test
 CMD ["npm", "run", "test:integration"]
 
-FROM node:24.4.1-alpine
+FROM node:26.12.1-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 COPY server/package.json server/package-lock.json ./
