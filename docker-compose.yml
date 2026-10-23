@@ -14,10 +14,13 @@ services:
       PORT: 3001
       ML_SERVICE_URL: ${ML_SERVICE_URL}
       JWT_SECRET: ${JWT_SECRET}
+      BANK_API: http://external-systems:5006/api/banks
     volumes:
       - server-data:/app/data
     depends_on:
       ml:
+        condition: service_healthy
+      external-systems:
         condition: service_healthy
 
   external-systems:
