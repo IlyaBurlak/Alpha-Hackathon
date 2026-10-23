@@ -75,7 +75,6 @@ test('filterAvailableProducts keeps only products matching org type, sum and cre
 
   const products = await service.filterAvailableProducts(application, LEGAL_ENTITY);
 
-  // Product 3 is IE-only, so a legal entity (OO) only sees product 1.
   assert.deepEqual(products.map((p: any) => p.id), [1]);
 });
 
@@ -90,7 +89,7 @@ test('filterAvailableProducts includes IE-only products for sole proprietors', a
 
 test('filterAvailableProducts excludes products outside the requested sum range', async () => {
   const service = buildService() as any;
-  // Above product 3's maxSum (1,000,000) but still within product 1's range.
+
   const application = buildApplication({ organizationId: 5, sum: 2_000_000 });
 
   const products = await service.filterAvailableProducts(application, SOLE_PROPRIETOR);
@@ -104,7 +103,6 @@ test('handleProducts computes collateral from minCollateral + percentage of the 
 
   const handled = await service.handleProducts(application, [freshBankProducts()[0]]);
 
-  // minCollateral (20000) + sum * percentage/100 (50000 * 10/100 = 5000)
   assert.equal(handled[0].collateral, 25000);
 });
 
@@ -115,4 +113,13 @@ test('handleProducts reports zero collateral when the product has none', async (
   const handled = await service.handleProducts(application, [{ ...freshBankProducts()[1], minCollateral: 0 }]);
 
   assert.equal(handled[0].collateral, 0);
+});
+
+test('convertCreditTimeToDays converts each unit to days', () => {
+  const service = buildService() as any;
+
+  assert.equal(service.convertCreditTimeToDays({ units: CreditTimeUnits.DAY, value: 5 }), 5);
+  assert.equal(service.convertCreditTimeToDays({ units: CreditTimeUnits.MONTH, value: 2 }), 60);
+  assert.equal(service.convertCreditTimeToDays({ units: CreditTimeUnits.YEAR, value: 1 }), 365);
+  assert.equal(service.convertCreditTimeToDays({ units: 999, value: 1 }), 0);
 });
