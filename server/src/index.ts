@@ -1,7 +1,6 @@
-import 'reflect-metadata'; // обязательно первой строкой
+import 'reflect-metadata'; 
 import express from 'express';
 import path from 'node:path';
-
 import 'dotenv/config';
 import { container } from './container';
 import { TYPES } from './types';

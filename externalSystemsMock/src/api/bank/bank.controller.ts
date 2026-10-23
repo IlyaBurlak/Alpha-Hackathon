@@ -36,6 +36,7 @@ export class BankController extends BaseController implements IBankController {
         try {
            const result = [
             {
+              id: 1,
               name: "Кредит для бизнеса с залогом",
               minSum: 10000,
               maxSum: 100000000,
@@ -49,10 +50,13 @@ export class BankController extends BaseController implements IBankController {
               },
               ooAvailable: true,
               ieAvailable: true,
-              minCollateral: 20000
+              minCollateral: 20000,
+              persentage: 10,
+              payments: "ежемесячно, равными долями, с первым платежом через 6 месяцев"
             },
             {
-              name: "Кредит для бизнеса без залогов",
+              id: 2,
+              name: "Кредит для бизнеса без залогов",
               minSum: 10000,
               maxSum: 5000000,
               minCreditTime: {
@@ -65,25 +69,31 @@ export class BankController extends BaseController implements IBankController {
               },
               ooAvailable: true,
               ieAvailable: true,
-              minCollateral: 0
+              minCollateral: 0,
+              persentage: 15,
+               payments: "ежемесячно, равными долями, с первым платежом через 6 месяцев"
             },
             {
-              name: "Кредит «Деньги на дело»",
+              id: 3,
+              name: "Кредит «Деньги на дело»",
               minSum: 0,
               maxSum: 1000000,
               minCreditTime: {
                 units: "MONTH",
-                value: 6
+                value: 3
               },
               maxCreditTime: {
                 units: "MONTH",
                 value: 60
               },
-              ooAvailable: true,
-              ieAvailable: false,
-              minCollateral: 10000
+              ooAvailable: false,
+              ieAvailable: true,
+              minCollateral: 10000,
+              persentage: 9,
+              payments: "ежемесячно, равными долями, с первым платежом через 3 месяца"
             },
             {
+              id: 4,
               name: "Кредит для бизнеса с господдержкой",
               minSum: 0,
               maxSum: 10000000,
@@ -97,7 +107,9 @@ export class BankController extends BaseController implements IBankController {
               },
               ooAvailable: true,
               ieAvailable: false,
-              minCollateral: 0
+              minCollateral: 0,
+              persentage: 5,
+              payments: "ежемесячно, равными долями, с первым платежом через 6 месяцев"
             }
            ]
            if ((global as any).bankisActive) {

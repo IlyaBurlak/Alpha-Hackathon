@@ -28,6 +28,12 @@ export class ApplicationCreateDto {
     
 }
 
+class ProductDto {
+ 
+  @Type(() => CreditTimeDto)
+  creditTime!: CreditTimeDto
+}
+
 class CreditTimeDto {
   value!: number
   @Transform(({ value }) => CreditTimeUnits[value as keyof typeof CreditTimeUnits] ?? value)
@@ -41,5 +47,8 @@ export class ApplicationDto {
     
     @Transform(({ value }) => ApplicationStatus[value as keyof typeof ApplicationStatus] ?? value)
     status!: number;
+
+    @Type(() => ProductDto)
+    products!: ProductDto[];
     
 }

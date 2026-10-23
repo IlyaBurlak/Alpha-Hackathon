@@ -5,5 +5,5 @@ export interface IApplicationService {
   createApplication(application: ApplicationEntity ): Promise<ApplicationEntity>
   getApplicationById(id: number, userId: number): Promise<ApplicationEntity>;
   getApplicationByUserId(userId: number): Promise<ApplicationEntity[]>;
-  
+  confirmApplication(applicationId: number, userId: number, productId: number): Promise<ApplicationEntity>;
 }

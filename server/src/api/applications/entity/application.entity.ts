@@ -23,7 +23,8 @@ export class ApplicationEntity {
     userId!: number;
     organizationId!: number;
     sum!: number;
-  
+    productId!: number;
+    product?: any;
     status!: number;
     createdAt!: Date;
     creditTime: CreditTime;
@@ -41,5 +42,9 @@ export class ApplicationEntity {
             value: model.creditValue
         }
         this.loanIssuanceDate = model.loanIssuanceDate;
+        this.productId = model.productId;
+        if (model.productConditions) {
+            this.product = model.productConditions;
+        }
     }
 }

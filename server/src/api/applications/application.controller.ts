@@ -29,6 +29,12 @@ export class ApplicationController extends BaseController implements IApplicatio
         middleware: [passport.authenticate('jwt', { session: false })]
       },
       {
+        path: '/',
+        method: 'put',
+        func: this.confirmApplication,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
         path: '/my',
         method: 'get',
         func: this.getMyApplications,
@@ -114,6 +120,7 @@ export class ApplicationController extends BaseController implements IApplicatio
                 return;
             }
             const result = await this.applicationService.getApplicationById(applicationId, userId);
+
             res.json(plainToInstance(ApplicationDto, result))
         }  catch (err) {
             next(err);
@@ -152,5 +159,62 @@ export class ApplicationController extends BaseController implements IApplicatio
               next(err);
         } 
     }
+
+
+/**
+ * @swagger
+ * /api/applications/:
+ *   put:
+ *     tags: [Applications]
+ *     summary: Подтвердить заявку
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: applicationId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *       - in: query
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Заявка подтверждена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Application'
+ *       400:
+ *         description: Недостаточно данных
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+    async confirmApplication(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+
+            const applicationId = Number(req.query.applicationId); 
+            const productId = Number(req.query.productId);
+            if (!applicationId || !productId) {
+                res.status(400).json({ error: 'Application ID or Product ID is missing' });
+                return;
+            }
+            const userId = (req.user as { id?: number } | undefined)?.id;
+            if (!userId) {
+                res.status(400).json({ error: 'User ID is missing' });
+                return;
+            }
+            const result = await this.applicationService.confirmApplication(applicationId, userId, productId);
+            res.json(plainToInstance(ApplicationDto, result))
+        }  catch (err) {
+            next(err);
+        }
+      }
   
 }
