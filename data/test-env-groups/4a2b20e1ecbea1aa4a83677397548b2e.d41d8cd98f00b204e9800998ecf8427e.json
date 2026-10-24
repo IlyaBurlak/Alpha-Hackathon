@@ -1,1 +1,1 @@
-{"id":"4a2b20e1ecbea1aa4a83677397548b2e.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/health.integration.test.ts#GET /api/health returns ok","name":"GET /api/health returns ok","status":"passed","testResultsByEnv":{"default":"e9a5285a1b191b4bb5bcc49b414c14af"}}
+{"id":"4a2b20e1ecbea1aa4a83677397548b2e.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/health.integration.test.ts#GET /api/health returns ok","name":"GET /api/health returns ok","status":"passed","testResultsByEnv":{"default":"640726361c8e055a820ef4a9151f0467"}}
