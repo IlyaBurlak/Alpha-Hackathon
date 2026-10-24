@@ -19,12 +19,12 @@ export const up = async ({ context: sequelize }: Ctx): Promise<void> => {
     {  id: 2, login: 'alfaOperator2', password: bcrypt.hashSync('alfaOperator2!', saltRounds), fullName: "Супов Владислав" },
   ]);
   await sequelize.getQueryInterface().bulkInsert('organizations', [
-    {  id: 1, inn: '7701234568', fullName: 'ООО "Ромашка"', type: 1 },
-    {  id: 2, inn: '5001234569', fullName: 'ООО "Кот не знает"', type: 1 },
-    {  id: 3, inn: '7801234562', fullName: 'ООО "Таинственный сад"', type: 1 },
-    {  id: 4, inn: '6601234564', fullName: 'ООО "АмёбаПродакшн"', type: 1 },
-    {  id: 5, inn: '2301234560', fullName: 'ИП Сырный Иван', type: 2 },
-    {  id: 6, inn: '5401234563', fullName: 'ИП Динозавриков Сергей"', type: 2 },
+    { id: 1, inn: '7701234568', ogrn: '1234567890123', fullName: 'ООО "Ромашка"', head: 'Подсолнухов Роман Иванович', account: '4018****23', address: 'г. Москва, ул. Ленина, д. 1', type: 1 },
+    { id: 2, inn: '5001234569', ogrn: '1234567890124', fullName: 'ООО "Кот не знает"', head: 'Василенко Анжелика', account: '4015****23', address: 'г. Санкт-Петербург, ул. Ленина, д. 2', type: 1 },
+    { id: 3, inn: '7801234562', ogrn: '1234567890125', fullName: 'ООО "Таинственный сад"', head: 'Франсина Бернетт', account: '4018****24', address: 'г. Новосибирск, ул. Ленина, д. 3', type: 1 },
+    { id: 4, inn: '6601234564', ogrn: '1234567890126', fullName: 'ООО "АмёбаПродакшн"', head: 'Иванова Алина Сергеевна', account: '4018****25', address: 'г. Екатеринбург, ул. Ленина, д. 4', type: 1 },
+    { id: 5, inn: '2301234560', ogrn: '1234567890127', fullName: 'ИП Сырный Иван', head: null, account: '4018****22', address: null, type: 2 },
+    { id: 6, inn: '5401234563', ogrn: '1234567890128', fullName: 'ИП Динозавриков Сергей"', head: null, account: '4018****23', address: null, type: 2 },
   ]);
    await sequelize.getQueryInterface().bulkInsert('user_to_organizations', [
     {  userId: 1, organizationId: 1 },

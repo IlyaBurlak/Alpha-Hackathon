@@ -7,6 +7,8 @@ import { AnalysisStatus, MlScoreEntity } from './entity/application.score.entity
 import { ApplicationScore } from '../../database/models/ApplicationScoring';
 import { sequelize } from '../../database/dbconfig';
 import { OperatorSolution } from './entity/operator.solution';
+import { Operator } from '../../database/models/Operator';
+import { UserEntity } from '../user/entity/user.entity';
 
 
 
@@ -59,6 +61,13 @@ export class ApplicationRepository implements IApplicationRepository {
         await ApplicationScore.update(
             { status },
             { where: { applicationId: applicationId } }
+        );
+    }
+
+    async updateApplicationStatus(applicationId: number, status: ApplicationStatus): Promise<void> {
+        await Application.update(
+            { status },
+            { where: { id: applicationId } }
         );
     }
 
@@ -120,13 +129,17 @@ export class ApplicationRepository implements IApplicationRepository {
         });
     }
     
-    async saveOperatorSolution(applicationId: number, solution: OperatorSolution): Promise<void> {
+    async saveOperatorSolution(applicationId: number, solution: OperatorSolution, operatorId: number): Promise<void> {
         return sequelize.transaction(async (transaction) => {
             const prev = await ApplicationScore.findOne({ where: { applicationId: applicationId }, transaction });
+            const application = await Application.findOne({ where: { id: applicationId }, transaction });
+            if (application?.operatorId !== operatorId) {
+                throw new Error(`Эта заявка не назначена для данного оператора.`);
+            }
             if (!prev) {
                 throw new Error(`Заявка с id ${applicationId} не найдена`);
             } 
-            if (prev.status !== ApplicationStatus.SUBMITTED){
+            if (prev.status !== AnalysisStatus.WAITONGOPERATOR){
                 throw new Error(`По этой заявке не нужно решение оператора.`);
             }
             await ApplicationScore.update(
@@ -144,6 +157,35 @@ export class ApplicationRepository implements IApplicationRepository {
                 { where: { id: applicationId  }, transaction }  
             );
         });
+    }
+
+    async getAllApplicationsForOperator(): Promise<ApplicationEntity[]> {
+        const models = await Application.findAll({
+            where: {  },
+            include: [{ model: ApplicationScore, as: 'applicationScore' }, { model: Operator, as: 'operator' }],
+
+        });
+        
+        return models ? models.map((model: any) => { 
+            const result = new ApplicationEntity(model);
+          
+       
+            if (result.applicationScore) {
+                delete result.applicationScore.history;
+                delete result.applicationScore.registerInfo;
+            }
+            
+            return result;
+        }) : [];
+    }
+
+    async takeApplicationForOperator(applicationId: number, operatorId: number): Promise<void> {
+      
+        await Application.update(
+            { operatorId },
+            { where: { id: applicationId } }
+        );
+     
     }
     
 }

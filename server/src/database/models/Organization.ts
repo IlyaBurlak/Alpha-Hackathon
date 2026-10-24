@@ -7,6 +7,10 @@ export class Organization extends Model {
   public id!: number;
   public fullName!: string;
   public inn!: string;
+  public ogrn!: string;
+  public head!: string | null;
+  public account!: string;
+  public address!: string | null;
   public type!: number;
    static associate(models: { User: typeof User }) {
         this.belongsToMany(User, {
@@ -32,6 +36,22 @@ Organization.init(
     inn: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    ogrn: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    head: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    account: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     type: {
       type: DataTypes.SMALLINT,
