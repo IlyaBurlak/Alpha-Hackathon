@@ -317,6 +317,11 @@ id - идентификатор заявки
     "units": "YEAR",
     "value": 1
   },
+  "operator": {
+    "login": "alfaOperator1",
+    "fullName": "Кошмариков Антон",
+    "id": 1
+  },
   "applicationScore": {
     "id": 9,
     "applicationId": 10,

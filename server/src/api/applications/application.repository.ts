@@ -105,7 +105,7 @@ export class ApplicationRepository implements IApplicationRepository {
     async getApplicationWithScore (id: number, transaction?: Transaction): Promise<ApplicationEntity> {
        const model = await Application.findOne({
             where: { id },
-            include: [{ model: ApplicationScore, as: 'applicationScore' }],
+            include: [{ model: ApplicationScore, as: 'applicationScore' }, { model: Operator, as: 'operator' }],
             transaction,
             })
         if (!model) {
