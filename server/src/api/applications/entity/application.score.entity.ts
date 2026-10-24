@@ -26,6 +26,14 @@ export class RegisterInfo {
     public employeesCount!: number;
     public annualIncome!: number;
     public annualExpenses!: number;
+    public lastYearBalances!: number[];
+    public ogrn!: string;
+    public okved!: string
+    public head!: string;
+    public kpp!: string;
+    public bankClientSince!: Date;
+    public address!: string;
+    public account!: string;
 }
 
 export class MlScoreEntity {
@@ -65,7 +73,16 @@ export class ApplicationScoreEntity {
                 authCapital: model.info.registerInfo?.authCapital,
                 employeesCount: model.info.registerInfo?.employeesCount,
                 annualIncome: model.info.registerInfo?.annualIncome,
-                annualExpenses: model.info.registerInfo?.annualExpenses
+                annualExpenses: model.info.registerInfo?.annualExpenses,
+                lastYearBalances: model.info.registerInfo?.lastYearBalances,
+                ogrn: model.info.registerInfo?.ogrn,
+                okved: model.info.registerInfo?.okved,
+                head: model.info.registerInfo?.head,
+                kpp: model.info.registerInfo?.kpp,
+                bankClientSince: model.info.registerInfo?.bankClientSince,
+                address: model.info.registerInfo?.address,
+                account: model.info.registerInfo?.account
+
             }
             this.mlScore = {
                 model_version: model.info.mlScore?.model_version,

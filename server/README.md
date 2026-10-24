@@ -270,21 +270,21 @@ id - идентификатор заявки
 Пример ответа если скоринг пройден (все доступные данные, чтобы оператор видел все сразу): 
 <pre>
 {
-  "id": 4,
+  "id": 10,
   "userId": 2,
   "organizationId": 2,
   "sum": 100000000,
   "status": "SUBMITTED",
-  "createdAt": "2026-10-23T19:52:32.325Z",
+  "createdAt": "2026-10-24T10:22:22.472Z",
   "creditTime": {
     "units": "YEAR",
     "value": 1
   },
   "applicationScore": {
-    "id": 3,
-    "applicationId": 4,
+    "id": 9,
+    "applicationId": 10,
     "scoringDate": null,
-    "score": 0.1,
+    "score": null,
     "status": "WAITONGOPERATOR",
     "history": {
       "creditHistory": [
@@ -304,7 +304,32 @@ id - идентификатор заявки
       "authCapital": 20000,
       "employeesCount": 24,
       "annualIncome": 400000,
-      "annualExpenses": 200000
+      "annualExpenses": 200000,
+      "lastYearBalances": [
+        100000,
+        100040,
+        100023,
+        140022,
+        200342,
+        123333,
+        4632222,
+        200001,
+        322221,
+        104000,
+        100500,
+        100000,
+        100023,
+        140022,
+        200342,
+        123333
+      ],
+      "ogrn": "1234567890124",
+      "okved": "58.19 Виды издательской деятельности прочие",
+      "head": "Василенко Анжелика",
+      "kpp": "500101001",
+      "bankClientSince": "2023-01-15",
+      "address": "г. Санкт-Петербург, ул. Ленина, д. 2",
+      "account": "4015****23"
     },
     "mlScore": {
       "model_version": "stub-0.0",
@@ -313,8 +338,9 @@ id - идентификатор заявки
       ]
     }
   },
-  "loanIssuanceDate": "2026-10-23T19:52:32.325Z"
-}</pre>
+  "loanIssuanceDate": "2026-10-24T10:22:22.472Z"
+}
+</pre>
 Пример ответа в случае если внешние сервисы оказались недоступны: 
 <pre>
 {

@@ -137,16 +137,26 @@ inn - инн запрашиваемой компании
 
 Пример ответа: 
 <pre>
-{
-    "inn": "7701234568",
-    "fullName": "ООО \"Ромашка\"",
-    "isActive": true,
-    "registrationDate": "2020-01-15",
-    "liquidationDate": null,
-    "authCapital": 10000,
-    "employeesCount": 10,
-    "annualIncome": 500000,
-    "annualExpenses": 200000
+ {
+              inn: "7701234568", 
+              ogrn: "1234567890123",
+              okved: "46.90 Оптовая торговля неспециализированная",
+              fullName: "ООО \"Ромашка\"",
+              head: "Подсолнухов Роман Иванович",
+              kpp: "770101001",
+              address:"г. Москва, ул. Ленина, д. 1",
+              account: "4018****23",
+              isActive: true,
+              registrationDate: "2020-01-15",
+              liquidationDate: null,
+              authCapital: 10000,
+              employeesCount: 10,
+              annualIncome: 500000,
+              annualExpenses: 200000,
+              lastYearBalances: [
+                100000, 100040, 100023, 140022, 200342, 123333, 4632222, 200001, 322221, 104000, 100500, 100000, 100023, 140022, 200342, 123333,
+              ],
+              bankClientSince: "2023-01-15",
 }
 </pre>
 Пример ответа при недоступности сервиса: 
@@ -161,15 +171,22 @@ inn - инн запрашиваемой компании
 
 Пример ответа: 
 <pre>
-{
-  "inn": "5401234563",
-  "fullName": "ИП Динозавриков Сергей",
-  "isActive": true,
-  "registrationDate": "2025-01-15",
-  "liquidationDate": null,
-  "employeesCount": 3,
-  "annualIncome": 300000,
-  "annualExpenses": 100000
+ {
+              inn: "2301234560", 
+              ogrn: "1234567890127",
+              okved: "46.90 Оптовая торговля неспециализированная",
+              fullName: "ИП Сырный Иван",
+              account: "4018****22",
+              isActive: true,
+              registrationDate: "2023-01-15",
+              liquidationDate: null,
+              employeesCount: 1,
+              annualIncome: 100000,
+              annualExpenses: 50000,
+              lastYearBalances: [
+               1054372, 1876540, 432019, 2003745, 689210, 1542883, 947026, 1230471, 2118604, 356789, 1765320, 804195, 1490638, 2067912, 573046, 1321587
+              ],
+              bankClientSince: "2023-01-15",
 }
 </pre>
 Пример ответа при недоступности сервиса: 
