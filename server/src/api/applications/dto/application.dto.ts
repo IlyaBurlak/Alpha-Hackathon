@@ -3,6 +3,9 @@ import { OrganizationDto } from "../../organizations/dto/organization.dto"
 import { IsEmpty, IsNotEmpty, IsOptional } from "class-validator";
 import { ApplicationStatus, CreditTime, CreditTimeUnits } from "../entity/application.entity";
 import { ApplicationScoreDto } from "./application.score";
+import { UserEntity } from "../../user/entity/user.entity";
+import { UserDto } from "../../user/dto/user.dto";
+import { OperatorDto } from "../../user/dto/operator.dto";
 
 export class ApplicationCreateDto {
     @IsNotEmpty()
@@ -56,5 +59,8 @@ export class ApplicationDto {
     @IsOptional()
     @Type(() => ApplicationScoreDto)
     applicationScore!: ApplicationScoreDto;
+
+    @Type(()=> OperatorDto)
+    operator!: OperatorDto;
     
 }

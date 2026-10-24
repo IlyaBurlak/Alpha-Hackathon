@@ -1,4 +1,5 @@
 import { OrganizationEntity } from "../../organizations/entity/organization.entity";
+import { UserEntity } from "../../user/entity/user.entity";
 import { ApplicationScoreEntity } from "./application.score.entity";
 
 export enum CreditTimeUnits {
@@ -35,6 +36,8 @@ export class ApplicationEntity {
     creditTime: CreditTime;
     loanIssuanceDate!: Date;
     solutionComment!: string;
+    operatorId!: number;
+    operator?: UserEntity;
 
     constructor(model: any) {
         this.id = model.id;
@@ -44,6 +47,7 @@ export class ApplicationEntity {
         this.status = model.status;
         this.createdAt = model.createdAt;
         this.solutionComment = model.solutionComment;
+        this.operatorId = model.operatorId;
         this.creditTime = {
             units: model.creditTimeUnits,
             value: model.creditValue
@@ -55,6 +59,9 @@ export class ApplicationEntity {
         if (model.productId) {
             this.productId = model.productId;
             this.product = model.productConditions;
+        }
+        if (model.operator) {
+            this.operator = new UserEntity(model.operator);
         }
         this.loanIssuanceDate = model.loanIssuanceDate;
         

@@ -220,14 +220,41 @@ export class ApplicationService implements IApplicationService {
         return await this.applicationRepository.getApplicationByUserId(userId);
     }
 
-    async saveOperatorSolution(applicationId: number, solution: OperatorSolution): Promise<void> {
+    async saveOperatorSolution(applicationId: number, solution: OperatorSolution, operatorId: number): Promise<void> {
         if (solution.status == ApplicationStatus.SPECIALPRODUCTOFFERED && !solution.product) {
             throw new Error(`Не указан продукт для специального предложения`);
         }
         if (!(solution.status === ApplicationStatus.SPECIALPRODUCTOFFERED || solution.status === ApplicationStatus.APPROVED || solution.status === ApplicationStatus.REJECTED )) {
             throw new Error(`Неверный статус решения оператора. Доступные статусы: SPECIALPRODUCTOFFERED, APPROVED, REJECTED`);
         }
-        return this.applicationRepository.saveOperatorSolution(applicationId, solution);
+        return this.applicationRepository.saveOperatorSolution(applicationId, solution, operatorId);
+    }
+
+    async getAllApplicationsForOperator(): Promise<ApplicationEntity[]> {
+        return this.applicationRepository.getAllApplicationsForOperator();
+    }
+
+    async takeApplicationForOperator(applicationId: number, operatorId: number): Promise<void>{
+        return this.applicationRepository.takeApplicationForOperator(applicationId, operatorId);
+    }
+
+    async updateApplicationStatus(applicationId: number, status: ApplicationStatus): Promise<void> {
+        return this.applicationRepository.updateApplicationStatus(applicationId, status);
+    }
+
+
+    async acceptSpecialProduct(applicationId: number, status: ApplicationStatus, userId: number): Promise<void> {
+        if (!(status === ApplicationStatus.SPECIALPRODUCTACCEPTED || status === ApplicationStatus.SPECIALPRODUCTREJECTED)) {
+            throw new Error(`Неверный статус решения пользователя. Доступные статусы: SPECIALPRODUCTACCEPTED, SPECIALPRODUCTREJECTED`);
+        }
+        const application = await this.applicationRepository.getApplicationById(applicationId);
+        if (application.userId !== userId) {
+            throw new Error(`Нет доступа к заявке`);
+        }
+        if (application.status !== ApplicationStatus.SPECIALPRODUCTOFFERED) {
+            throw new Error(`Заявка не находится в статусе SPECIALPRODUCTOFFERED`);
+        }
+        return this.applicationRepository.updateApplicationStatus(applicationId, status);
     }
 
     
