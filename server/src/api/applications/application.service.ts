@@ -9,6 +9,7 @@ import { IUserRepository } from '../user/user.repository.interface';
 import { IGatewayService } from '../gateway/gateway.service.interface';
 import { sequelize } from '../../database/dbconfig';
 import { AnalysisStatus } from './entity/application.score.entity';
+import { OperatorSolution } from './entity/operator.solution';
 
 
 
@@ -109,9 +110,12 @@ export class ApplicationService implements IApplicationService {
               "liabilities_cv",
               "equity_cv",
         ],}
-       
         await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITNGSCORING);
-        const scoringResult = await this.gatewayService.getMlScoring(application);
+        const applicationData = JSON.parse(JSON.stringify(await this.applicationRepository.getApplicationWithScore(application.id)));
+        
+        delete applicationData.applicationScore.history;
+
+        const scoringResult = await this.gatewayService.getMlScoring(applicationData);
         if (scoringResult) {
             await this.applicationRepository.updateApplicationScore(application.id, t);
         }
@@ -214,6 +218,16 @@ export class ApplicationService implements IApplicationService {
 
     async getApplicationByUserId(userId: number): Promise<ApplicationEntity[]> {
         return await this.applicationRepository.getApplicationByUserId(userId);
+    }
+
+    async saveOperatorSolution(applicationId: number, solution: OperatorSolution): Promise<void> {
+        if (solution.status == ApplicationStatus.SPECIALPRODUCTOFFERED && !solution.product) {
+            throw new Error(`Не указан продукт для специального предложения`);
+        }
+        if (!(solution.status === ApplicationStatus.SPECIALPRODUCTOFFERED || solution.status === ApplicationStatus.APPROVED || solution.status === ApplicationStatus.REJECTED )) {
+            throw new Error(`Неверный статус решения оператора. Доступные статусы: SPECIALPRODUCTOFFERED, APPROVED, REJECTED`);
+        }
+        return this.applicationRepository.saveOperatorSolution(applicationId, solution);
     }
 
     

@@ -16,7 +16,10 @@ export enum ApplicationStatus {
     DRAFT = 1,
     SUBMITTED = 2,
     APPROVED = 3,
-    REJECTED = 4
+    REJECTED = 4,
+    SPECIALPRODUCTOFFERED = 5,
+    SPECIALPRODUCTACCEPTED = 6,
+    SPECIALPRODUCTREJECTED = 7
 }
 
 export class ApplicationEntity {
@@ -31,6 +34,7 @@ export class ApplicationEntity {
     createdAt!: Date;
     creditTime: CreditTime;
     loanIssuanceDate!: Date;
+    solutionComment!: string;
 
     constructor(model: any) {
         this.id = model.id;
@@ -39,6 +43,7 @@ export class ApplicationEntity {
         this.sum = model.sum;
         this.status = model.status;
         this.createdAt = model.createdAt;
+        this.solutionComment = model.solutionComment;
         this.creditTime = {
             units: model.creditTimeUnits,
             value: model.creditValue
@@ -46,6 +51,10 @@ export class ApplicationEntity {
        
         if (model.applicationScore) {
             this.applicationScore = new ApplicationScoreEntity(model.applicationScore);
+        }
+        if (model.productId) {
+            this.productId = model.productId;
+            this.product = model.productConditions;
         }
         this.loanIssuanceDate = model.loanIssuanceDate;
         

@@ -42,6 +42,7 @@ export class RegisterController extends BaseController implements IRegisterContr
         try {
            const data =  [
             {
+              type: "ООО",
               inn: "7701234568", 
               ogrn: "1234567890123",
               okved: "46.90 Оптовая торговля неспециализированная",
@@ -63,6 +64,7 @@ export class RegisterController extends BaseController implements IRegisterContr
               ]
             },
             {
+              type: "ООО",
               inn: "5001234569", 
               ogrn: "1234567890124",
               okved: "58.19 Виды издательской деятельности прочие",
@@ -84,6 +86,7 @@ export class RegisterController extends BaseController implements IRegisterContr
               annualExpenses: 200000
             },
             {
+              type: "ООО",
               inn: "7801234562", 
               ogrn: "1234567890125",
               okved: "46.90 Оптовая торговля неспециализированная",
@@ -105,6 +108,7 @@ export class RegisterController extends BaseController implements IRegisterContr
               annualExpenses: 0
             },
             {
+              type: "ООО",
               inn: "6601234564", 
               ogrn: "1234567890126",
               okved: "62.01 Разработка компьютерного программного обеспечения",
@@ -146,6 +150,7 @@ export class RegisterController extends BaseController implements IRegisterContr
         try {
           const data =  [
             {
+              type: "ИП",
               inn: "2301234560", 
               ogrn: "1234567890127",
               okved: "46.90 Оптовая торговля неспециализированная",
@@ -165,6 +170,7 @@ export class RegisterController extends BaseController implements IRegisterContr
              
             },
             {
+              type: "ИП",
               inn: "5401234563", 
               ogrn: "1234567890128",
               okved: "32.40 Производство игр и игрушек",

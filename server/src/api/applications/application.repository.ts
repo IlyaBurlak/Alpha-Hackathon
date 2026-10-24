@@ -6,6 +6,7 @@ import { Transaction } from 'sequelize';
 import { AnalysisStatus, MlScoreEntity } from './entity/application.score.entity';
 import { ApplicationScore } from '../../database/models/ApplicationScoring';
 import { sequelize } from '../../database/dbconfig';
+import { OperatorSolution } from './entity/operator.solution';
 
 
 
@@ -116,6 +117,32 @@ export class ApplicationRepository implements IApplicationRepository {
                 status: AnalysisStatus.PENDINGCRREDITHISTORY,
                 info: {}
             }, { transaction });
+        });
+    }
+    
+    async saveOperatorSolution(applicationId: number, solution: OperatorSolution): Promise<void> {
+        return sequelize.transaction(async (transaction) => {
+            const prev = await ApplicationScore.findOne({ where: { applicationId: applicationId }, transaction });
+            if (!prev) {
+                throw new Error(`Заявка с id ${applicationId} не найдена`);
+            } 
+            if (prev.status !== ApplicationStatus.SUBMITTED){
+                throw new Error(`По этой заявке не нужно решение оператора.`);
+            }
+            await ApplicationScore.update(
+                { status: AnalysisStatus.COMPLETED, },
+                { where: { applicationId: applicationId  }, transaction }  
+            );
+            let productCond = {};
+            if (solution.status === ApplicationStatus.SPECIALPRODUCTOFFERED && solution.product) {
+                productCond = {productConditions: {
+                   ...solution.product
+                }}
+            }
+            await Application.update(
+                { solutionComment: solution.comment, status: solution.status, ...productCond },
+                { where: { id: applicationId  }, transaction }  
+            );
         });
     }
     

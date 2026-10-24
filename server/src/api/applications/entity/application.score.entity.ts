@@ -1,3 +1,5 @@
+import { ApplicationStatus, CreditTime } from "./application.entity";
+
 export enum AnalysisStatus {
     PENDINGCRREDITHISTORY = 1,
     PENDINGREGISTER = 2,
@@ -34,6 +36,7 @@ export class RegisterInfo {
     public bankClientSince!: Date;
     public address!: string;
     public account!: string;
+    public type!: string;
 }
 
 export class MlScoreEntity {
@@ -81,7 +84,8 @@ export class ApplicationScoreEntity {
                 kpp: model.info.registerInfo?.kpp,
                 bankClientSince: model.info.registerInfo?.bankClientSince,
                 address: model.info.registerInfo?.address,
-                account: model.info.registerInfo?.account
+                account: model.info.registerInfo?.account,
+                type: model.info.registerInfo?.type
 
             }
             this.mlScore = {

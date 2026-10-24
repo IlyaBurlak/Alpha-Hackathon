@@ -1,6 +1,7 @@
 import { ApplicationEntity } from "./entity/application.entity";
 import { Transaction } from "sequelize";
 import { AnalysisStatus, MlScoreEntity } from "./entity/application.score.entity";
+import { OperatorSolution } from "./entity/operator.solution";
 
 export interface IApplicationRepository {
     createApplication(application: ApplicationEntity, transaction?: Transaction): Promise<ApplicationEntity>;
@@ -12,4 +13,5 @@ export interface IApplicationRepository {
     updateApplicationScore(applicationId: number, info: MlScoreEntity): Promise<void>
     getApplicationWithScore (id: number, transaction?: Transaction): Promise<ApplicationEntity>;
     createApplicationScore(applicationId: number): Promise<void>;
+    saveOperatorSolution(applicationId: number, solution: OperatorSolution): Promise<void>;
 }
