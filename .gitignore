@@ -1,3 +1,51 @@
-/.venv
-**/__pycache__
-/node_modules
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Env and secrets (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Local data and ML artifacts
+*.sqlite
+*.sqlite3
+ml/models/weights/
+*.pt
+*.pth
+*.onnx
+
+# Test reports
+allure-results/
+allure-report/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.local
+
+# Claude Code
+CLAUDE.md
+.claude/
+
