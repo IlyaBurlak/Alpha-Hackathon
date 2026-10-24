@@ -8,17 +8,12 @@ import sys
 from pathlib import Path
 
 
-def test_generate_reproducible_and_rate():
+def test_generate_reproducible_and_rate(tmp_path):
     root = Path(__file__).parent.parent
-    out1 = root / "train" / "data" / "test_gen1.csv"
-    out2 = root / "train" / "data" / "test_gen2.csv"
-    meta1 = root / "train" / "data" / "test_gen1_meta.json"
-    meta2 = root / "train" / "data" / "test_gen2_meta.json"
-    for p in [out1, out2, meta1, meta2]:
-        try:
-            p.unlink()
-        except Exception:
-            pass
+    out1 = tmp_path / "test_gen1.csv"
+    out2 = tmp_path / "test_gen2.csv"
+    meta1 = tmp_path / "test_gen1_meta.json"
+    meta2 = tmp_path / "test_gen2_meta.json"
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(root)
