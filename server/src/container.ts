@@ -1,0 +1,30 @@
+import { Container } from 'inversify';
+import { TYPES } from './types';
+import { UserRepository } from './api/user/user.repository';
+import { IUserRepository } from './api/user/user.repository.interface';
+import { UserService } from './api/user/user.service';
+import { IUserService } from './api/user/user.service.interface';
+import { UserController } from './api/user/user.controller';
+import { IUserController } from './api/user/user.controller.interface';
+import { IApplicationController } from './api/applications/application.controller.interface';
+import { ApplicationController } from './api/applications/application.controller';
+import { ApplicationService } from './api/applications/application.service';
+import { ApplicationRepository } from './api/applications/application.repository';
+import { IApplicationRepository } from './api/applications/application.repository.interface';
+import { IApplicationService } from './api/applications/application.service.interface';
+import { GatewayService } from './api/gateway/gateway.service';
+import { IGatewayService } from './api/gateway/gateway.service.interface';
+
+const container = new Container();
+
+container.bind<IUserController>(TYPES.userController).to(UserController);
+container.bind<IUserService>(TYPES.userService).to(UserService);
+container.bind<IUserRepository>(TYPES.userRepository).to(UserRepository);
+
+container.bind<IApplicationController>(TYPES.applicationController).to(ApplicationController);
+container.bind<IApplicationService>(TYPES.applicationService).to(ApplicationService);
+container.bind<IApplicationRepository>(TYPES.applicationRepository).to(ApplicationRepository);
+
+container.bind<IGatewayService>(TYPES.gatewayService).to(GatewayService);
+
+export { container };
