@@ -17,6 +17,7 @@ export class Application extends Model {
     public loanIssuanceDate!: Date;
     public productId!: number;
     public productConditions!: any;
+    public solutionComment!: string;
 
 
     static associate(models: { Organization: typeof Organization }) {
@@ -81,6 +82,10 @@ Application.init(
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: NOW,
+    },
+    solutionComment: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

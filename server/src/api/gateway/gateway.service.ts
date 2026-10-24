@@ -100,8 +100,8 @@ export class GatewayService implements IGatewayService{
 
     async getMlScoring (applicationData: ApplicationEntity): Promise<any> {
         try {
-            console.log('Запрос на внутренний скоринг на ' + `${process.env.ML_SCORING_API}/score`);
-
+            console.log('Запрос на внутренний скоринг на ' + `${process.env.ML_SCORING_API}score`);
+           
             axiosRetry(axios, {
                 retries: 3,                          
                 retryDelay: (retryCount) => retryCount * 1000, 
