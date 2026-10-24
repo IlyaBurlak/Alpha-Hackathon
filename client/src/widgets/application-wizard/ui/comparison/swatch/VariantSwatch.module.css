@@ -1,0 +1,24 @@
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+  background: var(--variant-color);
+}
+
+.plain {
+  --variant-color: var(--color-text);
+}
+
+.secured {
+  --variant-color: var(--color-red);
+}
+
+.neutral {
+  background: var(--color-text-secondary);
+}
+
+.faded {
+  opacity: 0.3;
+}

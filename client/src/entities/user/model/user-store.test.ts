@@ -6,13 +6,26 @@ import { UserStore } from './user-store'
 
 vi.mock('../api/get-current-user')
 
+const PROFILE = {
+  kpp: null,
+  ogrn: null,
+  head: null,
+  address: null,
+  account: null,
+  role: null,
+  annualRevenue: null,
+  employeesCount: null,
+}
+
 const USER: User = {
   id: 1,
   login: 'alfaTest',
   fullName: 'Тестов Тест',
+  phone: null,
+  email: null,
   organizations: [
-    { id: 2, inn: '5001234569', name: 'ООО "Кот не знает"', type: 'legal-entity' },
-    { id: 6, inn: '5401234563', name: 'ИП Динозавриков Сергей', type: 'sole-proprietor' },
+    { id: 2, inn: '5001234569', name: 'ООО "Кот не знает"', type: 'legal-entity', ...PROFILE },
+    { id: 6, inn: '5401234563', name: 'ИП Динозавриков Сергей', type: 'sole-proprietor', ...PROFILE },
   ],
 }
 

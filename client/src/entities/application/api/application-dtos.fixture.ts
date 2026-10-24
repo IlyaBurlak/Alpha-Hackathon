@@ -27,6 +27,7 @@ export const PRODUCT_OFFER_DTO = {
   payments: PAYMENTS,
 }
 
+/** How the backend stores the chosen product (`productConditions` in the DB); it is not returned by the API yet. */
 export const SELECTED_PRODUCT_DTO = {
   name: 'Кредит для бизнеса с залогом',
   persentage: 10,
@@ -49,10 +50,33 @@ export const APPLICATION_WITHOUT_OFFERS_DTO = { ...BASE_APPLICATION }
 /** No product fits the requested sum and term. */
 export const APPLICATION_WITH_EMPTY_OFFERS_DTO = { ...BASE_APPLICATION, products: [] }
 
-/** PUT /applications, GET /applications/:id and GET /applications/my after the product is chosen. */
+/** The backend never returns the chosen product yet: a sent application looks like this, with leftover offers. */
+export const SUBMITTED_APPLICATION_WITHOUT_PRODUCT_DTO = {
+  ...APPLICATION_WITH_OFFERS_DTO,
+  status: 'SUBMITTED',
+}
+
+export const SCORING_DTO = {
+  score: 72,
+  factors: [
+    { title: 'Возраст бизнеса', description: '6 лет на рынке', points: 15 },
+    { title: 'Кредитная история', description: 'Есть просрочка до 30 дней', points: -10, advice: 'Закройте просрочку' },
+  ],
+}
+
+/** Target contract (see docs/backend-requirements.md): not returned by the backend yet. */
+export const SCORED_APPLICATION_DTO = {
+  ...APPLICATION_WITH_OFFERS_DTO,
+  status: 'SUBMITTED',
+  scoring: SCORING_DTO,
+  reviewStage: 1,
+  products: [{ ...PRODUCT_OFFER_DTO, scoring: SCORING_DTO }],
+}
+
+/** PUT /applications (the desired shape), GET /applications/:id and GET /applications/my after the product is chosen. */
 export const SELECTED_APPLICATION_DTO = {
   ...BASE_APPLICATION,
   status: 'SUBMITTED',
   productId: 1,
-  product: SELECTED_PRODUCT_DTO,
+  productConditions: SELECTED_PRODUCT_DTO,
 }

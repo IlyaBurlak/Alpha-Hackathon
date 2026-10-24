@@ -11,7 +11,7 @@ docker compose up -d --build --wait
 
 | Адрес | Что |
 | --- | --- |
-| http://localhost:8080 | Клиент (nginx) |
+| http://localhost:8080 | Клиент (nginx): кабинет предпринимателя `/cabinet`, вход `/login` |
 | http://localhost:8080/api/health | Сервер через прокси |
 | http://localhost:8080/admin | Панель внешних систем: переключатели доступности банка, бюро и реестра |
 | http://localhost:8080/external-api/ | Прокси к `external-systems` (используется панелью) |
@@ -38,6 +38,13 @@ cd client && npm install && npm run dev
 После правок в `server/` или `ml/` повторите `npm run backend:up`.
 
 Без Docker: `cd server && cp .env.example .env && npm install && npm run dev` (задайте `JWT_SECRET` в `server/.env`), ML: `cd ml && pip install -r requirements-dev.txt && uvicorn app.main:app --reload`.
+
+## Документация
+
+- `CLAUDE.md` — правила монорепо и описание продукта (экраны, роли).
+- `client/README.md` — архитектура клиента (FSD), экраны и маршруты.
+- `docs/backend-requirements.md` — что нужно доделать бэкенду под дизайн кабинета.
+- `docs/frontend-mocks.md` — что замокано на фронте, пока бэк этого не отдаёт.
 
 ## Проверки
 

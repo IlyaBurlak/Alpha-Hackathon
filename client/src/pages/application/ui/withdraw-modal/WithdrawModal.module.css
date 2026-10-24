@@ -1,0 +1,4 @@
+.text {
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}

@@ -1,0 +1,45 @@
+.anchor {
+  display: block;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.panel {
+  position: fixed;
+  z-index: 61;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--color-surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-popover);
+  padding: 8px;
+  animation: fade 0.14s;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (width <= 860px) {
+  .panel {
+    left: 12px !important;
+    right: 12px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-duration: 0.001ms;
+  }
+}

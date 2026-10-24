@@ -1,8 +1,8 @@
-import { Button } from '@alfalab/core-components/button'
-
 import { useSessionStore } from '@/entities/session'
 import { useUserStore } from '@/entities/user'
+import { MenuItem } from '@/shared/ui'
 
+/** Menu item that ends the session. */
 export function LogoutButton() {
   const session = useSessionStore()
   const user = useUserStore()
@@ -12,9 +12,5 @@ export function LogoutButton() {
     user.reset()
   }
 
-  return (
-    <Button view="secondary" size={40} onClick={handleClick}>
-      Выйти
-    </Button>
-  )
+  return <MenuItem title="Выйти" onClick={handleClick} />
 }

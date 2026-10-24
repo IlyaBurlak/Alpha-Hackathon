@@ -1,0 +1,37 @@
+.dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--tone);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.default {
+  --tone: var(--color-text);
+}
+
+.neutral {
+  --tone: var(--color-text-secondary);
+}
+
+.info {
+  --tone: var(--color-link);
+}
+
+.positive {
+  --tone: var(--color-positive);
+}
+
+.negative {
+  --tone: var(--color-negative);
+}
