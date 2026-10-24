@@ -1,7 +1,8 @@
 import { useState } from 'react'
 
-import { formatCreditTime, formatMoney, formatPercent } from '@/entities/application'
+import { formatCreditTime } from '@/entities/application'
 import { Segmented } from '@/shared/ui'
+import { formatMoney, formatPercent } from '@/shared/lib'
 
 import { getDifference } from '../../lib/comparison'
 import type { ComparedVariant, ComparisonDifference } from '../../lib/comparison'

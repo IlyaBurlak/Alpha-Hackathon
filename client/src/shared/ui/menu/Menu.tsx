@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { classNames } from '@/shared/lib'
+
 import styles from './Menu.module.css'
 
 interface MenuItemProps {
@@ -11,9 +13,11 @@ interface MenuItemProps {
   trailing?: ReactNode
   /** Without a handler the item is a plain, non-interactive row. */
   onClick?: () => void
+  size?: 'medium' | 'compact'
 }
 
-export function MenuItem({ title, description, leading, trailing, onClick }: MenuItemProps) {
+export function MenuItem({ title, description, leading, trailing, onClick, size = 'medium' }: MenuItemProps) {
+  const itemClassName = classNames(styles.item, size === 'compact' && styles.compactItem)
   const content = (
     <>
       {leading}
@@ -25,10 +29,10 @@ export function MenuItem({ title, description, leading, trailing, onClick }: Men
     </>
   )
 
-  if (!onClick) return <div className={styles.item}>{content}</div>
+  if (!onClick) return <div className={itemClassName}>{content}</div>
 
   return (
-    <button type="button" role="menuitem" className={styles.item} onClick={onClick}>
+    <button type="button" role="menuitem" className={itemClassName} onClick={onClick}>
       {content}
     </button>
   )

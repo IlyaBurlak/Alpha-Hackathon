@@ -1,3 +1,5 @@
+import { classNames } from '@/shared/lib'
+
 import styles from './Checkbox.module.css'
 
 interface CheckboxProps {
@@ -5,11 +7,14 @@ interface CheckboxProps {
   description?: string
   isChecked: boolean
   onChange: (isChecked: boolean) => void
+  size?: 'medium' | 'compact'
+  /** `false` removes the space above and below, for a checkbox that sits in a row of other controls. */
+  hasVerticalSpace?: boolean
 }
 
-export function Checkbox({ label, description, isChecked, onChange }: CheckboxProps) {
+export function Checkbox({ label, description, isChecked, onChange, size = 'medium', hasVerticalSpace = true }: CheckboxProps) {
   return (
-    <label className={styles.checkbox}>
+    <label className={classNames(styles.checkbox, size === 'compact' && styles.compact, !hasVerticalSpace && styles.flush)}>
       <input
         className={styles.input}
         type="checkbox"

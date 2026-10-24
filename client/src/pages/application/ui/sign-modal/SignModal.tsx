@@ -1,8 +1,9 @@
 import { useState } from 'react'
 
-import { formatCreditTime, formatMoney, formatPercent } from '@/entities/application'
+import { formatCreditTime } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { Button, Checkbox, Icon, Modal } from '@/shared/ui'
+import { formatMoney, formatPercent } from '@/shared/lib'
 
 import styles from './SignModal.module.css'
 

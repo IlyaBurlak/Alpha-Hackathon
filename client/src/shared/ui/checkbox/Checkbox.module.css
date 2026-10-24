@@ -40,3 +40,26 @@
   font-size: 13px;
   line-height: 18px;
 }
+
+.compact {
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.compact .input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: 5px;
+}
+
+.compact .input:checked::after {
+  width: 8px;
+  height: 4px;
+}
+
+.flush {
+  padding-top: 0;
+  padding-bottom: 0;
+}

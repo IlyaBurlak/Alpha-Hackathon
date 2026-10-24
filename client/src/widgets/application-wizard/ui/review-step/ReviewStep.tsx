@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite'
 
-import { calculateLoan, formatCreditTime, formatMoney, formatPercent } from '@/entities/application'
+import { calculateLoan, formatCreditTime } from '@/entities/application'
 import type { ProductOffer } from '@/entities/application'
 import { Checkbox, TextButton } from '@/shared/ui'
+import { formatMoney, formatPercent } from '@/shared/lib'
 
 import type { ApplicationWizardStore } from '../../model/application-wizard-store'
 import { CONSENTS } from '../../model/wizard-form'

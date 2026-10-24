@@ -3,19 +3,14 @@ import { observer } from 'mobx-react-lite'
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 
-import {
-  APPLICATION_STATUSES,
-  ApplicationDetailStore,
-  createApplication,
-  discardApplication,
-  formatMoneyShort,
-} from '@/entities/application'
+import { APPLICATION_STATUSES, ApplicationDetailStore, createApplication, discardApplication } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { useLoadedUser, useSelectedOrganization } from '@/entities/user'
 import { getErrorMessage } from '@/shared/api'
 import { ROUTES, getApplicationEditPath, getApplicationPath } from '@/shared/config'
 import { Button, EmptyState, useToast } from '@/shared/ui'
 import { ApplicationWizard } from '@/widgets/application-wizard'
+import { formatMoneyShort } from '@/shared/lib'
 
 /** A draft: the wizard where the user picks a variant, checks the data and sends the application. */
 export const ApplicationEditPage = observer(function ApplicationEditPage() {

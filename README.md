@@ -12,6 +12,7 @@ docker compose up -d --build --wait
 | Адрес | Что |
 | --- | --- |
 | http://localhost:8080 | Клиент (nginx): кабинет предпринимателя `/cabinet`, вход `/login` |
+| http://localhost:8080/staff | Кабинет сотрудника, вход `/staff/login` (операторы `alfaOperator1` / `alfaOperator1!`, демо `ivanova` / `demo2026`) |
 | http://localhost:8080/api/health | Сервер через прокси |
 | http://localhost:8080/admin | Панель внешних систем: переключатели доступности банка, бюро и реестра |
 | http://localhost:8080/external-api/ | Прокси к `external-systems` (используется панелью) |
@@ -44,7 +45,8 @@ cd client && npm install && npm run dev
 - `CLAUDE.md` — правила монорепо и описание продукта (экраны, роли).
 - `client/README.md` — архитектура клиента (FSD), экраны и маршруты.
 - `docs/backend-requirements.md` — что нужно доделать бэкенду под дизайн кабинета.
-- `docs/frontend-mocks.md` — что замокано на фронте, пока бэк этого не отдаёт.
+- `docs/backend-data-contract.md` — полный список данных, которые должны отдать бэкенд и ML, чтобы убрать все моки.
+- `docs/frontend-mocks.md` — что замокано на фронте, пока бэк этого не отдаёт (в том числе весь кабинет сотрудника, кроме входа).
 
 ## Проверки
 

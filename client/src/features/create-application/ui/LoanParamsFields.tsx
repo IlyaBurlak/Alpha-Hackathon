@@ -1,7 +1,8 @@
 import { observer } from 'mobx-react-lite'
 
-import { CREDIT_GOALS, LOAN_TERMS_IN_MONTHS, formatMonths } from '@/entities/application'
+import { CREDIT_GOALS, LOAN_TERMS_IN_MONTHS } from '@/entities/application'
 import { SelectField, TextField } from '@/shared/ui'
+import { formatMonths } from '@/shared/lib'
 
 import type { CreateApplicationFormStore } from '../model/create-application-form-store'
 

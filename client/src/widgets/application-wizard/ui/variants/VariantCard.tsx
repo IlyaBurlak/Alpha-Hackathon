@@ -1,6 +1,6 @@
-import { ApprovalChanceMeter, calculateLoan, formatCreditTime, formatMoney, formatPercent } from '@/entities/application'
+import { ApprovalChanceMeter, calculateLoan, formatCreditTime } from '@/entities/application'
 import type { ProductOffer, VariantKind } from '@/entities/application'
-import { classNames } from '@/shared/lib'
+import { classNames, formatMoney, formatPercent } from '@/shared/lib'
 import { Badge, Button, KeyValueList } from '@/shared/ui'
 
 import { VARIANT_LABELS } from '../../lib/comparison'

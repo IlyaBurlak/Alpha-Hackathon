@@ -1,18 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 
-import {
-  APPLICATION_STATUSES,
-  calculateLoan,
-  formatCreditTime,
-  formatLongDate,
-  formatMoney,
-  formatPercent,
-  getPaymentDate,
-} from '@/entities/application'
+import { APPLICATION_STATUSES, calculateLoan, formatCreditTime, getPaymentDate } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { ROUTES } from '@/shared/config'
-import { classNames } from '@/shared/lib'
+import { classNames, formatLongDate, formatMoney, formatPercent } from '@/shared/lib'
 import { Button, Icon, getButtonClassName } from '@/shared/ui'
 
 import styles from './StatusBlock.module.css'

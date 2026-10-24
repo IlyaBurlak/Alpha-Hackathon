@@ -1,7 +1,7 @@
 import { APPLICATION_STATUSES, TIMELINE_STEPS, getTimelineStates } from '@/entities/application'
 import type { ApplicationStatus, TimelineStepState } from '@/entities/application'
-import { formatWhen } from '@/entities/application'
 import { Icon } from '@/shared/ui'
+import { formatWhen } from '@/shared/lib'
 
 import styles from './StatusTimeline.module.css'
 

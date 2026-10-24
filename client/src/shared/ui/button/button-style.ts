@@ -2,7 +2,7 @@ import { classNames } from '@/shared/lib'
 
 import styles from './Button.module.css'
 
-export type ButtonView = 'primary' | 'accent' | 'secondary' | 'ghost'
+export type ButtonView = 'primary' | 'accent' | 'negative' | 'secondary' | 'ghost'
 export type ButtonSize = 'small' | 'medium' | 'large'
 
 export interface ButtonStyle {

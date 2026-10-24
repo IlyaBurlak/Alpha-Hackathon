@@ -3,9 +3,8 @@
  * The estimate below is the designer's scoring model: a base of 40 points plus factors, from 60 the bank approves.
  * Company figures are invented per organization id of the seeded database.
  */
-import { clamp, pluralize } from '@/shared/lib'
+import { clamp, formatMoneyShort, pluralize } from '@/shared/lib'
 
-import { formatMoneyShort } from '../../lib/format/format'
 import type { Scoring, ScoringFactor } from '../../model/types'
 
 const BASE_SCORE = 40

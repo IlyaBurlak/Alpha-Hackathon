@@ -24,6 +24,12 @@
   animation: fade 0.14s;
 }
 
+.compact {
+  width: 280px;
+  border-radius: 16px;
+  padding: 6px;
+}
+
 @keyframes fade {
   from {
     opacity: 0;

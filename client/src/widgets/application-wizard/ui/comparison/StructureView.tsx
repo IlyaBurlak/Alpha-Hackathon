@@ -1,4 +1,5 @@
-import { formatCreditTime, formatMoney, formatPercent } from '@/entities/application'
+import { formatCreditTime } from '@/entities/application'
+import { formatMoney, formatPercent } from '@/shared/lib'
 
 import type { ComparedVariant } from '../../lib/comparison'
 import styles from './StructureView.module.css'

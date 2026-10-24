@@ -1,5 +1,5 @@
-import { formatDate, formatMoney, formatMonths } from '@/entities/application'
 import { TextButton } from '@/shared/ui'
+import { formatDate, formatMoney, formatMonths } from '@/shared/lib'
 
 import { getScheduleDates } from '../../lib/comparison'
 import type { ComparedVariant } from '../../lib/comparison'

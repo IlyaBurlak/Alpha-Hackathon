@@ -21,9 +21,12 @@
 | `/cabinet/applications/:id/edit` | Оформление черновика: вариант, данные, отправка | `pages/application-edit`, `widgets/application-wizard` |
 | `/cabinet/applications/:id` | Заявка: статус, шаги, условия, график платежей | `pages/application` |
 | `/cabinet/help` | Помощь | `pages/help` |
-| `/login`, `/admin` | Вход, панель внешних систем | `pages/login`, `pages/admin` |
+| `/staff/login` | Вход сотрудника | `pages/staff-login`, `features/staff-login` |
+| `/staff`, `/staff/mine`, `/staff/done` | Очередь заявок, мои заявки, решённые | `pages/staff-queue`, `widgets/staff-queue` |
+| `/staff/applications/:id` | Заявка сотрудника: данные, проверки, скоринг, решение | `pages/staff-application`, `widgets/staff-application-review`, `features/decide-application`, `features/assign-application` |
+| `/login`, `/admin` | Вход предпринимателя, панель внешних систем | `pages/login`, `pages/admin` |
 
-Рамка кабинета (сайдбар, переключатель компаний, меню профиля) — `widgets/cabinet-shell`.
+Рамка кабинета предпринимателя (сайдбар, переключатель компаний, меню профиля) — `widgets/cabinet-shell`, рамка кабинета сотрудника — `widgets/staff-shell`. Роль берётся из токена (`entities/session`), охранник маршрутов — `RequireRole` в `app/router`. Данные сотрудника: `entities/staff-application` (заявка, очередь, SLA, моки в `api/mocks/`), `entities/employee`.
 
 ## Структура папок
 

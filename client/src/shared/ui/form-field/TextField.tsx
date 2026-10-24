@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { ChangeEvent, HTMLAttributes } from 'react'
+import type { ChangeEvent, HTMLAttributes, ReactNode } from 'react'
 
 import { classNames, countDigits, findCaretWithDigitsAfter } from '@/shared/lib'
 
@@ -15,6 +15,11 @@ interface TextFieldProps {
   suffix?: string
   inputMode?: HTMLAttributes<HTMLInputElement>['inputMode']
   autoComplete?: string
+  type?: 'text' | 'password'
+  /** An accessible name for inputs whose label is not enough for password managers and tests. */
+  name?: string
+  /** A control inside the field at the right edge, e.g. the "show password" button. */
+  trailing?: ReactNode
   placeholder?: string
   /**
    * The parent regroups the digits as the user types (`2 500 000`, `+7 916 …`): the caret is then kept
@@ -23,6 +28,8 @@ interface TextFieldProps {
   hasDigitMask?: boolean
   /** What is wrong with the value; the field gets a red border and the text appears under it. */
   error?: string | null
+  /** The border turns red without a hint under the field: the message is shown elsewhere. */
+  isInvalid?: boolean
   /** For fields on a tinted panel: the field stays white. */
   isOnSurface?: boolean
   className?: string
@@ -36,13 +43,18 @@ export function TextField({
   suffix,
   inputMode,
   autoComplete = 'off',
+  type = 'text',
+  name,
+  trailing,
   placeholder,
   hasDigitMask,
   error,
+  isInvalid,
   isOnSurface,
   className,
 }: TextFieldProps) {
   const errorId = useId()
+  const hasProblem = Boolean(error) || isInvalid === true
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.target
@@ -58,21 +70,24 @@ export function TextField({
 
   return (
     <div className={classNames(styles.wrapper, className)}>
-      <label className={classNames(styles.field, error && styles.invalid, isOnSurface && styles.onSurface)}>
+      <label className={classNames(styles.field, hasProblem && styles.invalid, isOnSurface && styles.onSurface)}>
         <span className={styles.label}>{label}</span>
         <input
           className={styles.control}
+          type={type}
+          name={name}
           value={value}
           inputMode={inputMode}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          aria-invalid={error ? true : undefined}
+          aria-invalid={hasProblem ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           onChange={handleChange}
           onBlur={onBlur}
         />
         {suffix && <span className={styles.suffix}>{suffix}</span>}
       </label>
+      {trailing && <span className={styles.trailing}>{trailing}</span>}
       {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   )

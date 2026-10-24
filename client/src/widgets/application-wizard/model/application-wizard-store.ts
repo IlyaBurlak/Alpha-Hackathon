@@ -1,9 +1,9 @@
 import { makeAutoObservable } from 'mobx'
 
-import { formatNumber, pickVariants, selectApplicationProduct } from '@/entities/application'
+import { pickVariants, selectApplicationProduct } from '@/entities/application'
 import type { Application, CreditVariants, ProductOffer } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
-import { formatPhone, isRecord, jsonStorage } from '@/shared/lib'
+import { formatNumber, formatPhone, isRecord, jsonStorage } from '@/shared/lib'
 
 import { CONSENTS, NOTE_MAX_LENGTH, createInitialForm, parseForm } from './wizard-form'
 import type {

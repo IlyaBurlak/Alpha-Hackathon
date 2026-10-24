@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { MouseEvent } from 'react'
 
-import { formatMoney, formatMoneyShort } from '@/entities/application'
-import { clamp } from '@/shared/lib'
+import { clamp, formatMoney, formatMoneyShort } from '@/shared/lib'
 
 import type { ComparedVariant } from '../../lib/comparison'
 import styles from './BalanceChart.module.css'

@@ -1,0 +1,43 @@
+.gauge {
+  text-align: center;
+}
+
+.gauge svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.positive {
+  --tone: var(--color-positive);
+}
+
+.attention {
+  --tone: var(--color-attention);
+}
+
+.negative {
+  --tone: var(--color-negative);
+}
+
+.value {
+  font-size: 42px;
+  line-height: 46px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: -60px;
+}
+
+.scale {
+  display: block;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.label {
+  font-weight: 700;
+  color: var(--tone);
+  margin-top: 14px;
+}

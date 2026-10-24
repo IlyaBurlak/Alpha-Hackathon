@@ -1,6 +1,6 @@
+import { formatDate, formatMoney } from '@/shared/lib'
 import { calculateLoan, getPaymentDate } from '../../lib/loan/loan-calculation'
 import type { LoanInput } from '../../lib/loan/loan-calculation'
-import { formatDate, formatMoney } from '../../lib/format/format'
 import styles from './PaymentSchedule.module.css'
 
 interface PaymentScheduleProps {

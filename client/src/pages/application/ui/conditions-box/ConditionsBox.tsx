@@ -1,13 +1,8 @@
-import {
-  PaymentSchedule,
-  calculateLoan,
-  formatCreditTime,
-  formatMoney,
-  formatPercent,
-} from '@/entities/application'
+import { PaymentSchedule, calculateLoan, formatCreditTime } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { Icon, KeyValueList } from '@/shared/ui'
 import type { KeyValueItem } from '@/shared/ui'
+import { formatMoney, formatPercent } from '@/shared/lib'
 
 import styles from './ConditionsBox.module.css'
 

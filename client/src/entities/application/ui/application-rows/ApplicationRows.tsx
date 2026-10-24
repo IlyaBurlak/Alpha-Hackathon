@@ -1,3 +1,4 @@
+import { formatDate, formatMoney } from '@/shared/lib'
 import { Link } from 'react-router'
 
 import { getApplicationEditPath, getApplicationPath } from '@/shared/config'
@@ -5,7 +6,6 @@ import { Icon, StatusDot } from '@/shared/ui'
 
 import { APPLICATION_STATUS_LABELS, APPLICATION_STATUS_TONES } from '../../lib/status/application-status'
 import { getApplicationTitle } from '../../lib/status/application-title'
-import { formatDate, formatMoney } from '../../lib/format/format'
 import { APPLICATION_STATUSES } from '../../model/types'
 import type { Application } from '../../model/types'
 import styles from './ApplicationRows.module.css'

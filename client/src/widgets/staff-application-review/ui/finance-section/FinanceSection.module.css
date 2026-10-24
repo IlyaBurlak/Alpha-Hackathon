@@ -1,0 +1,18 @@
+.title {
+  margin-top: 8px;
+}
+
+.hint {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.chart {
+  margin-top: 12px;
+}
+
+.loansTitle {
+  margin-top: 24px;
+}

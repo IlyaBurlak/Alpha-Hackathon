@@ -20,8 +20,24 @@
   --color-attention-soft: #fbf1e1;
   --color-negative: #d44333;
   --color-negative-soft: #fbeae8;
+  --color-info-soft: #e8f1fd;
   --color-scrim: rgb(3 3 6 / 40%);
   --shadow-popover: 0 8px 32px rgb(3 3 6 / 12%), 0 0 0 1px rgb(3 3 6 / 4%);
   --shadow-ring: 0 0 0 1px rgb(3 3 6 / 5%);
+  /* Sizes of the controls; a cabinet with a denser layout (staff) overrides them on its root element. */
+  --button-height: 48px;
+  --button-padding: 22px;
+  --button-radius: 14px;
+  --button-font-size: 15px;
+  --button-small-height: 36px;
+  --button-small-padding: 14px;
+  --button-small-radius: 10px;
+  --button-small-font-size: 14px;
+  --button-large-height: 56px;
+  --button-large-padding: 28px;
+  --button-large-radius: 16px;
+  --button-large-font-size: 16px;
+  --field-font-size: 16px;
+  --field-multiline-height: 96px;
   --font-cabinet: 'Manrope', system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
 }

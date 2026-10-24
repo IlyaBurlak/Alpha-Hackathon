@@ -3,19 +3,12 @@ import { observer } from 'mobx-react-lite'
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 
-import {
-  APPLICATION_STATUSES,
-  APPLICATION_STATUS_LABELS,
-  APPLICATION_STATUS_TONES,
-  ApplicationDetailStore,
-  formatWhen,
-  getApplicationTitle,
-  useApplicationListStore,
-} from '@/entities/application'
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_TONES, ApplicationDetailStore, getApplicationTitle, useApplicationListStore } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { useSelectedOrganization } from '@/entities/user'
 import { ROUTES, getApplicationEditPath } from '@/shared/config'
 import { Button, EmptyState, Icon, StatusDot, useToast } from '@/shared/ui'
+import { formatWhen } from '@/shared/lib'
 
 import styles from './ApplicationPage.module.css'
 import { ConditionsBox } from './conditions-box/ConditionsBox'

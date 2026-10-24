@@ -50,3 +50,18 @@ button.item:hover {
   border-top: 1px solid var(--color-line);
   margin: 6px 4px;
 }
+
+.compactItem {
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+
+.compactItem .title {
+  font-weight: 600;
+}
+
+.compactItem .description {
+  font-weight: 500;
+  font-size: 12px;
+}

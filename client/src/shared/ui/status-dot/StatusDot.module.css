@@ -35,3 +35,27 @@
 .negative {
   --tone: var(--color-negative);
 }
+
+.attention {
+  --tone: var(--color-attention);
+}
+
+.small {
+  font-size: 13.5px;
+}
+
+.blinking::before {
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blinking::before {
+    animation: none;
+  }
+}

@@ -1,3 +1,5 @@
+import { calculateAnnuityPayment } from '@/shared/lib'
+
 import { CREDIT_TIME_UNITS } from '../../model/types'
 import type { CreditTime } from '../../model/types'
 
@@ -43,11 +45,6 @@ export function getPaymentDate(startDate: Date, month: number): Date {
   return new Date(startDate.getFullYear(), startDate.getMonth() + month, Math.min(startDate.getDate(), LAST_SAFE_PAYMENT_DAY))
 }
 
-function getMonthlyPayment(sum: number, monthlyRate: number, months: number): number {
-  if (monthlyRate === 0) return sum / months
-  return (sum * monthlyRate) / (1 - (1 + monthlyRate) ** -months)
-}
-
 /**
  * Estimates an annuity loan: equal monthly payments, interest accrued monthly.
  * The backend does not send the schedule, and its payment-terms text ("first payment in 6 months")
@@ -56,7 +53,7 @@ function getMonthlyPayment(sum: number, monthlyRate: number, months: number): nu
 export function calculateLoan({ sum, interestRate, creditTime }: LoanInput): LoanCalculation {
   const months = getTermInMonths(creditTime)
   const monthlyRate = interestRate / PERCENT_DIVISOR / MONTHS_IN_YEAR
-  const monthlyPayment = getMonthlyPayment(sum, monthlyRate, months)
+  const monthlyPayment = calculateAnnuityPayment(sum, interestRate, months)
 
   const schedule: PaymentScheduleRow[] = []
   let balance = sum

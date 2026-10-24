@@ -1,6 +1,7 @@
-import { ScoreFactors, ScoreGauge, formatMoneyShort, formatPercent, getApprovalChance, suggestLowerSum } from '@/entities/application'
+import { ScoreFactors, ScoreGauge, getApprovalChance, suggestLowerSum } from '@/entities/application'
 import type { CreditVariants } from '@/entities/application'
 import { Button } from '@/shared/ui'
+import { formatMoneyShort, formatPercent } from '@/shared/lib'
 
 import { buildComparison } from '../../lib/comparison'
 import type { ComparisonTab } from '../../model/application-wizard-store'

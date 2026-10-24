@@ -14,14 +14,15 @@ interface SelectFieldProps {
   value: string
   options: readonly SelectOption[]
   onChange: (value: string) => void
+  isInvalid?: boolean
   /** For fields on a tinted panel: the field stays white. */
   isOnSurface?: boolean
   className?: string
 }
 
-export function SelectField({ label, value, options, onChange, isOnSurface, className }: SelectFieldProps) {
+export function SelectField({ label, value, options, onChange, isInvalid, isOnSurface, className }: SelectFieldProps) {
   return (
-    <label className={classNames(styles.field, isOnSurface && styles.onSurface, className)}>
+    <label className={classNames(styles.field, isInvalid && styles.invalid, isOnSurface && styles.onSurface, className)}>
       <span className={styles.label}>{label}</span>
       <select className={classNames(styles.control, styles.select)} value={value} onChange={(event) => onChange(event.target.value)}>
         {value === '' && <option value="" disabled hidden />}

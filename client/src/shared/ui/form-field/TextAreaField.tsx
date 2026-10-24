@@ -7,11 +7,12 @@ interface TextAreaFieldProps {
   value: string
   maxLength: number
   onChange: (value: string) => void
+  isInvalid?: boolean
 }
 
-export function TextAreaField({ label, value, maxLength, onChange }: TextAreaFieldProps) {
+export function TextAreaField({ label, value, maxLength, onChange, isInvalid }: TextAreaFieldProps) {
   return (
-    <label className={classNames(styles.field, styles.multiline)}>
+    <label className={classNames(styles.field, styles.multiline, isInvalid && styles.invalid)}>
       <span className={styles.label}>{label}</span>
       <textarea
         className={styles.control}

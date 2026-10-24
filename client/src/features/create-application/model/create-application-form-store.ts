@@ -1,15 +1,9 @@
 import { makeAutoObservable } from 'mobx'
 
-import {
-  CREDIT_GOALS,
-  CREDIT_TIME_UNITS,
-  MAX_LOAN_SUM,
-  MIN_LOAN_SUM,
-  createApplication,
-  formatNumber,
-} from '@/entities/application'
+import { CREDIT_GOALS, CREDIT_TIME_UNITS, MAX_LOAN_SUM, MIN_LOAN_SUM, createApplication } from '@/entities/application'
 import type { Application, CreditGoalId } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
+import { formatNumber } from '@/shared/lib'
 
 const DEFAULT_SUM = 3_000_000
 const DEFAULT_TERM_IN_MONTHS = 24

@@ -35,6 +35,51 @@ const ICONS = {
       <path d="M13.5 3.5v5h5" />
     </>
   ),
+  queue: (
+    <>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M8 9h8M8 13h8M8 17h4" />
+    </>
+  ),
+  person: (
+    <>
+      <circle cx="12" cy="8.5" r="3.5" />
+      <path d="M5 19.5c1.2-3.2 3.8-4.8 7-4.8s5.8 1.6 7 4.8" />
+    </>
+  ),
+  done: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
+    </>
+  ),
+  logout: <path d="M14 4.5h4a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-4M10 16l-4-4 4-4M6 12h9" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </>
+  ),
+  warning: (
+    <>
+      <path d="M12 4.5 3.5 19h17z" />
+      <path d="M12 10v4M12 16.6v.1" />
+    </>
+  ),
+  spark: <path d="M12 4v4M12 16v4M4 12h4M16 12h4M7 7l2 2M15 15l2 2M7 17l2-2M15 9l2-2" />,
+  swap: <path d="M7 7h11l-3-3M17 17H6l3 3" />,
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
   dots: <path d="M6 12h.01M12 12h.01M18 12h.01" strokeWidth="2.6" />,
   info: (
     <>
