@@ -150,7 +150,7 @@ class ApplicationIn(BaseModel):
     loanIssuanceDate: datetime | date | str | None = None
 
     history: CreditHistoryInfo | None = None
-    register_info: RegisterInfo | None = None
+    register: RegisterInfo | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -166,25 +166,25 @@ class ApplicationIn(BaseModel):
             if isinstance(info, dict):
                 if v.get("history") is None and info.get("history") is not None:
                     v["history"] = info.get("history")
-                if v.get("register_info") is None and info.get("registerInfo") is not None:
-                    v["register_info"] = info.get("registerInfo")
+                if v.get("register") is None and info.get("registerInfo") is not None:
+                    v["register"] = info.get("registerInfo")
 
             if v.get("history") is None and app_score.get("history") is not None:
                 v["history"] = app_score.get("history")
-            if v.get("register_info") is None and app_score.get("registerInfo") is not None:
-                v["register_info"] = app_score.get("registerInfo")
+            if v.get("register") is None and app_score.get("registerInfo") is not None:
+                v["register"] = app_score.get("registerInfo")
 
-        if v.get("register_info") is None and v.get("registerInfo") is not None:
-            v["register_info"] = v.get("registerInfo")
+        if v.get("register") is None and v.get("registerInfo") is not None:
+            v["register"] = v.get("registerInfo")
 
         h = v.get("history")
         if isinstance(h, dict):
             if "error" in h or not h:
                 v["history"] = None
-        r = v.get("register_info")
+        r = v.get("register")
         if isinstance(r, dict):
             if "error" in r or not r:
-                v["register_info"] = None
+                v["register"] = None
 
         return v
 
