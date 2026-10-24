@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { ApplicationListStoreContext } from '@/entities/application'
+import { EmployeeStoreContext } from '@/entities/employee'
 import { ExternalServicesStoreContext } from '@/entities/external-service'
 import { SessionStoreContext } from '@/entities/session'
+import { QueueViewStoreContext, StaffApplicationListStoreContext } from '@/entities/staff-application'
 import { UserStoreContext } from '@/entities/user'
+import { ToastProvider } from '@/shared/ui'
 
 import { RootStore } from './root-store'
 
@@ -19,7 +23,17 @@ export function StoreProvider({ children }: StoreProviderProps) {
   return (
     <SessionStoreContext value={rootStore.session}>
       <UserStoreContext value={rootStore.user}>
-        <ExternalServicesStoreContext value={rootStore.externalServices}>{children}</ExternalServicesStoreContext>
+        <ApplicationListStoreContext value={rootStore.applications}>
+          <EmployeeStoreContext value={rootStore.employee}>
+            <StaffApplicationListStoreContext value={rootStore.staffApplications}>
+              <QueueViewStoreContext value={rootStore.queueView}>
+                <ExternalServicesStoreContext value={rootStore.externalServices}>
+                  <ToastProvider>{children}</ToastProvider>
+                </ExternalServicesStoreContext>
+              </QueueViewStoreContext>
+            </StaffApplicationListStoreContext>
+          </EmployeeStoreContext>
+        </ApplicationListStoreContext>
       </UserStoreContext>
     </SessionStoreContext>
   )

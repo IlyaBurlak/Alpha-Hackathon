@@ -2,7 +2,43 @@
 
 Веб-интерфейс с двумя кабинетами: предприниматель подаёт заявку на кредит, сотрудник банка рассматривает её и принимает решение. Клиент общается только с `server` по HTTP (`/api`), в `ml` напрямую не ходит.
 
-**Стек:** React 19, TypeScript (strict), Vite, дизайн-система [`@alfalab/core-components`](https://core-ds.github.io/core-components/master/?path=/docs/intro--docs). Состояние: MobX, маршрутизация: react-router.
+**Стек:** React 19, TypeScript (strict), Vite, CSS-модули. Состояние: MobX, маршрутизация: react-router.
+
+## Дизайн
+
+Кабинет предпринимателя сделан по прототипу дизайнера «Кредитный кабинет МСБ» один в один: сетка, тексты, сценарии, состояния, адаптив (сайдбар, на узких экранах верхняя панель и нижние вкладки).
+
+- Токены дизайна (цвета, тень, шрифт Manrope) лежат в `src/shared/ui/tokens.css`, базовые компоненты (кнопки, поля, меню, тосты и т. д.) в `src/shared/ui`. Геометрия (отступы, радиусы) записана в пикселях прямо в CSS-модулях, чтобы совпадать с макетом.
+- Экраны логина и админки (`/login`, `/admin`) остаются на `@alfalab/core-components`: в дизайне их нет.
+- Чего не отдаёт бэкенд, замокано на клиенте (файлы `mock-*.ts`, данные бэка всегда приоритетнее): список в [`docs/frontend-mocks.md`](../docs/frontend-mocks.md), требования к бэку в [`docs/backend-requirements.md`](../docs/backend-requirements.md). Цель кредита, выбранный продукт, действия пользователя (отзыв, подпись) и анкету шага «Данные» клиент хранит в `localStorage`.
+
+## Экраны и маршруты
+
+| Маршрут | Экран | Где живёт |
+| --- | --- | --- |
+| `/cabinet` | Главная: подбор кредита, как это работает, последние заявки | `pages/home` |
+| `/cabinet/applications` | Мои заявки: активные и завершённые | `pages/applications` |
+| `/cabinet/applications/:id/edit` | Оформление черновика: вариант, данные, отправка | `pages/application-edit`, `widgets/application-wizard` |
+| `/cabinet/applications/:id` | Заявка: статус, шаги, условия, график платежей | `pages/application` |
+| `/cabinet/help` | Помощь | `pages/help` |
+| `/staff/login` | Вход сотрудника | `pages/staff-login`, `features/staff-login` |
+| `/staff`, `/staff/mine`, `/staff/done` | Очередь заявок, мои заявки, решённые | `pages/staff-queue`, `widgets/staff-queue` |
+| `/staff/applications/:id` | Заявка сотрудника: данные, проверки, скоринг, решение | `pages/staff-application`, `widgets/staff-application-review`, `features/decide-application`, `features/assign-application` |
+| `/login`, `/admin` | Вход предпринимателя, панель внешних систем | `pages/login`, `pages/admin` |
+
+Рамка кабинета предпринимателя (сайдбар, переключатель компаний, меню профиля) — `widgets/cabinet-shell`, рамка кабинета сотрудника — `widgets/staff-shell`. Роль берётся из токена (`entities/session`), охранник маршрутов — `RequireRole` в `app/router`. Данные сотрудника: `entities/staff-application` (заявка, очередь, SLA, моки в `api/mocks/`), `entities/employee`.
+
+## Структура папок
+
+Правило одно: папка отвечает за один смысл, у каждого компонента свой CSS-модуль рядом.
+
+- `shared/ui`: каждый компонент в своей папке (`button/`, `form-field/`, `modal/`, …) с `index.ts`; наружу всё отдаёт `shared/ui/index.ts`. Токены дизайна: `shared/ui/theme/tokens.css`.
+- `shared/lib`: утилиты по темам: `storage/`, `text/`, `guards/`, `math/`.
+- `entities/application`: `lib/` по темам (`status/`, `scoring/`, `loan/`, `format/`, `local-details/`), `ui/` по компонентам (`scoring/`, `application-rows/`, `payment-schedule/`), моки в `api/mocks/`.
+- `widgets/application-wizard/ui`: `stepper/`, `section/`, `variants/`, `comparison/` (с `swatch/`), `data-step/`, `review-step/`.
+- `widgets/cabinet-shell`: `ui/sidebar`, `ui/mobile-bars`, `ui/menus`, навигация в `config/`.
+- `pages/application/ui`: `status-block/`, `status-timeline/`, `conditions-box/`, `sign-modal/`, `withdraw-modal/`.
+- `entities/user/api/mocks/`: моки профиля пользователя и компаний.
 
 ## Выбор архитектуры: Feature-Sliced Design (FSD)
 

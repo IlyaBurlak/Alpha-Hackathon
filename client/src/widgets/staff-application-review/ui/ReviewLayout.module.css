@@ -1,0 +1,59 @@
+.anchors {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  padding: 12px 0;
+  margin: 20px 0 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.anchor {
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.anchor:hover {
+  background: var(--color-fill);
+  color: var(--color-text);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 24px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+/* Above the sticky menu of sections: the confirmation dialog opened inside this column has to cover it too. */
+.decision {
+  position: sticky;
+  z-index: 6;
+  top: 76px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (width <= 1280px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .decision {
+    position: static;
+  }
+}

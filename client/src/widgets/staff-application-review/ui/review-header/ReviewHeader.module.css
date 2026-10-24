@@ -1,0 +1,37 @@
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.crumb:hover {
+  color: var(--color-text);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

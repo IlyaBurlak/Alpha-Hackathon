@@ -1,5 +1,6 @@
-export type { Organization, OrganizationType, User } from './model/types'
+export type { Organization, OrganizationProfile, OrganizationType, User } from './model/types'
 export { ORGANIZATION_TYPES } from './model/types'
 export { UserStore } from './model/user-store'
 export type { UserState } from './model/user-store'
-export { UserStoreContext, useUserStore } from './model/user-context'
+export { UserStoreContext, useLoadedUser, useSelectedOrganization, useUserStore } from './model/user-context'
+export { ORGANIZATION_TYPE_LABELS, getFirstName, getOrganizationInitials, getPersonInitials } from './lib/names'
