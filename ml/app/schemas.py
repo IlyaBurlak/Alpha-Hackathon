@@ -81,7 +81,6 @@ class _RegisterInfoBase(BaseModel):
         if v is None:
             return None
         if isinstance(v, (datetime, date)):
-            # return as-is; test checks date(2021,1,15) equality
             return v
         if isinstance(v, str):
             v2 = v.strip()
@@ -90,17 +89,14 @@ class _RegisterInfoBase(BaseModel):
             if v2.endswith("Z"):
                 v2 = v2[:-1] + "+00:00"
             try:
-                # try date first for YYYY-MM-DD
                 if "T" not in v2 and "+" not in v2:
                     try:
                         return date.fromisoformat(v2)
                     except Exception:
                         pass
                 try:
-                    # return date if no time
                     d = datetime.fromisoformat(v2.replace("+00:00", ""))
                     if d.hour == 0 and d.minute == 0 and d.second == 0 and d.microsecond == 0 and "+" not in v:
-                        # keep as date-like? but test wants date object
                         return date(d.year, d.month, d.day)
                     return d
                 except Exception:
@@ -117,24 +113,30 @@ class _RegisterInfoBase(BaseModel):
 RegisterInfo = _RegisterInfoBase
 
 
-class Factor(BaseModel):
+class FactorV3(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     feature: str
-    label: str
-    impact: float
-    hint: str | None = None
+    title: str
+    description: str
+    points: int
+    advice: str | None = None
+
+
+Factor = FactorV3
 
 
 class ScoreResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     pd: float = Field(ge=0, le=1)
+    score: int = Field(ge=0, le=100)
+    risk_class: str
+    rate_premium_pp: float
     model_version: str
-    factors: list[Factor]
-    risk_zone: str | None = None
-    stop_factors: list[str] | None = None
-    comment: str | None = None
+    updated_at: datetime | None = None
+    mode: str = "full"
+    factors: list[FactorV3]
 
 
 class ApplicationIn(BaseModel):

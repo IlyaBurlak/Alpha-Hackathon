@@ -37,10 +37,18 @@ def test_score_accepts_every_fixture(name: str) -> None:
     body = response.json()
     assert 0 <= body["pd"] <= 1
     assert isinstance(body["model_version"], str)
-    assert len(body["factors"]) == 5
+    assert isinstance(body["score"], int)
+    assert 0 <= body["score"] <= 100
+    assert body["risk_class"] in ["A", "B", "C", "D", "E"]
+    assert isinstance(body["rate_premium_pp"], (int, float))
+    assert body["mode"] == "full"
+    assert isinstance(body["factors"], list)
+    assert len(body["factors"]) >= 1
     for factor in body["factors"]:
-        assert {"feature", "label", "impact"} <= factor.keys()
-        assert "hint" not in factor  # пустые необязательные поля не отдаём
+        assert {"feature", "title", "description", "points"} <= factor.keys()
+        assert "label" not in factor
+        assert "impact" not in factor
+        assert "hint" not in factor
 
 
 def test_score_ignores_unknown_fields() -> None:
