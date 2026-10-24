@@ -27,18 +27,11 @@ describe('CreateApplicationFormStore: validation', () => {
     expect(new CreateApplicationFormStore(1).canSubmit).toBe(false)
   })
 
-  it('can submit when organization, sum and term are valid', () => {
+  it('can submit when sum and term are valid', () => {
     const store = new CreateApplicationFormStore(1)
     fillValidForm(store)
 
     expect(store.canSubmit).toBe(true)
-  })
-
-  it('cannot submit without an organization', () => {
-    const store = new CreateApplicationFormStore(null)
-    fillValidForm(store)
-
-    expect(store.canSubmit).toBe(false)
   })
 
   it.each([
@@ -75,11 +68,10 @@ describe('CreateApplicationFormStore: submit', () => {
     expect(store.errorMessage).toBeNull()
   })
 
-  it('uses the selected organization and term unit', async () => {
+  it('uses the chosen term unit', async () => {
     vi.mocked(createApplication).mockResolvedValue(CREATED)
-    const store = new CreateApplicationFormStore(1)
+    const store = new CreateApplicationFormStore(6)
     fillValidForm(store)
-    store.setOrganizationId(6)
     store.setTermUnit('MONTH')
 
     await store.submit()

@@ -5,15 +5,15 @@ import type { Application, CreditTimeUnit } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
 
 export class CreateApplicationFormStore {
-  organizationId: number | null
+  readonly organizationId: number
   sum = ''
   termValue = ''
   termUnit: CreditTimeUnit = CREDIT_TIME_UNITS.year
   isSubmitting = false
   errorMessage: string | null = null
 
-  constructor(defaultOrganizationId: number | null) {
-    this.organizationId = defaultOrganizationId
+  constructor(organizationId: number) {
+    this.organizationId = organizationId
     makeAutoObservable(this)
   }
 
@@ -27,16 +27,11 @@ export class CreateApplicationFormStore {
 
   get canSubmit(): boolean {
     return (
-      this.organizationId !== null &&
       this.parsedSum > 0 &&
       Number.isInteger(this.parsedTermValue) &&
       this.parsedTermValue > 0 &&
       !this.isSubmitting
     )
-  }
-
-  setOrganizationId(organizationId: number): void {
-    this.organizationId = organizationId
   }
 
   setSum(sum: string): void {
@@ -53,7 +48,7 @@ export class CreateApplicationFormStore {
 
   /** Returns the created application, or `null` when the request failed (the message is in `errorMessage`). */
   async submit(): Promise<Application | null> {
-    if (!this.canSubmit || this.organizationId === null) return null
+    if (!this.canSubmit) return null
 
     this.startSubmitting()
     try {

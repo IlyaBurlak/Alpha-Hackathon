@@ -10,7 +10,11 @@ import { getApplicationPath } from '@/shared/config'
 
 import styles from './CabinetPage.module.css'
 
-export const MyApplications = observer(function MyApplications() {
+interface MyApplicationsProps {
+  organizationId: number
+}
+
+export const MyApplications = observer(function MyApplications({ organizationId }: MyApplicationsProps) {
   const [store] = useState(() => new ApplicationListStore())
   const { state } = store
 
@@ -33,13 +37,15 @@ export const MyApplications = observer(function MyApplications() {
     )
   }
 
-  if (state.applications.length === 0) {
-    return <Typography.Text view="primary-medium">Заявок пока нет.</Typography.Text>
+  const applications = state.applications.filter((application) => application.organizationId === organizationId)
+
+  if (applications.length === 0) {
+    return <Typography.Text view="primary-medium">У этой компании заявок пока нет.</Typography.Text>
   }
 
   return (
     <ul className={styles.applications} aria-label="Мои заявки">
-      {state.applications.map((application) => (
+      {applications.map((application) => (
         <li key={application.id}>
           <ApplicationCard
             application={application}

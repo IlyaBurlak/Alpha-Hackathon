@@ -36,7 +36,7 @@ FROM python:3.12.12-slim-trixie
 ENV PATH="/venv/bin:$PATH" PYTHONUNBUFFERED=1 NODE_ENV=production \
     ML_SERVICE_URL=http://127.0.0.1:8000
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx supervisor \
+    && apt-get install -y --no-install-recommends nginx supervisor libatomic1 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 appuser \
     && chown -R appuser /var/log/nginx /var/lib/nginx

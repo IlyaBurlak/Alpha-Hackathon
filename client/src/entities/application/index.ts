@@ -14,4 +14,5 @@ export type {
   SelectedProduct,
 } from './model/types'
 export { ApplicationCard } from './ui/ApplicationCard'
+export { LoanTerms } from './ui/LoanTerms'
 export { ProductOfferCard } from './ui/ProductOfferCard'

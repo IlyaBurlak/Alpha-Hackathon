@@ -1,6 +1,7 @@
 import { Button } from '@alfalab/core-components/button'
 import { Typography } from '@alfalab/core-components/typography'
 
+import { LoanTerms } from '@/entities/application'
 import type { Application } from '@/entities/application'
 import { ProductOffers } from '@/features/select-product'
 
@@ -24,6 +25,11 @@ export function ProductSection({ application, onSelected, onRetry }: ProductSect
         <Typography.Text view="primary-small" color="secondary">
           Выплаты: {productChoice.product.payments}
         </Typography.Text>
+        <LoanTerms
+          sum={application.sum}
+          interestRate={productChoice.product.interestRate}
+          creditTime={application.creditTime}
+        />
       </>
     )
   }
