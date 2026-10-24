@@ -1,0 +1,40 @@
+{
+  "id": 4,
+  "userId": 2,
+  "organizationId": 2,
+  "sum": 100000000,
+  "status": "SUBMITTED",
+  "createdAt": "2026-10-23T19:52:32.325Z",
+  "creditTime": {
+    "units": "YEAR",
+    "value": 1
+  },
+  "applicationScore": {
+    "id": 3,
+    "applicationId": 4,
+    "scoringDate": null,
+    "score": null,
+    "status": "WAITNGSCORING",
+    "history": {
+      "creditHistory": [
+        {
+          "provisionDate": "2022-05-10",
+          "sum": 50000,
+          "status": "PAID",
+          "paymentDeadline": "2023-05-10"
+        }
+      ],
+      "bankrupt": false,
+      "casesDelayedPayment": 0
+    },
+    "registerInfo": {
+      "isActive": true,
+      "registrationDate": "2021-01-15",
+      "authCapital": 20000,
+      "employeesCount": 24,
+      "annualIncome": 400000,
+      "annualExpenses": 200000
+    }
+  },
+  "loanIssuanceDate": "2026-10-23T19:52:32.325Z"
+}
