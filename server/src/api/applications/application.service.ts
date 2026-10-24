@@ -103,7 +103,7 @@ export class ApplicationService implements IApplicationService {
         pd:0.1,
         model_version:"stub-0.0",
         factors:[
-                "revenue_cv",
+            "revenue_cv",
               "profit_cv",
               "assets_cv",
               "liabilities_cv",
@@ -216,5 +216,6 @@ export class ApplicationService implements IApplicationService {
         return await this.applicationRepository.getApplicationByUserId(userId);
     }
 
+    
 
 }
