@@ -97,7 +97,7 @@ export class ApplicationRepository implements IApplicationRepository {
                 throw new Error(`ApplicationScore with id ${applicationId} not found`);
             }            
             await ApplicationScore.update(
-                { info: { ...prev.info, mlScore: { factors: info.factors, model_version: info.model_version} }, score: info.pd, scoringDate: new Date() },
+                { info: { ...prev.info, mlScore: info }, score: info.pd, scoringDate: new Date() },
                 { where: { applicationId: applicationId  }, transaction }
             );
         });

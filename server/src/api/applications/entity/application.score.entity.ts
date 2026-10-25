@@ -40,7 +40,11 @@ export class RegisterInfo {
 }
 
 export class MlScoreEntity {
-    pd?: number;
+    pd!: number;
+    score!: number;
+    risk_class!: string;
+    rate_premium_pp!: number;
+    updated_at!: string;
     model_version!: string;
     factors!: any[];
 }
@@ -88,9 +92,16 @@ export class ApplicationScoreEntity {
                 type: model.info.registerInfo?.type
 
             }
-            this.mlScore = {
-                model_version: model.info.mlScore?.model_version,
-                factors: model.info.mlScore?.factors
+            if (model.info.mlScore) {
+                this.mlScore = {
+                    pd: model.info.mlScore.pd,
+                    score: model.info.mlScore.score,
+                    risk_class: model.info.mlScore.risk_class,
+                    rate_premium_pp: model.info.mlScore.rate_premium_pp,
+                    updated_at: model.info.mlScore.updated_at,
+                    model_version: model.info.mlScore.model_version,
+                    factors: model.info.mlScore.factors,
+                };
             }
         }
     }

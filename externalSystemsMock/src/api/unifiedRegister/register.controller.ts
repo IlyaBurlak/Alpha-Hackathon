@@ -60,7 +60,7 @@ export class RegisterController extends BaseController implements IRegisterContr
               annualIncome: 500000,
               annualExpenses: 200000,
               lastYearBalances: [
-                100000, 100040, 100023, 140022, 200342, 123333, 4632222, 200001, 322221, 104000, 100500, 100000, 100023, 140022, 200342, 123333,
+                100000, 100040, 100023, 140022, 200342, 123333, 463222, 200001, 322221, 104000, 100500, 100000, 100023, 140022, 200342, 123333,
               ]
             },
             {
@@ -81,7 +81,7 @@ export class RegisterController extends BaseController implements IRegisterContr
               employeesCount: 24,
               annualIncome: 400000,
               lastYearBalances: [
-                100000, 100040, 100023, 140022, 200342, 123333, 4632222, 200001, 322221, 104000, 100500, 100000, 100023, 140022, 200342, 123333,
+                100000, 100040, 100023, 140022, 200342, 123333, 463222, 200001, 322221, 104000, 100500, 100000, 100023, 140022, 200342, 123333,
               ],
               annualExpenses: 200000
             },

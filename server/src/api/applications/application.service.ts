@@ -100,23 +100,14 @@ export class ApplicationService implements IApplicationService {
             await this.applicationRepository.updateApplicationScoringInfo(application.id, { registerInfo });
         }
 
-        const t = {
-        pd:0.1,
-        model_version:"stub-0.0",
-        factors:[
-            "revenue_cv",
-              "profit_cv",
-              "assets_cv",
-              "liabilities_cv",
-              "equity_cv",
-        ],}
+   
         await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITNGSCORING);
         const applicationData = JSON.parse(JSON.stringify(await this.applicationRepository.getApplicationWithScore(application.id)));
         
 
         const scoringResult = await this.gatewayService.getMlScoring(applicationData);
         if (scoringResult) {
-            await this.applicationRepository.updateApplicationScore(application.id, t);
+            await this.applicationRepository.updateApplicationScore(application.id, scoringResult);
         }
         await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITONGOPERATOR);
         
