@@ -81,7 +81,7 @@ export class GatewayService implements IGatewayService{
             }); 
             let endpoint = '';
             if (type === OrganizationType.IndividualEntrepreneur) {
-                endpoint = '/individual';
+                endpoint = '/invidual';
             } else if (type === OrganizationType.OO) {
                 endpoint = '/legal';
             }
