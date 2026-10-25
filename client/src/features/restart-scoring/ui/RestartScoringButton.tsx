@@ -21,13 +21,13 @@ export const RestartScoringButton = observer(function RestartScoringButton({ app
   if (!isRestartable || !getStaffCapabilities().canRestartScoring) return null
 
   const handleConfirm = async () => {
-    if (await store.restart(application.id)) showToast('Скоринг перезапущен. Результат появится после обновления страницы')
+    if (await store.restart(application.id)) showToast('Скоринг перезапущен. Результат появится в этом блоке через несколько секунд')
     else if (store.errorMessage) showToast(store.errorMessage)
   }
 
   return (
     <>
-      <Button view="secondary" size="small" disabled={store.isSaving} onClick={() => store.askConfirmation()}>
+      <Button view="secondary" size="small" disabled={store.isSaving || store.isWaiting} onClick={() => store.askConfirmation()}>
         Перезапустить скоринг
       </Button>
       {store.isConfirming && (
