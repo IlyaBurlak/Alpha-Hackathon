@@ -118,6 +118,7 @@ export class GatewayService implements IGatewayService{
                 { timeout: Number(process.env.ML_SCORING_API_TIMEOUT_MS) || 10000 },
             );
             console.log('Статус ответа на запрос внутреннего скоринга ' + response.status);
+            console.log(response.data);
             return response.data ? response.data : null;
         } catch (error) {
             return undefined;

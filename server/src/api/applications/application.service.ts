@@ -113,7 +113,6 @@ export class ApplicationService implements IApplicationService {
         await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITNGSCORING);
         const applicationData = JSON.parse(JSON.stringify(await this.applicationRepository.getApplicationWithScore(application.id)));
         
-        delete applicationData.applicationScore.history;
 
         const scoringResult = await this.gatewayService.getMlScoring(applicationData);
         if (scoringResult) {
