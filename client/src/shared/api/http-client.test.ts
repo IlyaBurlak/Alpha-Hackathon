@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiError, NETWORK_ERROR_STATUS } from './errors'
+import { ApiError, NETWORK_ERROR_STATUS, UnexpectedResponseError } from './errors'
 import { httpClient } from './http-client'
 
 const fetchMock = vi.fn<typeof fetch>()
@@ -113,5 +113,11 @@ describe('httpClient: errors', () => {
     fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
 
     await expect(httpClient.get('/users/info')).rejects.toMatchObject({ status: NETWORK_ERROR_STATUS })
+  })
+
+  it('reports a successful response with a broken body as an unexpected response', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('<html>', { status: 200 }))
+
+    await expect(httpClient.get('/applications/my')).rejects.toBeInstanceOf(UnexpectedResponseError)
   })
 })

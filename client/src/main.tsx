@@ -12,6 +12,7 @@ import { App } from '@/app'
 
 configure({ enforceActions: 'always' })
 
+// The root element is part of index.html: without it nothing can be shown anyway.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
