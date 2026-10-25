@@ -1,0 +1,1 @@
+{"id":"b6ad044bae82daf016081dd6e20948df.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/auth.integration.test.ts#GET /api/users/admin-info with a regular user's token is forbidden","name":"GET /api/users/admin-info with a regular user's token is forbidden","status":"passed","testResultsByEnv":{"default":"26a925dd21582a55163194ee8b7c044e"}}

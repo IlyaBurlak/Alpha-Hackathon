@@ -1,0 +1,1 @@
+{"id":"04f9ef8b637a601a3379111634541b94.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /:id for another user's application is rejected","name":"GET /:id for another user's application is rejected","status":"passed","testResultsByEnv":{"default":"fbcc7cbefcad3911a12fe14961bcd3ee"}}

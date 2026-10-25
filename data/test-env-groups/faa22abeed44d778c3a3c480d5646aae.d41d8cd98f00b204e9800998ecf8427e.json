@@ -1,0 +1,1 @@
+{"id":"faa22abeed44d778c3a3c480d5646aae.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /my without a token is rejected","name":"GET /my without a token is rejected","status":"passed","testResultsByEnv":{"default":"9dde9ccdce4d4f020e4634edaadff30e"}}
