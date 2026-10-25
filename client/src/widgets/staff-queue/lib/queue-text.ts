@@ -4,7 +4,7 @@ const NBSP = ' '
 
 export const QUEUE_TITLES: Record<QueueMode, { title: string; subtitle: string }> = {
   queue: { title: 'Очередь заявок', subtitle: 'Заявки малого бизнеса, поступившие из кредитного кабинета' },
-  mine: { title: 'Мои заявки', subtitle: 'Заявки, где вы ответственный' },
+  mine: { title: 'Мои заявки', subtitle: 'Незавершённые заявки, где вы ответственный' },
   done: { title: 'Решённые', subtitle: 'Одобренные и отклонённые заявки' },
 }
 

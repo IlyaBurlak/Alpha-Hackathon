@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { StaffApplicationDetailStore, StaffApplicationListStore, decideStaffApplication } from '@/entities/staff-application'
+import {
+  StaffApplicationDetailStore,
+  StaffApplicationListStore,
+  decideStaffApplication,
+  getStaffCapabilities,
+} from '@/entities/staff-application'
 import type { Recommendation, StaffApplication } from '@/entities/staff-application'
 import { ApiError } from '@/shared/api'
 
@@ -9,6 +14,7 @@ import { DecisionFormStore } from './decision-form-store'
 vi.mock('@/entities/staff-application', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/staff-application')>()),
   decideStaffApplication: vi.fn(),
+  getStaffCapabilities: vi.fn(() => ({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })),
 }))
 
 const ACTOR = { id: 'u1', name: 'Мария Иванова' }
@@ -27,6 +33,21 @@ function createStore(application = APPROVE) {
 
 beforeEach(() => {
   vi.mocked(decideStaffApplication).mockReset()
+  vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })
+})
+
+describe('DecisionFormStore: what the backend cannot do', () => {
+  it('offers all four answers to an employee of the mock database', () => {
+    expect(createStore().store.availableTypes).toEqual(['approve', 'offer', 'clarify', 'reject'])
+  })
+
+  it('hides "request data" for a backend operator and turns that advice into other terms', () => {
+    vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: false, canReopenDecision: false, canAssignOthers: false })
+    const { store } = createStore(createApplication({ type: 'clarify', reasons: [], offer: null }))
+
+    expect(store.availableTypes).not.toContain('clarify')
+    expect(store.type).toBe('offer')
+  })
 })
 
 describe('DecisionFormStore: defaults', () => {

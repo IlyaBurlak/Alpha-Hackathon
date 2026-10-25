@@ -1,19 +1,16 @@
 import { observer } from 'mobx-react-lite'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 
 import { useEmployeeStore } from '@/entities/employee'
 import { useSessionStore } from '@/entities/session'
 import { countNavigation, useStaffApplicationListStore } from '@/entities/staff-application'
 import { ROUTES } from '@/shared/config'
-import { classNames } from '@/shared/lib'
+import { classNames, useRefreshOnReturn } from '@/shared/lib'
 import { STAFF_DENSITY_CLASS_NAME, useToast } from '@/shared/ui'
 
 import styles from './StaffShell.module.css'
 import { StaffSidebar } from './StaffSidebar'
-
-/** How often the queue asks for news: scoring finishes in the background. */
-const QUEUE_REFRESH_INTERVAL_MS = 4000
 
 /** Frame of the staff cabinet: the menu with the numbers of the queue and the page of the current route. */
 export const StaffLayout = observer(function StaffLayout() {
@@ -27,14 +24,20 @@ export const StaffLayout = observer(function StaffLayout() {
   const { current: employee } = employeeStore
 
   useEffect(() => {
-    void applications.loadOnce()
-    const timer = window.setInterval(() => {
-      void applications.refresh().then((finished) => {
-        finished.forEach(({ number }) => showToast(`№${number}: скоринг завершён`))
-      })
-    }, QUEUE_REFRESH_INTERVAL_MS)
-    return () => window.clearInterval(timer)
+    void employeeStore.loadProfile()
+  }, [employeeStore])
+
+  const refreshQueue = useCallback(async () => {
+    const finished = await applications.refresh()
+    finished.forEach(({ number }) => showToast(`№${number}: скоринг завершён`))
   }, [applications, showToast])
+
+  // The queue is asked for news on opening a page of the cabinet and on coming back to the tab, never on a timer.
+  useEffect(() => {
+    void refreshQueue()
+  }, [refreshQueue, pathname])
+
+  useRefreshOnReturn(() => void refreshQueue())
 
   // The panel scrolls on wide screens and the window on narrow ones: a new page starts at the top in both.
   useEffect(() => {

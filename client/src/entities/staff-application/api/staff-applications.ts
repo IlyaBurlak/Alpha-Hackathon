@@ -1,5 +1,14 @@
 import { mapStaffApplication, mapStaffApplications } from './staff-application-mapper'
 import {
+  fetchBackendApplication,
+  fetchBackendApplications,
+  getBackendOperatorEmployeeId,
+  rejectUnsupportedAssignment,
+  rejectUnsupportedReopen,
+  sendBackendDecision,
+  takeBackendApplication,
+} from './backend/backend-staff-api'
+import {
   assignMockStaffApplication,
   decideMockStaffApplication,
   getMockStaffApplication,
@@ -15,36 +24,49 @@ export interface ActingEmployee {
 }
 
 /*
- * The backend has no endpoints for the staff cabinet yet, so these functions read and write the mock database
- * (api/mocks). The responses go through the mapper like real ones; replace each body with a `httpClient` call
- * when the endpoints from docs/backend-requirements.md exist.
+ * A real operator (a token with the numeric backend id) works with the backend: the queue is `/applications/all`,
+ * the card is `/applications/:id/score`, "take" and the decision are `/take` and `/solution`; what the backend does
+ * not return yet comes from api/mocks/mock-review.ts. The demo employees of the design have no backend token,
+ * so they keep working with the mock database (api/mocks). Both kinds of responses go through the same mapper.
  */
 
-/** GET /api/staff/applications */
+/** GET /api/applications/all */
 export async function getStaffApplications(): Promise<StaffApplication[]> {
-  return mapStaffApplications(listMockStaffApplications())
+  if (getBackendOperatorEmployeeId() === null) return mapStaffApplications(listMockStaffApplications())
+  return mapStaffApplications(await fetchBackendApplications(Date.now()))
 }
 
-/** GET /api/staff/applications/:id */
+/** GET /api/applications/:id/score */
 export async function getStaffApplication(applicationId: string): Promise<StaffApplication> {
-  return mapStaffApplication(getMockStaffApplication(applicationId))
+  if (getBackendOperatorEmployeeId() === null) return mapStaffApplication(getMockStaffApplication(applicationId))
+  return mapStaffApplication(await fetchBackendApplication(applicationId, Date.now()))
 }
 
-/** PATCH /api/staff/applications/:id/assignee */
+/** POST /api/applications/:id/take; the backend knows only "take for myself". */
 export async function assignStaffApplication(applicationId: string, assignee: ActingEmployee | null): Promise<StaffApplication> {
-  return mapStaffApplication(assignMockStaffApplication(applicationId, assignee))
+  const ownEmployeeId = getBackendOperatorEmployeeId()
+  if (ownEmployeeId === null) return mapStaffApplication(assignMockStaffApplication(applicationId, assignee))
+  if (assignee?.id !== ownEmployeeId) rejectUnsupportedAssignment()
+  await takeBackendApplication(applicationId)
+  return getStaffApplication(applicationId)
 }
 
-/** POST /api/staff/applications/:id/decision */
+/** POST /api/applications/:id/solution */
 export async function decideStaffApplication(
   applicationId: string,
   decision: Decision,
   actor: ActingEmployee,
 ): Promise<StaffApplication> {
-  return mapStaffApplication(decideMockStaffApplication(applicationId, decision, actor))
+  if (getBackendOperatorEmployeeId() === null) {
+    return mapStaffApplication(decideMockStaffApplication(applicationId, decision, actor))
+  }
+  const current = await getStaffApplication(applicationId)
+  await sendBackendDecision(applicationId, decision, current.assigneeId !== null)
+  return getStaffApplication(applicationId)
 }
 
-/** DELETE /api/staff/applications/:id/decision */
+/** Not on the backend yet (docs/backend-requirements.md): the mock database reopens the demo applications only. */
 export async function reopenStaffApplication(applicationId: string, actor: ActingEmployee): Promise<StaffApplication> {
+  if (getBackendOperatorEmployeeId() !== null) rejectUnsupportedReopen()
   return mapStaffApplication(reopenMockStaffApplication(applicationId, actor))
 }

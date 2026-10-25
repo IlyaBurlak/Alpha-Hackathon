@@ -3,11 +3,10 @@ import { makeAutoObservable } from 'mobx'
 import { CREDIT_GOALS, CREDIT_TIME_UNITS, MAX_LOAN_SUM, MIN_LOAN_SUM, createApplication } from '@/entities/application'
 import type { Application, CreditGoalId } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
-import { formatNumber } from '@/shared/lib'
+import { formatNumber, groupDigits, normalizeDigits, parseDigits } from '@/shared/lib'
 
 const DEFAULT_SUM = 3_000_000
 const DEFAULT_TERM_IN_MONTHS = 24
-const NOT_DIGIT_PATTERN = /\D/g
 
 const GOAL_MISSING_MESSAGE = 'Выберите, для чего нужны деньги'
 const SUM_OUT_OF_RANGE_MESSAGE = 'Сумма от 100 тыс до 50 млн ₽'
@@ -42,7 +41,7 @@ export class CreateApplicationFormStore {
   }
 
   get sum(): number {
-    return Number(this.sumText.replace(NOT_DIGIT_PATTERN, ''))
+    return parseDigits(this.sumText)
   }
 
   /** Accepts a goal id from a `<select>`; unknown values are ignored. */
@@ -52,8 +51,12 @@ export class CreateApplicationFormStore {
 
   /** Keeps only digits and groups them by thousands, as the user types. */
   setSum(text: string): void {
-    const digits = text.replace(NOT_DIGIT_PATTERN, '')
-    this.sumText = digits === '' ? '' : formatNumber(Number(digits))
+    this.sumText = groupDigits(text)
+  }
+
+  /** Called when the user leaves the field: the zeros left by editing go away. */
+  normalizeSum(): void {
+    this.sumText = normalizeDigits(this.sumText)
   }
 
   setTermInMonths(termInMonths: number): void {

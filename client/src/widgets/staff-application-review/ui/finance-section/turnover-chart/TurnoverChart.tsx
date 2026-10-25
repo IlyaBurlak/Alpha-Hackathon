@@ -23,7 +23,8 @@ interface TurnoverChartProps {
 
 /** Income of the account by month; months below half of the average are yellow, the new payment is a red dashed line. */
 export function TurnoverChart({ turnover, newPayment }: TurnoverChartProps) {
-  const max = Math.max(...turnover.map(({ amount }) => amount), newPayment ?? 0) * HEADROOM
+  // A company without income and a loan without a payment yet still need a scale to draw the empty chart.
+  const max = Math.max(...turnover.map(({ amount }) => amount), newPayment ?? 0) * HEADROOM || 1
   const average = turnover.reduce((total, { amount }) => total + amount, 0) / turnover.length
   const barSlot = (WIDTH - LEFT) / turnover.length
   const toY = (amount: number) => TOP + (1 - amount / max) * (HEIGHT - TOP - BOTTOM)

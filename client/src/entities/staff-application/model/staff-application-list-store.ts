@@ -34,11 +34,6 @@ export class StaffApplicationListStore {
     }
   }
 
-  /** Loads only if nobody has asked yet. */
-  async loadOnce(): Promise<void> {
-    if (this.state.status === 'idle') await this.load()
-  }
-
   /**
    * Updates a shown list quietly. Returns the applications whose scoring has finished since the last load,
    * so the screen can tell the employee about them; a failed refresh keeps the old data.

@@ -50,7 +50,13 @@ export interface WizardForm {
   consents: Record<ConsentKey, boolean>
 }
 
-export type DigitsField = 'revenue' | 'employees' | 'otherLoanPayments' | 'collateralValue'
+const DIGITS_FIELDS = ['revenue', 'employees', 'otherLoanPayments', 'collateralValue'] as const
+
+export type DigitsField = (typeof DIGITS_FIELDS)[number]
+
+export function isDigitsField(field: string): field is DigitsField {
+  return DIGITS_FIELDS.some((candidate) => candidate === field)
+}
 
 export const NOTE_MAX_LENGTH = 200
 

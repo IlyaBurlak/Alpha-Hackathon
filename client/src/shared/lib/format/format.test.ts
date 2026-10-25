@@ -8,6 +8,9 @@ import {
   formatMonths,
   formatPercent,
   formatWhen,
+  groupDigits,
+  normalizeDigits,
+  parseDigits,
 } from './format'
 
 describe('formatMoney', () => {
@@ -62,5 +65,50 @@ describe('formatMonths', () => {
     expect(formatMonths(1)).toMatch(/^1\sмесяц$/)
     expect(formatMonths(24)).toMatch(/^24\sмесяца$/)
     expect(formatMonths(36)).toMatch(/^36\sмесяцев$/)
+  })
+})
+
+const NBSP = '\u00a0'
+
+describe('groupDigits', () => {
+  it('groups the digits of a typed text and drops everything else', () => {
+    expect(groupDigits('2500000')).toBe(`2${NBSP}500${NBSP}000`)
+    expect(groupDigits('50 000 руб')).toBe(`50${NBSP}000`)
+    expect(groupDigits('abc')).toBe('')
+    expect(groupDigits('')).toBe('')
+  })
+
+  it('keeps the zeros that are left after the first digit is deleted', () => {
+    expect(groupDigits('000000')).toBe(`000${NBSP}000`)
+    expect(groupDigits('0005000000')).toBe(`0${NBSP}005${NBSP}000${NBSP}000`)
+  })
+
+  it('cuts a pasted number that is too long to stay exact', () => {
+    expect(groupDigits('9'.repeat(30)).replace(/\D/g, '')).toHaveLength(12)
+    expect(groupDigits('123456', 4).replace(/\D/g, '')).toBe('1234')
+  })
+})
+
+describe('parseDigits', () => {
+  it('reads grouped digits and treats garbage as zero', () => {
+    expect(parseDigits('2 500 000')).toBe(2_500_000)
+    expect(parseDigits('')).toBe(0)
+    expect(parseDigits('abc')).toBe(0)
+  })
+
+  it('does not lose precision on a very long text', () => {
+    expect(Number.isSafeInteger(parseDigits('9'.repeat(30)))).toBe(true)
+  })
+})
+
+describe('normalizeDigits', () => {
+  it('drops the zeros in front and regroups', () => {
+    expect(normalizeDigits(`0${NBSP}005${NBSP}000`)).toBe(`5${NBSP}000`)
+    expect(normalizeDigits('0050')).toBe('50')
+  })
+
+  it('leaves an empty text empty and a lone zero as zero', () => {
+    expect(normalizeDigits('')).toBe('')
+    expect(normalizeDigits('000')).toBe('0')
   })
 })

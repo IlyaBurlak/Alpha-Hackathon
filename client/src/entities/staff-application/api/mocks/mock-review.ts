@@ -47,6 +47,10 @@ export interface ReviewInput {
   arbitrationCases: number
   taxDebt: number
   collateralValue: number | null
+  /** From the register; the demo applications are all active. */
+  isCompanyActive: boolean
+  /** From the credit bureau; the demo applications have none. */
+  isBankrupt: boolean
 }
 
 interface Factor {
@@ -63,18 +67,16 @@ function formatDelays(count: number): string {
   return `${count} ${pluralize(count, ['просрочка', 'просрочки', 'просрочек'])}`
 }
 
-function buildFactors(input: ReviewInput, now: number): Factor[] {
-  const years = (now - input.registeredAt) / (DAYS_IN_YEAR * MS_IN_DAY)
-  const wholeYears = Math.floor(years)
+/** The sum and the debt against the yearly revenue; without revenue no share can be counted, one factor says so. */
+function buildRevenueFactors(input: ReviewInput): Factor[] {
+  if (input.annualRevenue <= 0) return [{ title: 'Выручка', description: 'Нет данных за 12 месяцев', points: -25 }]
+
   const amountShare = input.amount / input.annualRevenue
   const debtShare = input.debt / input.annualRevenue
+  const amountPercent = `${Math.round(amountShare * PERCENT)}%`
+  const debtPercent = `${Math.round(debtShare * PERCENT)}%`
   const factors: Factor[] = []
 
-  if (years >= 5) factors.push({ title: 'Возраст бизнеса', description: formatYears(wholeYears), points: 15 })
-  else if (years >= 2) factors.push({ title: 'Возраст бизнеса', description: formatYears(wholeYears), points: 8 })
-  else factors.push({ title: 'Возраст бизнеса', description: 'Меньше 2 лет', points: -10 })
-
-  const amountPercent = `${Math.round(amountShare * PERCENT)}%`
   if (amountShare < 0.15) factors.push({ title: 'Сумма к выручке', description: `${amountPercent} годовой выручки`, points: 15 })
   else if (amountShare < AMOUNT_TO_REVENUE_LIMIT) factors.push({ title: 'Сумма к выручке', description: amountPercent, points: 5 })
   else {
@@ -85,7 +87,6 @@ function buildFactors(input: ReviewInput, now: number): Factor[] {
     })
   }
 
-  const debtPercent = `${Math.round(debtShare * PERCENT)}%`
   if (debtShare < 0.1) factors.push({ title: 'Долговая нагрузка', description: `${debtPercent} выручки`, points: 10 })
   else if (debtShare < DEBT_TO_REVENUE_LIMIT) factors.push({ title: 'Долговая нагрузка', description: `${debtPercent} выручки`, points: 0 })
   else {
@@ -95,6 +96,19 @@ function buildFactors(input: ReviewInput, now: number): Factor[] {
       points: -15,
     })
   }
+  return factors
+}
+
+function buildFactors(input: ReviewInput, now: number): Factor[] {
+  const years = (now - input.registeredAt) / (DAYS_IN_YEAR * MS_IN_DAY)
+  const wholeYears = Math.floor(years)
+  const factors: Factor[] = []
+
+  if (years >= 5) factors.push({ title: 'Возраст бизнеса', description: formatYears(wholeYears), points: 15 })
+  else if (years >= 2) factors.push({ title: 'Возраст бизнеса', description: formatYears(wholeYears), points: 8 })
+  else factors.push({ title: 'Возраст бизнеса', description: 'Меньше 2 лет', points: -10 })
+
+  factors.push(...buildRevenueFactors(input))
 
   if (input.overdueCount === 0) factors.push({ title: 'Кредитная история', description: 'Без просрочек', points: 10 })
   else {
@@ -166,14 +180,18 @@ const FAILED = 'Не пройдена'
 export function buildChecks(input: ReviewInput, rate: number): Check[] {
   const { ok, warning, fail } = CHECK_LEVELS
   const checks: Check[] = [
-    { title: 'ЕГРЮЛ', description: 'Компания действующая, сведения о руководителе совпадают', level: ok, resultLabel: PASSED },
+    input.isCompanyActive
+      ? { title: 'ЕГРЮЛ', description: 'Компания действующая, сведения о руководителе совпадают', level: ok, resultLabel: PASSED }
+      : { title: 'ЕГРЮЛ', description: 'Компания не действует по данным реестра', level: fail, resultLabel: FAILED },
     { title: 'ФНС «Прозрачный бизнес»', description: 'Нет массового адреса и массового руководителя', level: ok, resultLabel: PASSED },
     input.taxDebt
       ? { title: 'Налоговая задолженность', description: `Задолженность ${formatMoney(input.taxDebt)}`, level: warning, resultLabel: ATTENTION }
       : { title: 'Налоговая задолженность', description: 'Задолженности нет', level: ok, resultLabel: PASSED },
-    input.overdueCount === 0
-      ? { title: 'Бюро кредитных историй', description: 'Просрочек нет, все кредиты обслуживаются', level: ok, resultLabel: PASSED }
-      : {
+    input.isBankrupt
+      ? { title: 'Бюро кредитных историй', description: 'Компания признана банкротом', level: fail, resultLabel: FAILED }
+      : input.overdueCount === 0
+        ? { title: 'Бюро кредитных историй', description: 'Просрочек нет, все кредиты обслуживаются', level: ok, resultLabel: PASSED }
+        : {
           title: 'Бюро кредитных историй',
           description: `${formatDelays(input.overdueCount)} до 30 дней за год`,
           level: input.overdueCount > 1 ? fail : warning,
@@ -198,6 +216,11 @@ export function buildChecks(input: ReviewInput, rate: number): Check[] {
         ? { title: 'Залог', description: `LTV ${percent}%`, level: ok, resultLabel: PASSED }
         : { title: 'Залог', description: `LTV ${percent}%, выше ${LOAN_TO_COLLATERAL_LIMIT * PERCENT}%`, level: warning, resultLabel: ATTENTION },
     )
+  }
+
+  if (input.annualRevenue <= 0) {
+    checks.push({ title: 'Платёжеспособность', description: 'Нет данных о выручке, платёж оценить нельзя', level: fail, resultLabel: FAILED })
+    return checks
   }
 
   const payment = calculateAnnuityPayment(input.amount, rate, input.termInMonths)

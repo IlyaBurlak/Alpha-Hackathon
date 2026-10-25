@@ -19,6 +19,8 @@ const STRONG_COMPANY: ReviewInput = {
   arbitrationCases: 0,
   taxDebt: 0,
   collateralValue: null,
+  isCompanyActive: true,
+  isBankrupt: false,
 }
 
 const WEAK_COMPANY: ReviewInput = {
@@ -75,6 +77,36 @@ describe('buildChecks and buildRecommendation', () => {
 
     expect(checks.find((check) => check.title === 'Бюро кредитных историй')?.level).toBe('fail')
     expect(buildRecommendation(WEAK_COMPANY, scoring, checks).type).toBe('reject')
+  })
+
+  it('fails the register check for a company that is not active and recommends refusal', () => {
+    const input = { ...STRONG_COMPANY, isCompanyActive: false }
+    const checks = buildChecks(input, 18.9)
+
+    expect(checks.find(({ title }) => title === 'ЕГРЮЛ')).toMatchObject({ level: 'fail', resultLabel: 'Не пройдена' })
+    expect(buildRecommendation(input, buildScoring(input, NOW), checks).type).toBe('reject')
+  })
+
+  it('fails the credit history check for a bankrupt company', () => {
+    const checks = buildChecks({ ...STRONG_COMPANY, isBankrupt: true }, 18.9)
+
+    expect(checks.find(({ title }) => title === 'Бюро кредитных историй')).toMatchObject({
+      level: 'fail',
+      description: 'Компания признана банкротом',
+    })
+  })
+
+  it('does not divide by zero for a company without revenue', () => {
+    const company = { ...STRONG_COMPANY, annualRevenue: 0 }
+    const scoring = buildScoring(company, NOW)
+    const checks = buildChecks(company, scoring.rate)
+
+    expect(Number.isFinite(scoring.score)).toBe(true)
+    expect(scoring.factors).toContainEqual({ title: 'Выручка', description: 'Нет данных за 12 месяцев', points: -25 })
+    expect(scoring.factors.some(({ title }) => title === 'Сумма к выручке')).toBe(false)
+    expect(checks.find(({ title }) => title === 'Платёжеспособность')).toMatchObject({ level: 'fail' })
+    expect(buildRecommendation(company, scoring, checks).type).toBe('reject')
+    expect(buildTurnover(company, NOW).every(({ amount }) => amount === 0)).toBe(true)
   })
 
   it('asks for data when there is tax debt', () => {

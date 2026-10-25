@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCurrentEmployee } from '@/entities/employee'
 import { STAFF_STATUSES } from '@/entities/staff-application'
 import type { StaffApplication, StaffApplicationDetailStore, StaffApplicationListStore } from '@/entities/staff-application'
-import { Icon } from '@/shared/ui'
+import { Icon, useToast } from '@/shared/ui'
 
 import { ReopenDecisionStore } from '../model/reopen-decision-store'
 import styles from './DecisionPanel.module.css'
@@ -25,7 +25,12 @@ export const DecisionPanel = observer(function DecisionPanel({ application, list
   const [reopenStore] = useState(() => new ReopenDecisionStore(list, detail))
   const { decision } = application
 
-  const handleReopen = () => reopenStore.reopen(application.id, { id: employee.id, name: employee.name })
+  const showToast = useToast()
+
+  const handleReopen = async () => {
+    const reopened = await reopenStore.reopen(application.id, { id: employee.id, name: employee.name })
+    if (!reopened && reopenStore.errorMessage) showToast(reopenStore.errorMessage)
+  }
 
   if (application.status === STAFF_STATUSES.scoring) {
     return (

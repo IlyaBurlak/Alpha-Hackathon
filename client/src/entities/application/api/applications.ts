@@ -61,3 +61,9 @@ export async function selectApplicationProduct(applicationId: number, offer: Pro
   })
   return withLocalDetails(application)
 }
+
+/** Accepts or declines the other conditions an employee offered. */
+export async function answerSpecialOffer(applicationId: number, isAccepted: boolean): Promise<void> {
+  const status = isAccepted ? APPLICATION_STATUSES.offerAccepted : APPLICATION_STATUSES.offerDeclined
+  await httpClient.put(`${APPLICATIONS_PATH}/${applicationId}/special?${new URLSearchParams({ status })}`)
+}

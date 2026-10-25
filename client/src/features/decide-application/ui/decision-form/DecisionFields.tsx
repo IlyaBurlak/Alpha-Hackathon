@@ -45,6 +45,7 @@ export const DecisionFields = observer(function DecisionFields({ store }: Decisi
           hasDigitMask
           value={store.amountText}
           onChange={(value) => store.setAmount(value)}
+          onBlur={() => store.normalizeAmount()}
         />
         <div className={styles.pair}>
           <SelectField

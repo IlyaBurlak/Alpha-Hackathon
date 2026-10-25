@@ -1,4 +1,4 @@
-import { isCompletePhone } from '@/shared/lib'
+import { isCompletePhone, parseDigits } from '@/shared/lib'
 
 import type { WizardForm } from './wizard-form'
 
@@ -10,12 +10,6 @@ export interface ValidationIssue {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const NOT_DIGIT_PATTERN = /\D/g
-
-/** Grouped digits as typed (`2 500 000`) to a number; empty or garbage gives 0. */
-export function parseDigits(text: string): number {
-  return Number(text.replace(NOT_DIGIT_PATTERN, ''))
-}
 
 /** Problems of the data step in the order the fields appear on the screen. */
 export function validateWizardForm(form: WizardForm, isSecured: boolean): ValidationIssue[] {

@@ -32,30 +32,32 @@ interface FinanceSectionProps {
 /** Revenue, debt load and the new payment against the income, the account turnover and the credits of the company. */
 export function FinanceSection({ application }: FinanceSectionProps) {
   const { company, amount, termInMonths, scoring } = application
-  const amountShare = amount / company.annualRevenue
-  const debtShare = company.debt / company.annualRevenue
+  // Without revenue the shares cannot be counted: the tiles say "—" instead of Infinity or NaN.
+  const hasRevenue = company.annualRevenue > 0
+  const amountShare = hasRevenue ? amount / company.annualRevenue : null
+  const debtShare = hasRevenue ? company.debt / company.annualRevenue : null
   const payment = scoring ? calculateAnnuityPayment(amount, scoring.rate, termInMonths) : null
-  const paymentShare = payment === null ? null : payment / (company.annualRevenue / MONTHS_IN_YEAR)
+  const paymentShare = payment === null || !hasRevenue ? null : payment / (company.annualRevenue / MONTHS_IN_YEAR)
 
   const tiles: FigureTile[] = [
     { label: 'Выручка за 12 мес', value: formatMoneyShort(company.annualRevenue) },
     {
       label: 'Сумма к выручке',
-      value: formatShare(amountShare),
+      value: amountShare === null ? UNKNOWN : formatShare(amountShare),
       note: formatLimit(AMOUNT_TO_REVENUE_LIMIT),
-      tone: amountShare < AMOUNT_TO_REVENUE_LIMIT ? 'positive' : 'negative',
+      tone: amountShare === null ? 'attention' : amountShare < AMOUNT_TO_REVENUE_LIMIT ? 'positive' : 'negative',
     },
     {
       label: 'Долговая нагрузка',
-      value: formatShare(debtShare),
+      value: debtShare === null ? UNKNOWN : formatShare(debtShare),
       note: formatLimit(DEBT_TO_REVENUE_LIMIT),
-      tone: debtShare < DEBT_TO_REVENUE_LIMIT ? 'positive' : 'negative',
+      tone: debtShare === null ? 'attention' : debtShare < DEBT_TO_REVENUE_LIMIT ? 'positive' : 'negative',
     },
     {
       label: 'Платёж к выручке',
       value: paymentShare === null ? UNKNOWN : formatShare(paymentShare),
       note: formatLimit(PAYMENT_TO_MONTHLY_REVENUE_LIMIT),
-      tone: paymentShare !== null && paymentShare >= PAYMENT_TO_MONTHLY_REVENUE_LIMIT ? 'attention' : 'positive',
+      tone: paymentShare === null || paymentShare >= PAYMENT_TO_MONTHLY_REVENUE_LIMIT ? 'attention' : 'positive',
     },
   ]
 

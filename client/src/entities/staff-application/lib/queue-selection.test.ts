@@ -56,7 +56,7 @@ describe('selectQueueRows: filters', () => {
     ['ready', ['2', '3']],
     ['scoring', ['1']],
     ['clarify', ['5', '4']],
-    ['all', ['1', '2', '5', '4', '3', '7', '6']],
+    ['all', ['1', '2', '5', '4', '3']],
   ] as const)('"%s" shows the matching applications, the newest first', (filter, expected) => {
     expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter }))).toEqual(expected)
   })
@@ -65,8 +65,14 @@ describe('selectQueueRows: filters', () => {
     expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, onlyMine: true }))).toEqual(['2', '4'])
   })
 
-  it('the "mine" list holds every application of the employee, whatever its status', () => {
-    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, mode: 'mine', filter: 'all' }))).toEqual(['2', '4', '6'])
+  it('the "mine" list holds the open applications of the employee; the answered ones moved to "done"', () => {
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, mode: 'mine', filter: 'all' }))).toEqual(['2', '4'])
+  })
+
+  it('an answered application is not in any list of the queue, even "all", and shows up in "done" only', () => {
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter: 'all' }))).not.toContain('6')
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter: 'all', sortKey: 'status' }))).not.toContain('7')
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, mode: 'done', query: 'Колос' }))).toEqual([])
   })
 
   it('the "done" list holds the answered applications and ignores the filter', () => {
@@ -105,8 +111,9 @@ describe('selectQueueRows: search and sorting', () => {
   it('sorts by the status in the order of the workflow', () => {
     const ascending = numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter: 'all', sortKey: 'status', direction: 1 }))
 
-    expect(ascending).toEqual(['1', '2', '3', '4', '5', '6', '7'])
-    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter: 'all', sortKey: 'status', direction: -1 }))).toEqual(['7', '6', '5', '4', '2', '3', '1'])
+    expect(ascending).toEqual(['1', '2', '3', '4', '5'])
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, filter: 'all', sortKey: 'status', direction: -1 }))).toEqual(['5', '4', '2', '3', '1'])
+    expect(numbers(selectQueueRows(APPLICATIONS, { ...QUERY, mode: 'done', sortKey: 'status', direction: 1 }))).toEqual(['6', '7'])
   })
 
   it('sorts by the score and puts the unscored ones last', () => {
@@ -145,6 +152,8 @@ describe('counters', () => {
   })
 
   it('selects the applications of a mode', () => {
-    expect(selectModeApplications(APPLICATIONS, 'queue', 'u1')).toHaveLength(7)
+    expect(selectModeApplications(APPLICATIONS, 'queue', 'u1')).toHaveLength(5)
+    expect(selectModeApplications(APPLICATIONS, 'mine', 'u1')).toHaveLength(2)
+    expect(selectModeApplications(APPLICATIONS, 'done', 'u1')).toHaveLength(2)
   })
 })

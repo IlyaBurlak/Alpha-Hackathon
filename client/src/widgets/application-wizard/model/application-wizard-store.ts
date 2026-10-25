@@ -3,9 +3,9 @@ import { makeAutoObservable } from 'mobx'
 import { pickVariants, selectApplicationProduct } from '@/entities/application'
 import type { Application, CreditVariants, ProductOffer } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
-import { formatNumber, formatPhone, isRecord, jsonStorage } from '@/shared/lib'
+import { formatPhone, groupDigits, normalizeDigits, isRecord, jsonStorage } from '@/shared/lib'
 
-import { CONSENTS, NOTE_MAX_LENGTH, createInitialForm, parseForm } from './wizard-form'
+import { CONSENTS, NOTE_MAX_LENGTH, createInitialForm, isDigitsField, parseForm } from './wizard-form'
 import type {
   ApplicantRole,
   CollateralOwner,
@@ -20,7 +20,6 @@ import { validateWizardForm } from './wizard-validation'
 import type { FormField, ValidationIssue } from './wizard-validation'
 
 const DRAFT_KEY_PREFIX = 'application-wizard:'
-const NOT_DIGIT_PATTERN = /\D/g
 const WHITESPACE_PATTERN = /\s/g
 
 export type WizardStep = 1 | 2 | 3
@@ -30,11 +29,6 @@ const WIZARD_STEPS: readonly unknown[] = [1, 2, 3]
 
 function isWizardStep(value: unknown): value is WizardStep {
   return WIZARD_STEPS.includes(value)
-}
-
-function formatDigits(text: string): string {
-  const digits = text.replace(NOT_DIGIT_PATTERN, '')
-  return digits === '' ? '' : formatNumber(Number(digits))
 }
 
 interface SavedDraft {
@@ -114,6 +108,12 @@ export class ApplicationWizardStore {
 
   touchField(field: FormField): void {
     if (!this.touchedFields.includes(field)) this.touchedFields.push(field)
+    if (isDigitsField(field)) this.normalizeDigits(field)
+  }
+
+  /** Called when the user leaves a number field: the zeros left by editing go away. */
+  normalizeDigits(field: DigitsField): void {
+    this.updateForm({ [field]: normalizeDigits(this.form[field]) })
   }
 
   pickOffer(offerId: number): void {
@@ -157,7 +157,7 @@ export class ApplicationWizardStore {
   }
 
   setDigits(field: DigitsField, text: string): void {
-    this.updateForm({ [field]: formatDigits(text) })
+    this.updateForm({ [field]: groupDigits(text) })
   }
 
   setOtherLoans(answer: OtherLoansAnswer): void {

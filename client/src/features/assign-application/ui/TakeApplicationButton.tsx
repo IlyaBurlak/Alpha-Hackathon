@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 
 import type { Employee } from '@/entities/employee'
-import { Button } from '@/shared/ui'
+import { Button, useToast } from '@/shared/ui'
 
 import type { AssignmentStore } from '../model/assignment-store'
 
@@ -20,8 +20,11 @@ export const TakeApplicationButton = observer(function TakeApplicationButton({
   store,
   onTaken,
 }: TakeApplicationButtonProps) {
+  const showToast = useToast()
+
   const handleClick = async () => {
     if (await store.assign(applicationId, employee)) onTaken()
+    else if (store.errorMessage) showToast(store.errorMessage)
   }
 
   return (

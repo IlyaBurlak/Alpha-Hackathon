@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { LocalApplicationDetails } from '../../lib/local-details/local-details'
 import type { Application, ProductOffer } from '../../model/types'
-import { PAYOUT_DURATION_MS, applyMocks } from './mock-enrichment'
+import { PAYOUT_DURATION_MS, applyMocks, settlePayout } from './mock-enrichment'
 
 const NO_DETAILS: LocalApplicationDetails = {
   goal: null,
@@ -43,6 +43,8 @@ function createApplication(overrides: Partial<Application>): Application {
     productChoice: { kind: 'not-selected' },
     scoring: null,
     reviewStage: null,
+    specialOffer: null,
+    operatorComment: null,
     ...overrides,
   }
 }
@@ -118,5 +120,19 @@ describe('applyMocks: user actions', () => {
 
   it('ignores a signature of an application that is not approved', () => {
     expect(applyMocks(createApplication({}), { ...NO_DETAILS, signedAt: NOW }, NOW).status).toBe('SUBMITTED')
+  })
+})
+
+describe('settlePayout', () => {
+  const payout = createApplication({ status: 'PAYOUT', issuedAt: new Date(10_000) })
+
+  it('issues the loan once the payout is over', () => {
+    expect(settlePayout(payout, 10_000).status).toBe('ISSUED')
+  })
+
+  it('keeps the payout while it lasts and leaves other statuses alone', () => {
+    expect(settlePayout(payout, 9_999)).toBe(payout)
+    const approved = createApplication({ status: 'APPROVED' })
+    expect(settlePayout(approved, 99_999)).toBe(approved)
   })
 })

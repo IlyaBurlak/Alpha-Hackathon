@@ -23,6 +23,8 @@ interface StatusBlockProps {
   /** Masked account of the company; the money comes to it. */
   account: string | null
   onSign: () => void
+  /** Answers other conditions offered by the bank. */
+  onAnswerOffer: (isAccepted: boolean) => void
 }
 
 function ReviewState({ application }: Pick<StatusBlockProps, 'application'>) {
@@ -55,11 +57,53 @@ function ApprovedState({ application, account, onSign }: StatusBlockProps) {
       <p className={styles.stateText}>
         Подпишите договор в кабинете. Деньги придут на {account ? `счёт ${account}` : ACCOUNT_FALLBACK} в течение 2 часов.
       </p>
+      {application.operatorComment && <p className={styles.stateText}>Комментарий банка: {application.operatorComment}</p>}
       <div className={styles.actions}>
         <Button view="accent" size="large" onClick={onSign}>
           <Icon name="pen" size={20} />
           Подписать договор
         </Button>
+      </div>
+    </div>
+  )
+}
+
+function OfferedState({ application, onAnswerOffer }: Pick<StatusBlockProps, 'application' | 'onAnswerOffer'>) {
+  const { specialOffer, operatorComment } = application
+  if (!specialOffer) return null
+  const { monthlyPayment } = calculateLoan(specialOffer)
+  return (
+    <div className={styles.state}>
+      <span className={styles.stateKind}>Другие условия</span>
+      <h2 className={styles.stateTitle}>
+        {formatMoney(specialOffer.sum)} на {formatCreditTime(specialOffer.creditTime)} под {formatPercent(specialOffer.interestRate)}
+      </h2>
+      <p className={styles.stateText}>
+        Банк не может выдать кредит на запрошенных условиях и предлагает другие. Платёж в месяц {formatMoney(monthlyPayment)}.
+        {operatorComment ? ` ${operatorComment}` : ''}
+      </p>
+      <div className={styles.actions}>
+        <Button view="accent" size="large" onClick={() => onAnswerOffer(true)}>
+          Принять
+        </Button>
+        <Button view="secondary" size="large" onClick={() => onAnswerOffer(false)}>
+          Отказаться
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function OfferDeclinedState() {
+  return (
+    <div className={styles.state}>
+      <span className={classNames(styles.stateKind, styles.stateKindMuted)}>Вы отказались</span>
+      <h2 className={styles.stateTitle}>Другие условия не приняты</h2>
+      <p className={styles.stateText}>Можно подать новую заявку с другой суммой или сроком.</p>
+      <div className={styles.actions}>
+        <Link className={getButtonClassName({ view: 'secondary' })} to={ROUTES.cabinet}>
+          Подать новую заявку
+        </Link>
       </div>
     </div>
   )
@@ -110,7 +154,9 @@ function IssuedState({ application, account }: Pick<StatusBlockProps, 'applicati
 }
 
 function RejectedState({ application }: Pick<StatusBlockProps, 'application'>) {
-  const reasons = application.scoring?.factors.filter(({ points }) => points < 0) ?? []
+  const { operatorComment } = application
+  // What the employee wrote is the real reason; the estimated factors only stand in while the bank wrote nothing.
+  const reasons = operatorComment ? [] : (application.scoring?.factors.filter(({ points }) => points < 0) ?? [])
   return (
     <div className={classNames(styles.state, styles.stateNegative)}>
       <span className={styles.stateKind}>Отказ</span>
@@ -120,6 +166,7 @@ function RejectedState({ application }: Pick<StatusBlockProps, 'application'>) {
           ? 'Причины ниже. Их можно исправить и подать заявку снова.'
           : 'Можно подать новую заявку с другими условиями.'}
       </p>
+      {operatorComment && <p className={styles.stateText}>Причина: {operatorComment}</p>}
       {reasons.length > 0 && (
         <ul className={styles.reasons}>
           {reasons.map(({ title, description, advice }) => (
@@ -156,12 +203,17 @@ function WithdrawnState() {
 }
 
 /** The big card under the title: what is happening with the application and what comes next. */
-export function StatusBlock({ application, account, onSign }: StatusBlockProps) {
+export function StatusBlock({ application, account, onSign, onAnswerOffer }: StatusBlockProps) {
   switch (application.status) {
     case APPLICATION_STATUSES.submitted:
       return <ReviewState application={application} />
+    case APPLICATION_STATUSES.offered:
+      return <OfferedState application={application} onAnswerOffer={onAnswerOffer} />
+    case APPLICATION_STATUSES.offerDeclined:
+      return <OfferDeclinedState />
     case APPLICATION_STATUSES.approved:
-      return <ApprovedState application={application} account={account} onSign={onSign} />
+    case APPLICATION_STATUSES.offerAccepted:
+      return <ApprovedState application={application} account={account} onSign={onSign} onAnswerOffer={onAnswerOffer} />
     case APPLICATION_STATUSES.payout:
       return <PayoutState application={application} account={account} />
     case APPLICATION_STATUSES.issued:

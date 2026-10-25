@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import type { ChangeEvent, HTMLAttributes, ReactNode } from 'react'
 
-import { classNames, countDigits, findCaretWithDigitsAfter } from '@/shared/lib'
+import { classNames, findCaretWithDigitsAfter, readMaskedEdit } from '@/shared/lib'
 
 import { FieldError } from './FieldError'
 import styles from './Field.module.css'
@@ -58,12 +58,17 @@ export function TextField({
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.target
-    const digitsAfterCaret = hasDigitMask ? countDigits(input.value.slice(input.selectionStart ?? input.value.length)) : null
-    onChange(input.value)
-    if (digitsAfterCaret === null) return
+    if (!hasDigitMask) {
+      onChange(input.value)
+      return
+    }
+    const { nativeEvent } = event
+    const inputType = 'inputType' in nativeEvent && typeof nativeEvent.inputType === 'string' ? nativeEvent.inputType : ''
+    const edit = readMaskedEdit({ value: input.value, caret: input.selectionStart ?? input.value.length, previousValue: value, inputType })
+    onChange(edit.text)
     // React puts the regrouped value back after the event, which moves the caret to the end.
     queueMicrotask(() => {
-      const caret = findCaretWithDigitsAfter(input.value, digitsAfterCaret)
+      const caret = findCaretWithDigitsAfter(input.value, edit.digitsAfterCaret)
       input.setSelectionRange(caret, caret)
     })
   }

@@ -2,7 +2,8 @@ import { observer } from 'mobx-react-lite'
 
 import { findEmployee, getEmployees } from '@/entities/employee'
 import type { Employee } from '@/entities/employee'
-import { Avatar, Icon, MenuItem, Popover } from '@/shared/ui'
+import { getStaffCapabilities } from '@/entities/staff-application'
+import { Avatar, Icon, MenuItem, Popover, useToast } from '@/shared/ui'
 
 import type { AssignmentStore } from '../model/assignment-store'
 import triggerStyles from './AssigneeMenu.module.css'
@@ -26,6 +27,9 @@ export const AssigneeMenu = observer(function AssigneeMenu({
   store,
   onChanged,
 }: AssigneeMenuProps) {
+  const showToast = useToast()
+  const { canAssignOthers } = getStaffCapabilities()
+  const candidates = canAssignOthers ? getEmployees() : [currentEmployee]
   const assignee = assigneeId ? findEmployee(assigneeId) : undefined
   const triggerLabel = assignee ? (assignee.id === currentEmployee.id ? 'Вы ответственный' : assignee.name) : 'Не назначен'
 
@@ -33,6 +37,8 @@ export const AssigneeMenu = observer(function AssigneeMenu({
     close()
     if (await store.assign(applicationId, employee)) {
       onChanged(employee ? 'Ответственный назначен' : 'Ответственный снят')
+    } else if (store.errorMessage) {
+      showToast(store.errorMessage)
     }
   }
 
@@ -50,7 +56,7 @@ export const AssigneeMenu = observer(function AssigneeMenu({
     >
       {(close) => (
         <>
-          {getEmployees().map((employee) => (
+          {candidates.map((employee) => (
             <MenuItem
               key={employee.id}
               size="compact"
@@ -61,7 +67,7 @@ export const AssigneeMenu = observer(function AssigneeMenu({
               onClick={() => void assign(employee, close)}
             />
           ))}
-          {assigneeId && <MenuItem size="compact" title="Снять ответственного" onClick={() => void assign(null, close)} />}
+          {canAssignOthers && assigneeId && <MenuItem size="compact" title="Снять ответственного" onClick={() => void assign(null, close)} />}
         </>
       )}
     </Popover>

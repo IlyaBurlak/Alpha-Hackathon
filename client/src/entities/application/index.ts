@@ -34,6 +34,7 @@ export type {
   Scoring,
   ScoringFactor,
   SelectedProduct,
+  SpecialOffer,
 } from './model/types'
 export { ApplicationRows } from './ui/application-rows/ApplicationRows'
 export { ApprovalChanceMeter } from './ui/scoring/ApprovalChanceMeter'

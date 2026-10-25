@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCurrentEmployee } from '@/entities/employee'
 import { DECISION_OPTIONS } from '@/entities/staff-application'
 import type { StaffApplication, StaffApplicationDetailStore, StaffApplicationListStore } from '@/entities/staff-application'
-import { Button, Modal } from '@/shared/ui'
+import { Button, Modal, useToast } from '@/shared/ui'
 
 import { DecisionFormStore } from '../../model/decision-form-store'
 import { DecisionForm } from '../decision-form/DecisionForm'
@@ -26,8 +26,12 @@ export const DecisionFormPanel = observer(function DecisionFormPanel({ applicati
   const { recommendation } = application
   const option = DECISION_OPTIONS[store.type]
 
+  const showToast = useToast()
+
+  // The confirmation closes on a failure, so the reason is told in a notice as well as under the form.
   const handleConfirm = async () => {
     if (await store.confirm({ id: employee.id, name: employee.name })) onDecided(option.historyTitle)
+    else if (store.errorMessage) showToast(store.errorMessage)
   }
 
   return (
@@ -35,7 +39,7 @@ export const DecisionFormPanel = observer(function DecisionFormPanel({ applicati
       {recommendation && <RecommendationCard recommendation={recommendation} />}
       <div className={styles.box}>
         <h3 className={styles.boxTitle}>Кредитное решение</h3>
-        <DecisionOptions selected={store.type} recommended={recommendation?.type ?? null} onSelect={(type) => store.choose(type)} />
+        <DecisionOptions types={store.availableTypes} selected={store.type} recommended={recommendation?.type ?? null} onSelect={(type) => store.choose(type)} />
         <div className={styles.formSpace}>
           <DecisionForm store={store} />
         </div>

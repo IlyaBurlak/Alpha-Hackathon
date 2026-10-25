@@ -69,7 +69,7 @@ describe('mapApplication: product choice', () => {
     expect(mapApplication(APPLICATION_WITHOUT_OFFERS_DTO).productChoice).toEqual({ kind: 'not-selected' })
   })
 
-  it('maps the selected product from `productConditions`', () => {
+  it('maps the selected product from `product`', () => {
     expect(mapApplication(SELECTED_APPLICATION_DTO).productChoice).toEqual({
       kind: 'selected',
       product: {
@@ -125,7 +125,7 @@ describe('mapApplication: invalid responses', () => {
     ['unknown credit time unit', { ...APPLICATION_WITHOUT_OFFERS_DTO, creditTime: { units: 'WEEK', value: 1 } }],
     ['numeric credit time unit', { ...APPLICATION_WITHOUT_OFFERS_DTO, creditTime: { units: 3, value: 1 } }],
     ['broken date', { ...APPLICATION_WITHOUT_OFFERS_DTO, createdAt: 'yesterday' }],
-    ['selected product without details', { ...SELECTED_APPLICATION_DTO, productConditions: {} }],
+    ['selected product without details', { ...SELECTED_APPLICATION_DTO, product: {} }],
     ['scoring without factors', { ...APPLICATION_WITHOUT_OFFERS_DTO, scoring: { score: 50 } }],
     ['unknown review stage', { ...APPLICATION_WITHOUT_OFFERS_DTO, reviewStage: 7 }],
     ['offer without id', { ...APPLICATION_WITH_OFFERS_DTO, products: [{ ...PRODUCT_OFFER_DTO, id: undefined }] }],
@@ -148,5 +148,35 @@ describe('mapApplications', () => {
 
   it('throws when the response is not an array', () => {
     expect(() => mapApplications({ error: 'oops' })).toThrow(UnexpectedResponseError)
+  })
+  describe('other conditions offered by an employee', () => {
+    const OFFER = {
+      name: 'Особое предложение',
+      persentage: 10,
+      sum: 500_000,
+      payments: 'ежемесячно',
+      creditTime: { units: 'MONTH', value: 6 },
+    }
+    const offerDto = (status: string) => ({ ...SELECTED_APPLICATION_DTO, status, product: OFFER, solutionComment: 'Меньше сумма' })
+
+    it('keeps the requested conditions while the offer waits for an answer', () => {
+      expect(mapApplication(offerDto('SPECIALPRODUCTOFFERED'))).toMatchObject({
+        status: 'SPECIALPRODUCTOFFERED',
+        sum: 1_000_000,
+        operatorComment: 'Меньше сумма',
+        specialOffer: { sum: 500_000, interestRate: 10, creditTime: { unit: 'MONTH', value: 6 } },
+      })
+    })
+
+    it('replaces the requested conditions with the accepted ones', () => {
+      expect(mapApplication(offerDto('SPECIALPRODUCTACCEPTED'))).toMatchObject({
+        sum: 500_000,
+        creditTime: { unit: 'MONTH', value: 6 },
+      })
+    })
+
+    it('rejects an offer without a sum', () => {
+      expect(() => mapApplication({ ...offerDto('SPECIALPRODUCTOFFERED'), product: { ...OFFER, sum: undefined } })).toThrow()
+    })
   })
 })

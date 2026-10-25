@@ -11,9 +11,14 @@ interface StatusTimelineProps {
   completedAt: ReadonlyArray<Date | null>
 }
 
+const STOP_TEXTS: Partial<Record<ApplicationStatus, string>> = {
+  [APPLICATION_STATUSES.rejected]: 'Отказ, причины выше',
+  [APPLICATION_STATUSES.offerDeclined]: 'Вы отказались от других условий',
+}
+
 function getStepText(state: TimelineStepState, status: ApplicationStatus, description: string): string {
-  if (state === 'stop') return status === APPLICATION_STATUSES.rejected ? 'Отказ, причины выше' : 'Отозвана'
-  if (state === 'wait') return 'Ждём вашу подпись'
+  if (state === 'stop') return STOP_TEXTS[status] ?? 'Отозвана'
+  if (state === 'wait') return status === APPLICATION_STATUSES.offered ? 'Ждём ваш ответ на другие условия' : 'Ждём вашу подпись'
   return description
 }
 

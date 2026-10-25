@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createInitialForm } from './wizard-form'
 import type { WizardForm } from './wizard-form'
-import { parseDigits, validateWizardForm } from './wizard-validation'
+import { validateWizardForm } from './wizard-validation'
 
 function createValidForm(): WizardForm {
   return {
@@ -14,14 +14,6 @@ function createValidForm(): WizardForm {
     otherLoans: 'no',
   }
 }
-
-describe('parseDigits', () => {
-  it('reads grouped digits and treats garbage as zero', () => {
-    expect(parseDigits('2 500 000')).toBe(2_500_000)
-    expect(parseDigits('')).toBe(0)
-    expect(parseDigits('abc')).toBe(0)
-  })
-})
 
 describe('validateWizardForm', () => {
   it('accepts a filled form without collateral', () => {

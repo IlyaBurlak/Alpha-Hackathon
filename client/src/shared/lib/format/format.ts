@@ -52,3 +52,28 @@ export function formatWhen(date: Date, now: Date = new Date()): string {
 export function formatMonths(months: number): string {
   return `${months}${NBSP}${pluralize(months, ['месяц', 'месяца', 'месяцев'])}`
 }
+
+const NOT_DIGIT_PATTERN = /\D/g
+/** More digits than a sum of money needs, and still exact as a number. */
+const MAX_DIGITS_IN_AMOUNT = 12
+
+const THOUSANDS_BOUNDARY_PATTERN = /\B(?=(\d{3})+(?!\d))/g
+
+/**
+ * Digits of a typed text grouped by thousands (`2500` -> `2 500`); anything else is dropped, the length is capped.
+ * Zeros in front stay (`000 000`): removing the first digit of `3 000 000` must not wipe out the rest while the user
+ * is still typing; `normalizeDigits` cleans them when the user leaves the field.
+ */
+export function groupDigits(text: string, maxDigits: number = MAX_DIGITS_IN_AMOUNT): string {
+  return text.replace(NOT_DIGIT_PATTERN, '').slice(0, maxDigits).replace(THOUSANDS_BOUNDARY_PATTERN, NBSP)
+}
+
+/** The grouped digits without zeros in front (`000 500` -> `500`); an empty text stays empty. */
+export function normalizeDigits(text: string): string {
+  return groupDigits(text) === '' ? '' : formatNumber(parseDigits(text))
+}
+
+/** Grouped digits as typed (`2 500 000`) to a number; empty or garbage gives 0. */
+export function parseDigits(text: string): number {
+  return Number(text.replace(NOT_DIGIT_PATTERN, '').slice(0, MAX_DIGITS_IN_AMOUNT))
+}

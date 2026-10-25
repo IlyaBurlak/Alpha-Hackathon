@@ -7,8 +7,9 @@ import { APPLICATION_STATUSES, APPLICATION_STATUS_LABELS, APPLICATION_STATUS_TON
 import type { Application } from '@/entities/application'
 import { useSelectedOrganization } from '@/entities/user'
 import { ROUTES, getApplicationEditPath } from '@/shared/config'
+import { getErrorMessage } from '@/shared/api'
 import { Button, EmptyState, Icon, StatusDot, useToast } from '@/shared/ui'
-import { formatWhen } from '@/shared/lib'
+import { formatWhen, useRefreshOnReturn } from '@/shared/lib'
 
 import styles from './ApplicationPage.module.css'
 import { ConditionsBox } from './conditions-box/ConditionsBox'
@@ -17,15 +18,13 @@ import { StatusBlock } from './status-block/StatusBlock'
 import { StatusTimeline } from './status-timeline/StatusTimeline'
 import { WithdrawModal } from './withdraw-modal/WithdrawModal'
 
-const REVIEW_POLL_INTERVAL_MS = 5000
-const PAYOUT_POLL_INTERVAL_MS = 1000
+/** The payout is a timer on the client: it ends without any request to the server. */
+const PAYOUT_SETTLE_DELAY_MS = 300
 
 type OpenModal = 'withdraw' | 'sign' | null
 
-function getPollInterval(application: Application | null): number | null {
-  if (application?.status === APPLICATION_STATUSES.submitted) return REVIEW_POLL_INTERVAL_MS
-  if (application?.status === APPLICATION_STATUSES.payout) return PAYOUT_POLL_INTERVAL_MS
-  return null
+function getPayoutEnd(application: Application | null): Date | null {
+  return application?.status === APPLICATION_STATUSES.payout ? application.issuedAt : null
 }
 
 /** A sent application: status, what is happening now, the steps ahead and the loan conditions. */
@@ -39,20 +38,27 @@ export const ApplicationPage = observer(function ApplicationPage() {
   const id = Number(applicationId)
   const isValidId = Number.isInteger(id)
   const { state } = store
-  const pollInterval = getPollInterval(state.status === 'success' ? state.application : null)
+  const shownApplication = state.status === 'success' ? state.application : null
+  const payoutEnd = getPayoutEnd(shownApplication)
 
   useEffect(() => {
     if (isValidId) void store.load(id)
   }, [store, id, isValidId])
 
+  // The status is asked for when the page opens and when the user comes back to the tab, never on a timer.
+  useRefreshOnReturn(() => {
+    if (!isValidId) return
+    void store.refresh(id).then(() => applicationList.refresh())
+  })
+
   useEffect(() => {
-    if (pollInterval === null) return undefined
-    const timer = window.setInterval(() => {
-      void store.refresh(id)
-      void applicationList.refresh()
-    }, pollInterval)
-    return () => window.clearInterval(timer)
-  }, [store, applicationList, id, pollInterval])
+    if (payoutEnd === null) return undefined
+    const timer = window.setTimeout(() => {
+      store.settlePayout()
+      applicationList.settlePayouts()
+    }, Math.max(0, payoutEnd.getTime() - Date.now()) + PAYOUT_SETTLE_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [store, applicationList, payoutEnd])
 
   const handleWithdraw = () => {
     setOpenModal(null)
@@ -68,6 +74,14 @@ export const ApplicationPage = observer(function ApplicationPage() {
       .sign(id)
       .then(() => applicationList.refresh())
       .then(() => showToast('Договор подписан'))
+  }
+
+  const handleAnswerOffer = (isAccepted: boolean) => {
+    void store
+      .answerOffer(id, isAccepted)
+      .then(() => applicationList.refresh())
+      .then(() => showToast(isAccepted ? 'Условия приняты' : 'Вы отказались от других условий'))
+      .catch((error: unknown) => showToast(getErrorMessage(error)))
   }
 
   const renderBody = () => {
@@ -107,7 +121,7 @@ export const ApplicationPage = observer(function ApplicationPage() {
             </Button>
           )}
         </div>
-        <StatusBlock application={application} account={organization.account} onSign={() => setOpenModal('sign')} />
+        <StatusBlock application={application} account={organization.account} onSign={() => setOpenModal('sign')} onAnswerOffer={handleAnswerOffer} />
         <div className={styles.columns}>
           <section>
             <h2>Статус</h2>

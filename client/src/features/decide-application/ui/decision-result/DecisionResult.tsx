@@ -1,4 +1,4 @@
-import { DECISION_OPTIONS, formatMoment } from '@/entities/staff-application'
+import { DECISION_OPTIONS, formatMoment, getStaffCapabilities } from '@/entities/staff-application'
 import type { RecordedDecision, StaffApplication } from '@/entities/staff-application'
 import { findEmployee } from '@/entities/employee'
 import { formatMoney, formatMonths, formatPercent } from '@/shared/lib'
@@ -27,7 +27,7 @@ function describeDecision(decision: RecordedDecision, application: StaffApplicat
 /** The answer the bank has given: what was decided, by whom, and a way to take it back while the client is answering. */
 export function DecisionResult({ application, decision, isSaving, onReopen }: DecisionResultProps) {
   const option = DECISION_OPTIONS[decision.type]
-  const canReopen = application.status === 'offer' || application.status === 'clarify'
+  const canReopen = (application.status === 'offer' || application.status === 'clarify') && getStaffCapabilities().canReopenDecision
   const author = findEmployee(decision.byEmployeeId)?.name
 
   return (

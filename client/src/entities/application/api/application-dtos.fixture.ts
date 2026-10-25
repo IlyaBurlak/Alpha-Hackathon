@@ -27,7 +27,7 @@ export const PRODUCT_OFFER_DTO = {
   payments: PAYMENTS,
 }
 
-/** How the backend stores the chosen product (`productConditions` in the DB); it is not returned by the API yet. */
+/** The chosen product, returned in `product` of a sent application. */
 export const SELECTED_PRODUCT_DTO = {
   name: 'Кредит для бизнеса с залогом',
   persentage: 10,
@@ -78,5 +78,5 @@ export const SELECTED_APPLICATION_DTO = {
   ...BASE_APPLICATION,
   status: 'SUBMITTED',
   productId: 1,
-  productConditions: SELECTED_PRODUCT_DTO,
+  product: SELECTED_PRODUCT_DTO,
 }

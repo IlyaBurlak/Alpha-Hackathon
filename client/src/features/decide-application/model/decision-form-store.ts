@@ -2,11 +2,13 @@ import { makeAutoObservable } from 'mobx'
 
 import {
   COMMENT_MAX_LENGTH,
+  DECISION_ORDER,
   DECISION_TYPES,
   DOCUMENT_REQUESTS,
   MIN_COMMENT_LENGTH,
   MIN_OFFER_AMOUNT,
   decideStaffApplication,
+  getStaffCapabilities,
 } from '@/entities/staff-application'
 import type {
   ActingEmployee,
@@ -17,9 +19,8 @@ import type {
   StaffApplicationListStore,
 } from '@/entities/staff-application'
 import { getErrorMessage } from '@/shared/api'
-import { calculateAnnuityPayment, formatNumber } from '@/shared/lib'
+import { calculateAnnuityPayment, formatNumber, groupDigits, normalizeDigits, parseDigits } from '@/shared/lib'
 
-const NOT_DIGIT_PATTERN = /\D/g
 const NOT_DECIMAL_PATTERN = /[^\d.,]/g
 const AMOUNT_ROUNDING = 100_000
 const SUGGESTED_AMOUNT_SHARE = 0.75
@@ -67,13 +68,20 @@ export class DecisionFormStore {
     makeAutoObservable<DecisionFormStore, 'list' | 'detail'>(this, { application: false, list: false, detail: false })
   }
 
-  /** The chosen option, otherwise the recommended one. */
+  /** The answers this employee can give; the backend has no "request data" yet. */
+  get availableTypes(): readonly DecisionType[] {
+    const { canRequestData } = getStaffCapabilities()
+    return DECISION_ORDER.filter((type) => canRequestData || type !== DECISION_TYPES.clarify)
+  }
+
+  /** The chosen option, otherwise the recommended one; an advice the employee cannot follow becomes "other terms". */
   get type(): DecisionType {
-    return this.chosenType ?? this.application.recommendation?.type ?? DECISION_TYPES.approve
+    const preferred = this.chosenType ?? this.application.recommendation?.type ?? DECISION_TYPES.approve
+    return this.availableTypes.includes(preferred) ? preferred : DECISION_TYPES.offer
   }
 
   get amount(): number {
-    return Number(this.amountText.replace(NOT_DIGIT_PATTERN, ''))
+    return parseDigits(this.amountText)
   }
 
   get rate(): number {
@@ -102,9 +110,13 @@ export class DecisionFormStore {
     this.clearError()
   }
 
+  /** Called when the user leaves the field: the zeros left by editing go away. */
+  normalizeAmount(): void {
+    this.amountText = normalizeDigits(this.amountText)
+  }
+
   setAmount(text: string): void {
-    const digits = text.replace(NOT_DIGIT_PATTERN, '')
-    this.amountText = digits === '' ? '' : formatNumber(Number(digits))
+    this.amountText = groupDigits(text)
   }
 
   setRate(text: string): void {
@@ -152,6 +164,8 @@ export class DecisionFormStore {
       return this.show(await decideStaffApplication(this.application.id, this.decision, actor))
     } catch (error) {
       this.failSaving(getErrorMessage(error))
+      // Someone may have decided or taken the application meanwhile: the screen shows what the backend has now.
+      void this.detail?.refresh(this.application.id)
       return null
     }
   }

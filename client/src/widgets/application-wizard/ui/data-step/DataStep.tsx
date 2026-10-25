@@ -131,6 +131,7 @@ export const DataStep = observer(function DataStep({ store, organization, applic
             hasDigitMask
             value={form.employees}
             onChange={(value) => store.setDigits('employees', value)}
+            onBlur={() => store.normalizeDigits('employees')}
           />
         </div>
         <p className={styles.question}>Есть кредиты в других банках?</p>

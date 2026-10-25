@@ -13,6 +13,7 @@ import type {
   Scoring,
   ScoringFactor,
   SelectedProduct,
+  SpecialOffer,
 } from '../model/types'
 
 const REVIEW_STAGES: readonly unknown[] = [0, 1, 2]
@@ -94,6 +95,13 @@ function mapSelectedProduct(dto: unknown): SelectedProduct {
   return { name: dto.name, interestRate: dto.persentage, payments: dto.payments }
 }
 
+/** The offer of an employee is stored in the same place as the chosen product, with the sum and term added. */
+function mapSpecialOffer(dto: unknown): SpecialOffer {
+  if (!isRecord(dto) || typeof dto.sum !== 'number') throw new UnexpectedResponseError('invalid special offer')
+  const product = mapSelectedProduct(dto)
+  return { sum: dto.sum, creditTime: mapCreditTime(dto.creditTime), interestRate: product.interestRate, payments: product.payments }
+}
+
 function mapProductOffer(dto: unknown): ProductOffer {
   if (
     !isRecord(dto) ||
@@ -120,9 +128,17 @@ function mapProductOffer(dto: unknown): ProductOffer {
   }
 }
 
+function hasSpecialOffer(status: ApplicationStatus): boolean {
+  return (
+    status === APPLICATION_STATUSES.offered ||
+    status === APPLICATION_STATUSES.offerAccepted ||
+    status === APPLICATION_STATUSES.offerDeclined
+  )
+}
+
 function mapProductChoice(dto: Record<string, unknown>, status: ApplicationStatus): ProductChoice {
-  if (dto.productConditions !== undefined && dto.productConditions !== null) {
-    return { kind: 'selected', product: mapSelectedProduct(dto.productConditions) }
+  if (dto.product !== undefined && dto.product !== null) {
+    return { kind: 'selected', product: mapSelectedProduct(dto.product) }
   }
   // The backend attaches offers to every application without a recorded product, but only a draft can still choose.
   if (status === APPLICATION_STATUSES.draft && Array.isArray(dto.products)) {
@@ -141,13 +157,16 @@ export function mapApplication(dto: unknown): Application {
   ) {
     throw new UnexpectedResponseError('invalid application')
   }
+  const specialOffer = hasSpecialOffer(dto.status) ? mapSpecialOffer(dto.product) : null
+  // Accepted conditions replace the requested ones everywhere: the schedule, the contract and the payout follow them.
+  const acceptedOffer = dto.status === APPLICATION_STATUSES.offerAccepted ? specialOffer : null
   return {
     id: dto.id,
     organizationId: dto.organizationId,
-    sum: dto.sum,
+    sum: acceptedOffer?.sum ?? dto.sum,
     status: dto.status,
     createdAt: mapDate(dto.createdAt),
-    creditTime: mapCreditTime(dto.creditTime),
+    creditTime: acceptedOffer?.creditTime ?? mapCreditTime(dto.creditTime),
     loanIssuanceDate: mapDate(dto.loanIssuanceDate),
     submittedAt: mapOptionalDate(dto.submittedAt),
     signedAt: mapOptionalDate(dto.signedAt),
@@ -156,6 +175,8 @@ export function mapApplication(dto: unknown): Application {
     productChoice: mapProductChoice(dto, dto.status),
     scoring: mapScoring(dto.scoring),
     reviewStage: mapReviewStage(dto.reviewStage),
+    specialOffer,
+    operatorComment: mapOptionalString(dto.solutionComment),
   }
 }
 

@@ -18,6 +18,10 @@ export const APPLICATION_STATUSES = {
   submitted: 'SUBMITTED',
   approved: 'APPROVED',
   rejected: 'REJECTED',
+  /** The employee offered other conditions; the user accepts or declines them. */
+  offered: 'SPECIALPRODUCTOFFERED',
+  offerAccepted: 'SPECIALPRODUCTACCEPTED',
+  offerDeclined: 'SPECIALPRODUCTREJECTED',
   /** The statuses below are not sent by the backend yet; see docs/frontend-mocks.md. */
   withdrawn: 'WITHDRAWN',
   payout: 'PAYOUT',
@@ -64,6 +68,15 @@ export interface SelectedProduct {
   payments: string
 }
 
+/** Other conditions offered by an employee instead of the requested ones. */
+export interface SpecialOffer {
+  sum: number
+  creditTime: CreditTime
+  /** Annual interest rate, percent. */
+  interestRate: number
+  payments: string
+}
+
 /**
  * - `selected`: the product is chosen, the application went to review.
  * - `offers`: a draft whose product is not chosen yet; `items` may be empty when nothing fits.
@@ -97,6 +110,10 @@ export interface Application {
   productChoice: ProductChoice
   scoring: Scoring | null
   reviewStage: ReviewStage | null
+  /** Set once an employee offered other conditions (also after the user answered). */
+  specialOffer: SpecialOffer | null
+  /** What the employee wrote with the decision. */
+  operatorComment: string | null
 }
 
 export interface CreateApplicationInput {

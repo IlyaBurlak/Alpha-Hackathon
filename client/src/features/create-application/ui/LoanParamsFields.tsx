@@ -33,6 +33,7 @@ export const LoanParamsFields = observer(function LoanParamsFields({ form, isOnS
         value={form.sumText}
         isOnSurface={isOnSurface}
         onChange={(value) => form.setSum(value)}
+        onBlur={() => form.normalizeSum()}
       />
       <SelectField
         label="Срок"

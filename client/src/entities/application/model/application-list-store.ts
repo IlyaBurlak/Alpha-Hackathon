@@ -3,8 +3,15 @@ import { makeAutoObservable, observableRef } from 'mobx'
 import { getErrorMessage } from '@/shared/api'
 
 import { getMyApplications } from '../api/applications'
+import { settlePayout } from '../api/mocks/mock-enrichment'
 import { APPLICATION_STATUSES } from './types'
-import type { Application } from './types'
+import type { Application, ApplicationStatus } from './types'
+
+const ACTION_STATUSES: readonly ApplicationStatus[] = [
+  APPLICATION_STATUSES.approved,
+  APPLICATION_STATUSES.offered,
+  APPLICATION_STATUSES.offerAccepted,
+]
 
 export type ApplicationListState =
   | { status: 'idle' }
@@ -27,9 +34,9 @@ export class ApplicationListStore {
       .sort((first, second) => second.createdAt.getTime() - first.createdAt.getTime())
   }
 
-  /** Approved applications wait for the user's next step, so the navigation highlights them. */
+  /** Approved applications and other conditions wait for the user's next step, so the navigation highlights them. */
   getApprovedCount(organizationId: number): number {
-    return this.getForOrganization(organizationId).filter(({ status }) => status === APPLICATION_STATUSES.approved).length
+    return this.getForOrganization(organizationId).filter(({ status }) => ACTION_STATUSES.includes(status)).length
   }
 
   /** Loads with a spinner: for the first load and for retries. */
@@ -53,6 +60,13 @@ export class ApplicationListStore {
     } catch {
       // The list on screen is still valid; the next refresh or a reload will show a real error.
     }
+  }
+
+  /** Shows loans as issued when their payout timer is over (a client mock, no request). */
+  settlePayouts(): void {
+    if (this.state.status !== 'success') return
+    const now = Date.now()
+    this.setState({ status: 'success', applications: this.state.applications.map((application) => settlePayout(application, now)) })
   }
 
   /** Loads only if nobody has asked yet. */

@@ -53,7 +53,8 @@ export function applyMocks(application: Application, details: LocalApplicationDe
   if (status === APPLICATION_STATUSES.submitted && details.withdrawnAt !== null) {
     status = APPLICATION_STATUSES.withdrawn
   }
-  if (status === APPLICATION_STATUSES.approved && signedAt !== null) {
+  const isReadyToSign = status === APPLICATION_STATUSES.approved || status === APPLICATION_STATUSES.offerAccepted
+  if (isReadyToSign && signedAt !== null) {
     const payoutAt = new Date(signedAt.getTime() + PAYOUT_DURATION_MS)
     status = now >= payoutAt.getTime() ? APPLICATION_STATUSES.issued : APPLICATION_STATUSES.payout
     issuedAt = issuedAt ?? payoutAt
@@ -73,4 +74,10 @@ export function applyMocks(application: Application, details: LocalApplicationDe
         ? null
         : estimateScoring({ organizationId: application.organizationId, sum: application.sum, isSecured: details.isSecured })),
   }
+}
+
+/** The payout runs on a client timer: once it ends the application is issued, with no request to the server. */
+export function settlePayout(application: Application, now: number): Application {
+  const isPayoutOver = application.status === APPLICATION_STATUSES.payout && application.issuedAt !== null && now >= application.issuedAt.getTime()
+  return isPayoutOver ? { ...application, status: APPLICATION_STATUSES.issued } : application
 }

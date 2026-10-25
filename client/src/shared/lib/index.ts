@@ -1,4 +1,4 @@
-export { countDigits, findCaretWithDigitsAfter } from './text/caret'
+export { countDigits, findCaretWithDigitsAfter, readMaskedEdit } from './text/caret'
 export { classNames } from './text/class-names'
 export { calculateAnnuityPayment } from './finance/annuity'
 export {
@@ -10,6 +10,9 @@ export {
   formatNumber,
   formatPercent,
   formatWhen,
+  groupDigits,
+  normalizeDigits,
+  parseDigits,
 } from './format/format'
 export { formatPhone, isCompletePhone } from './input-mask/phone'
 export { isRecord } from './guards/is-record'
@@ -19,3 +22,4 @@ export { clamp } from './math/clamp'
 export { pluralize } from './text/plural'
 export { tokenStorage } from './storage/token-storage'
 export { useNow } from './time/use-now'
+export { useRefreshOnReturn } from './time/use-refresh-on-return'

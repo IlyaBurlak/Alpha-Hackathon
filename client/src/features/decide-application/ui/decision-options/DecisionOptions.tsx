@@ -1,4 +1,4 @@
-import { DECISION_OPTIONS, DECISION_ORDER } from '@/entities/staff-application'
+import { DECISION_OPTIONS } from '@/entities/staff-application'
 import type { DecisionType } from '@/entities/staff-application'
 import { classNames } from '@/shared/lib'
 import { Icon } from '@/shared/ui'
@@ -6,17 +6,19 @@ import { Icon } from '@/shared/ui'
 import styles from './DecisionOptions.module.css'
 
 interface DecisionOptionsProps {
+  /** The answers to show, in order. */
+  types: readonly DecisionType[]
   selected: DecisionType
   /** The option the system advises; it carries a "recommended" mark. */
   recommended: DecisionType | null
   onSelect: (type: DecisionType) => void
 }
 
-/** The four answers the bank can give, as a group of radio cards. */
-export function DecisionOptions({ selected, recommended, onSelect }: DecisionOptionsProps) {
+/** The answers the bank can give, as a group of radio cards. */
+export function DecisionOptions({ types, selected, recommended, onSelect }: DecisionOptionsProps) {
   return (
     <div className={styles.options} role="radiogroup" aria-label="Кредитное решение">
-      {DECISION_ORDER.map((type) => {
+      {types.map((type) => {
         const option = DECISION_OPTIONS[type]
         return (
           <button

@@ -4,7 +4,7 @@ import type { StaffApplication, StaffStatus } from '../model/types'
 
 const MS_IN_DAY = 86_400_000
 
-/** The three lists of the staff cabinet: the whole queue, the applications of the employee, the answered ones. */
+/** The three lists of the staff cabinet: the open queue, the open applications of the employee, the answered ones. */
 export type QueueMode = 'queue' | 'mine' | 'done'
 
 export type QueueFilter = 'work' | 'ready' | 'scoring' | 'clarify' | 'all'
@@ -36,11 +36,14 @@ export interface QueueQuery {
   now: number
 }
 
-/** Applications of the mode before the status filter: all of them, or those of the employee, or the answered ones. */
+/**
+ * Applications of the mode before the status filter. An answered application leaves the queue and "mine" for good
+ * and is found in "done" only.
+ */
 export function selectModeApplications(applications: readonly StaffApplication[], mode: QueueMode, employeeId: string): StaffApplication[] {
-  if (mode === 'mine') return applications.filter((application) => application.assigneeId === employeeId)
   if (mode === 'done') return applications.filter(({ status }) => ANSWERED.includes(status))
-  return [...applications]
+  const open = applications.filter(({ status }) => !ANSWERED.includes(status))
+  return mode === 'mine' ? open.filter((application) => application.assigneeId === employeeId) : open
 }
 
 export function countByFilter(applications: readonly StaffApplication[], filter: QueueFilter): number {
