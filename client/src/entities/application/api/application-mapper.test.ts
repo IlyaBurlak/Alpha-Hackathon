@@ -13,6 +13,12 @@ import {
   SUBMITTED_APPLICATION_WITHOUT_PRODUCT_DTO,
 } from './application-dtos.fixture'
 
+describe('mapApplication: statuses', () => {
+  it('knows the signed status of the backend', () => {
+    expect(mapApplication({ ...SELECTED_APPLICATION_DTO, status: 'SIGNED' }).status).toBe('SIGNED')
+  })
+})
+
 describe('mapApplication: base fields', () => {
   it('maps ids, sum, status, credit time and dates', () => {
     const application = mapApplication(APPLICATION_WITHOUT_OFFERS_DTO)
@@ -148,6 +154,15 @@ describe('mapApplications', () => {
 
   it('throws when the response is not an array', () => {
     expect(() => mapApplications({ error: 'oops' })).toThrow(UnexpectedResponseError)
+  })
+
+  it('leaves out an application it cannot read instead of failing the whole list', () => {
+    const unknownStatus = { ...SELECTED_APPLICATION_DTO, id: 90, status: 99 }
+    const damaged = { ...SELECTED_APPLICATION_DTO, id: 91, sum: 'abc' }
+
+    const applications = mapApplications([unknownStatus, SELECTED_APPLICATION_DTO, damaged])
+
+    expect(applications.map(({ id }) => id)).toEqual([SELECTED_APPLICATION_DTO.id])
   })
   describe('other conditions offered by an employee', () => {
     const OFFER = {

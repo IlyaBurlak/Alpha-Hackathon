@@ -14,7 +14,7 @@ import { DecisionFormStore } from './decision-form-store'
 vi.mock('@/entities/staff-application', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/staff-application')>()),
   decideStaffApplication: vi.fn(),
-  getStaffCapabilities: vi.fn(() => ({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })),
+  getStaffCapabilities: vi.fn(() => ({ canRequestData: true, canReopenDecision: true, canAssignOthers: true, canRestartScoring: false })),
 }))
 
 const ACTOR = { id: 'u1', name: 'Мария Иванова' }
@@ -33,7 +33,7 @@ function createStore(application = APPROVE) {
 
 beforeEach(() => {
   vi.mocked(decideStaffApplication).mockReset()
-  vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })
+  vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: true, canReopenDecision: true, canAssignOthers: true, canRestartScoring: false })
 })
 
 describe('DecisionFormStore: what the backend cannot do', () => {
@@ -42,7 +42,7 @@ describe('DecisionFormStore: what the backend cannot do', () => {
   })
 
   it('hides "request data" for a backend operator and turns that advice into other terms', () => {
-    vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: false, canReopenDecision: false, canAssignOthers: false })
+    vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: false, canReopenDecision: false, canAssignOthers: false, canRestartScoring: true })
     const { store } = createStore(createApplication({ type: 'clarify', reasons: [], offer: null }))
 
     expect(store.availableTypes).not.toContain('clarify')

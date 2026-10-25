@@ -46,9 +46,9 @@ describe('local application details', () => {
   it('keeps the actions of the user', () => {
     useMemoryStorage()
 
-    saveLocalDetails(5, { submittedAt: 1000, withdrawnAt: 2000, isSecured: true, isDiscarded: true })
+    saveLocalDetails(5, { submittedAt: 1000, isSecured: true, isDiscarded: true })
 
-    expect(readLocalDetails(5)).toMatchObject({ submittedAt: 1000, withdrawnAt: 2000, signedAt: null, isSecured: true, isDiscarded: true })
+    expect(readLocalDetails(5)).toMatchObject({ submittedAt: 1000, signedAt: null, isSecured: true, isDiscarded: true })
   })
 
   it('ignores a broken record', () => {

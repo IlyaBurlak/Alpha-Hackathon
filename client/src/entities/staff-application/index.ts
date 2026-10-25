@@ -15,7 +15,7 @@ export {
   SLA_HOURS,
   TERM_OPTIONS_IN_MONTHS,
 } from './config/review-rules'
-export { assignStaffApplication, decideStaffApplication, reopenStaffApplication } from './api/staff-applications'
+export { assignStaffApplication, decideStaffApplication, reopenStaffApplication, restartStaffScoring } from './api/staff-applications'
 export { getStaffCapabilities } from './api/staff-capabilities'
 export type { StaffCapabilities } from './api/staff-capabilities'
 export type { ActingEmployee } from './api/staff-applications'

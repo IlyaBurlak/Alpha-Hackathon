@@ -29,7 +29,7 @@ describe('isActiveStatus', () => {
     expect(isActiveStatus('PAYOUT')).toBe(true)
   })
 
-  it.each(['REJECTED', 'WITHDRAWN', 'ISSUED'] as const)('finishes %s applications', (status) => {
+  it.each(['REJECTED', 'ISSUED'] as const)('finishes %s applications', (status) => {
     expect(isActiveStatus(status)).toBe(false)
   })
 })

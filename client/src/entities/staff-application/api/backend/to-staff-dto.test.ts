@@ -128,6 +128,23 @@ describe('toStaffApplicationDto', () => {
     expect(application.loans.every(({ balance, monthlyPayment }) => Number.isFinite(balance) && Number.isFinite(monthlyPayment))).toBe(true)
   })
 
+  it('names the company from the organization of the application', () => {
+    const named = { organization: { id: 2, fullName: 'ООО «Кот не знает»', inn: '5001234569', type: 'OO' } }
+
+    expect(mapStaffApplication(convert(named)).company).toMatchObject({ name: 'ООО «Кот не знает»', inn: '5001234569' })
+    expect(mapStaffApplication(convert({})).company).toMatchObject({ name: 'Организация №2', inn: '—' })
+  })
+
+  it('shows the signed documents as a final approval and tells an offer from a plain approval', () => {
+    const offer = { name: 'Особое', persentage: 9, sum: 900_000, payments: 'x', creditTime: { units: 'MONTH', value: 6 } }
+
+    expect(mapStaffApplication(convert({ status: 'SIGNED', operator: OPERATOR })).decision).toMatchObject({ type: 'approve' })
+    expect(mapStaffApplication(convert({ status: 'SIGNED', operator: OPERATOR, product: offer }))).toMatchObject({
+      status: 'approved',
+      decision: { type: 'offer', amount: 900_000, termInMonths: 6, rate: 9 },
+    })
+  })
+
   it('hides drafts', () => {
     expect(convert({ status: 'DRAFT' })).toBeNull()
   })

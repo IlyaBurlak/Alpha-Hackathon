@@ -50,13 +50,11 @@ export function applyMocks(application: Application, details: LocalApplicationDe
   const isDraft = application.status === APPLICATION_STATUSES.draft
 
   let { status, issuedAt } = application
-  if (status === APPLICATION_STATUSES.submitted && details.withdrawnAt !== null) {
-    status = APPLICATION_STATUSES.withdrawn
-  }
-  const isReadyToSign = status === APPLICATION_STATUSES.approved || status === APPLICATION_STATUSES.offerAccepted
-  if (isReadyToSign && signedAt !== null) {
-    const payoutAt = new Date(signedAt.getTime() + PAYOUT_DURATION_MS)
-    status = now >= payoutAt.getTime() ? APPLICATION_STATUSES.issued : APPLICATION_STATUSES.payout
+  if (status === APPLICATION_STATUSES.signed) {
+    // The backend knows only that the documents are signed; the payout is a client timer from the moment of signing
+    // kept in this browser. Signed elsewhere, the moment is unknown and the money is shown as paid.
+    const payoutAt = signedAt === null ? null : new Date(signedAt.getTime() + PAYOUT_DURATION_MS)
+    status = payoutAt === null || now >= payoutAt.getTime() ? APPLICATION_STATUSES.issued : APPLICATION_STATUSES.payout
     issuedAt = issuedAt ?? payoutAt
   }
 

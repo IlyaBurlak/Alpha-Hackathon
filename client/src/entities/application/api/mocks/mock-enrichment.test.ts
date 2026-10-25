@@ -9,7 +9,6 @@ const NO_DETAILS: LocalApplicationDetails = {
   selectedProduct: null,
   isSecured: false,
   submittedAt: null,
-  withdrawnAt: null,
   signedAt: null,
   isDiscarded: false,
 }
@@ -95,31 +94,26 @@ describe('applyMocks: review', () => {
 })
 
 describe('applyMocks: user actions', () => {
-  it('shows a withdrawn application that was under review', () => {
-    const details = { ...NO_DETAILS, withdrawnAt: NOW }
-
-    expect(applyMocks(createApplication({}), details, NOW).status).toBe('WITHDRAWN')
-  })
-
-  it('does not withdraw a decided application', () => {
-    const details = { ...NO_DETAILS, withdrawnAt: NOW }
-
-    expect(applyMocks(createApplication({ status: 'REJECTED' }), details, NOW).status).toBe('REJECTED')
-  })
-
-  it('pays out after signing and then marks the loan as issued', () => {
+  it('pays out once the backend says the documents are signed and then marks the loan as issued', () => {
     const details = { ...NO_DETAILS, signedAt: NOW }
-    const approved = createApplication({ status: 'APPROVED' })
+    const signed = createApplication({ status: 'SIGNED' })
 
-    expect(applyMocks(approved, details, NOW + 1000).status).toBe('PAYOUT')
+    expect(applyMocks(signed, details, NOW + 1000).status).toBe('PAYOUT')
 
-    const issued = applyMocks(approved, details, NOW + PAYOUT_DURATION_MS)
+    const issued = applyMocks(signed, details, NOW + PAYOUT_DURATION_MS)
     expect(issued.status).toBe('ISSUED')
     expect(issued.issuedAt).toEqual(new Date(NOW + PAYOUT_DURATION_MS))
   })
 
-  it('ignores a signature of an application that is not approved', () => {
-    expect(applyMocks(createApplication({}), { ...NO_DETAILS, signedAt: NOW }, NOW).status).toBe('SUBMITTED')
+  it('shows the loan as issued when the documents were signed in another browser', () => {
+    expect(applyMocks(createApplication({ status: 'SIGNED' }), NO_DETAILS, NOW).status).toBe('ISSUED')
+  })
+
+  it('does not start a payout from a local signature alone', () => {
+    const details = { ...NO_DETAILS, signedAt: NOW }
+
+    expect(applyMocks(createApplication({ status: 'APPROVED' }), details, NOW + PAYOUT_DURATION_MS).status).toBe('APPROVED')
+    expect(applyMocks(createApplication({}), details, NOW).status).toBe('SUBMITTED')
   })
 })
 

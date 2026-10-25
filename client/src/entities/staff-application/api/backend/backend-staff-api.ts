@@ -86,6 +86,11 @@ export async function takeBackendApplication(applicationId: string): Promise<voi
   await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/take`, {})
 }
 
+/** POST /applications/:id/restart: the backend runs the whole scoring again and overwrites the previous data. */
+export async function restartBackendScoring(applicationId: string): Promise<void> {
+  await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/restart`, {})
+}
+
 function toSolutionBody(decision: Decision): Record<string, unknown> {
   switch (decision.type) {
     case 'approve':
@@ -123,4 +128,8 @@ export function rejectUnsupportedReopen(): never {
 
 export function rejectUnsupportedAssignment(): never {
   throw toUnsupportedError('Назначение другого сотрудника и снятие ответственного')
+}
+
+export function rejectUnsupportedRestart(): never {
+  throw toUnsupportedError('Перезапуск скоринга')
 }

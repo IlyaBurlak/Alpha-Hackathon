@@ -67,3 +67,9 @@ export async function answerSpecialOffer(applicationId: number, isAccepted: bool
   const status = isAccepted ? APPLICATION_STATUSES.offerAccepted : APPLICATION_STATUSES.offerDeclined
   await httpClient.put(`${APPLICATIONS_PATH}/${applicationId}/special?${new URLSearchParams({ status })}`)
 }
+
+/** Signs the documents of an approved application; the moment is kept in the browser to run the payout timer. */
+export async function signApplication(applicationId: number): Promise<void> {
+  await httpClient.put(`${APPLICATIONS_PATH}/${applicationId}/sign`)
+  saveLocalDetails(applicationId, { signedAt: Date.now() })
+}

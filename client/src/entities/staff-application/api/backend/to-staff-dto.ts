@@ -63,6 +63,7 @@ function mapStatus(applicationStatus: string, scoringStatus: string | null): Sta
       return scoringStatus === null || SCORING_IN_PROGRESS.includes(scoringStatus) ? STAFF_STATUSES.scoring : STAFF_STATUSES.ready
     case 'APPROVED':
     case 'SPECIALPRODUCTACCEPTED':
+    case 'SIGNED':
       return STAFF_STATUSES.approved
     case 'REJECTED':
     case 'SPECIALPRODUCTREJECTED':
@@ -125,7 +126,15 @@ function toIso(moment: number): string {
   return new Date(moment).toISOString()
 }
 
-function mapDecision(application: Source, status: string, assigneeId: string | null, receivedAt: string) {
+/** The signed documents say nothing about what was signed: the terms of an offer in the product tell the two apart. */
+function getDecidedStatus(application: Source, status: string): string {
+  if (status !== 'SIGNED') return status
+  const product = optionalRecord(application, 'product')
+  return product && optionalNumber(product, 'sum') !== null ? 'SPECIALPRODUCTACCEPTED' : 'APPROVED'
+}
+
+function mapDecision(application: Source, backendStatus: string, assigneeId: string | null, receivedAt: string) {
+  const status = getDecidedStatus(application, backendStatus)
   const comment = optionalString(application, 'solutionComment') ?? ''
   const base = { byEmployeeId: assigneeId ?? UNKNOWN, at: receivedAt, comment }
   switch (status) {
@@ -169,12 +178,15 @@ function describeDecisionOutcome(status: string): string | null {
       return 'Клиент принял другие условия'
     case 'SPECIALPRODUCTREJECTED':
       return 'Клиент отказался от других условий'
+    case 'SIGNED':
+      return 'Клиент подписал договор'
     default:
       return null
   }
 }
 
 const OUTCOME_TONES: Record<string, string> = {
+  SIGNED: HISTORY_TONES.positive,
   APPROVED: HISTORY_TONES.default,
   REJECTED: HISTORY_TONES.negative,
   SPECIALPRODUCTOFFERED: HISTORY_TONES.attention,
@@ -211,9 +223,10 @@ export function toStaffApplicationDto(value: unknown, now: number) {
   const head = (register && optionalString(register, 'head')) ?? UNKNOWN
   const product = mapProduct(application)
   const isSoleProprietor = (register && optionalString(register, 'type')) === 'ИП'
+  const organization = optionalRecord(application, 'organization')
   const company = {
-    name: `Организация №${readNumber(application, 'organizationId')}`,
-    inn: UNKNOWN,
+    name: (organization && optionalString(organization, 'fullName')) ?? `Организация №${readNumber(application, 'organizationId')}`,
+    inn: (organization && optionalString(organization, 'inn')) ?? UNKNOWN,
     kpp: isSoleProprietor ? null : register && optionalString(register, 'kpp'),
     ogrn: (register && optionalString(register, 'ogrn')) ?? UNKNOWN,
     okved: (register && optionalString(register, 'okved')) ?? UNKNOWN,

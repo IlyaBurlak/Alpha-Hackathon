@@ -6,6 +6,7 @@ import type { StaffApplication, StaffApplicationDetailStore } from '@/entities/s
 import { useStaffApplicationListStore } from '@/entities/staff-application'
 import { AssigneeMenu, AssignmentStore } from '@/features/assign-application'
 import { DecisionPanel } from '@/features/decide-application'
+import { RestartScoringButton, RestartScoringStore } from '@/features/restart-scoring'
 import { useNow } from '@/shared/lib'
 import { useToast } from '@/shared/ui'
 
@@ -44,6 +45,7 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
   const list = useStaffApplicationListStore()
   const showToast = useToast()
   const [assignment] = useState(() => new AssignmentStore(list, detail))
+  const [restartScoring] = useState(() => new RestartScoringStore(list, detail))
   const now = useNow(CLOCK_INTERVAL_MS)
 
   return (
@@ -74,7 +76,7 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
           <CompanySection company={application.company} now={now} />
           <FinanceSection application={application} />
           <ChecksSection checks={application.checks} />
-          <ScoringSection scoring={application.scoring} />
+          <ScoringSection scoring={application.scoring} action={<RestartScoringButton application={application} store={restartScoring} />} />
           <HistorySection history={application.history} />
         </div>
         <aside className={styles.decision}>

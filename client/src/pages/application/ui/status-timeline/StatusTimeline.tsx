@@ -17,7 +17,7 @@ const STOP_TEXTS: Partial<Record<ApplicationStatus, string>> = {
 }
 
 function getStepText(state: TimelineStepState, status: ApplicationStatus, description: string): string {
-  if (state === 'stop') return STOP_TEXTS[status] ?? 'Отозвана'
+  if (state === 'stop') return STOP_TEXTS[status] ?? ''
   if (state === 'wait') return status === APPLICATION_STATUSES.offered ? 'Ждём ваш ответ на другие условия' : 'Ждём вашу подпись'
   return description
 }

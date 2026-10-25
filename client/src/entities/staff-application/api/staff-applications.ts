@@ -5,6 +5,8 @@ import {
   getBackendOperatorEmployeeId,
   rejectUnsupportedAssignment,
   rejectUnsupportedReopen,
+  rejectUnsupportedRestart,
+  restartBackendScoring,
   sendBackendDecision,
   takeBackendApplication,
 } from './backend/backend-staff-api'
@@ -69,4 +71,11 @@ export async function decideStaffApplication(
 export async function reopenStaffApplication(applicationId: string, actor: ActingEmployee): Promise<StaffApplication> {
   if (getBackendOperatorEmployeeId() !== null) rejectUnsupportedReopen()
   return mapStaffApplication(reopenMockStaffApplication(applicationId, actor))
+}
+
+/** POST /api/applications/:id/restart: only the backend runs a scoring; the demo applications have none to restart. */
+export async function restartStaffScoring(applicationId: string): Promise<StaffApplication> {
+  if (getBackendOperatorEmployeeId() === null) rejectUnsupportedRestart()
+  await restartBackendScoring(applicationId)
+  return getStaffApplication(applicationId)
 }
