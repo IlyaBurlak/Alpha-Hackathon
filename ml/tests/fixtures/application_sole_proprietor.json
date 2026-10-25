@@ -1,0 +1,78 @@
+{
+  "id": 12,
+  "userId": 3,
+  "organizationId": 5,
+  "sum": 500000,
+  "status": "SUBMITTED",
+  "createdAt": "2026-10-24T12:05:10.000Z",
+  "creditTime": {
+    "units": "MONTH",
+    "value": 18
+  },
+  "applicationScore": {
+    "id": 11,
+    "applicationId": 12,
+    "scoringDate": null,
+    "score": null,
+    "status": "WAITNGSCORING",
+    "history": {
+      "inn": "5401234563",
+      "fullName": "ИП Динозавриков Сергей",
+      "creditHistory": [
+        {
+          "provisionDate": "2023-06-01",
+          "sum": 100000,
+          "status": "PAID",
+          "paymentDeadline": "2024-06-01"
+        },
+        {
+          "provisionDate": "2022-06-01",
+          "sum": 50000,
+          "status": "PAID",
+          "paymentDeadline": "2023-06-01"
+        },
+        {
+          "provisionDate": "2021-06-01",
+          "sum": 50000,
+          "status": "PAID",
+          "paymentDeadline": "2022-06-01"
+        }
+      ],
+      "bankrupt": false,
+      "casesDelayedPayment": 1
+    },
+    "registerInfo": {
+      "inn": "5401234563",
+      "fullName": "ИП Динозавриков Сергей",
+      "ogrn": "1234567890128",
+      "okved": "32.40 Производство игр и игрушек",
+      "account": "4018****23",
+      "isActive": true,
+      "registrationDate": "2025-01-15",
+      "bankClientSince": "2025-01-15",
+      "liquidationDate": null,
+      "employeesCount": 3,
+      "annualIncome": 300000,
+      "annualExpenses": 100000,
+      "lastYearBalances": [
+        2145098,
+        634721,
+        1908436,
+        287510,
+        1673249,
+        1042865,
+        2019374,
+        756082,
+        1384517,
+        529603,
+        1950128,
+        843760,
+        1206935,
+        2087451,
+        468329,
+        1715804
+      ]
+    }
+  },
+  "loanIssuanceDate": "2026-10-24T12:05:10.000Z"
+}
