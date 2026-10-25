@@ -8,7 +8,7 @@ const KEY_PREFIX = 'application-details:'
 
 /**
  * What the backend does not keep for an application yet, remembered in the browser: the goal, the chosen product,
- * and the user's own actions (sending, withdrawing, signing, discarding a draft). See docs/frontend-mocks.md.
+ * and the user's own actions (sending, signing, discarding a draft). See docs/frontend-mocks.md.
  * Moments are Unix milliseconds.
  */
 export interface LocalApplicationDetails {
@@ -16,7 +16,6 @@ export interface LocalApplicationDetails {
   selectedProduct: SelectedProduct | null
   isSecured: boolean
   submittedAt: number | null
-  withdrawnAt: number | null
   signedAt: number | null
   isDiscarded: boolean
 }
@@ -26,7 +25,6 @@ const EMPTY_DETAILS: LocalApplicationDetails = {
   selectedProduct: null,
   isSecured: false,
   submittedAt: null,
-  withdrawnAt: null,
   signedAt: null,
   isDiscarded: false,
 }
@@ -59,7 +57,6 @@ export function readLocalDetails(applicationId: number): LocalApplicationDetails
     selectedProduct: parseSelectedProduct(stored.selectedProduct),
     isSecured: stored.isSecured === true,
     submittedAt: parseMoment(stored.submittedAt),
-    withdrawnAt: parseMoment(stored.withdrawnAt),
     signedAt: parseMoment(stored.signedAt),
     isDiscarded: stored.isDiscarded === true,
   }

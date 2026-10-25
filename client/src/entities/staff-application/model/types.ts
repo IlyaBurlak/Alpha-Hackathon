@@ -18,6 +18,10 @@ export const DECISION_TYPES = {
 
 export type DecisionType = (typeof DECISION_TYPES)[keyof typeof DECISION_TYPES]
 
+/** Where the scoring of an application stands: running, done, or finished without a usable result. */
+export const SCORING_STATUSES = { pending: 'pending', ready: 'ready', unavailable: 'unavailable' } as const
+export type ScoringStatus = (typeof SCORING_STATUSES)[keyof typeof SCORING_STATUSES]
+
 export const CHECK_LEVELS = { ok: 'ok', warning: 'warning', fail: 'fail' } as const
 export type CheckLevel = (typeof CHECK_LEVELS)[keyof typeof CHECK_LEVELS]
 
@@ -51,17 +55,18 @@ export interface StaffCompany {
   okved: string
   address: string
   head: string
-  registeredAt: Date
-  employeesCount: number
-  annualRevenue: number
-  debt: number
+  /** The figures of the register and the credit bureau are `null` when the service did not answer. */
+  registeredAt: Date | null
+  employeesCount: number | null
+  annualRevenue: number | null
+  debt: number | null
   /** Delays on credits over the last 12 months. */
   overdueCount: number
   hasStableTurnover: boolean
   arbitrationCases: number
   taxDebt: number
   /** The year the company became a client of the bank. */
-  clientSince: number
+  clientSince: number | null
   account: string
 }
 
@@ -155,8 +160,11 @@ export interface StaffApplication {
   company: StaffCompany
   applicant: StaffApplicant
   collateral: StaffCollateral | null
-  /** `null` while the model is still calculating. */
+  /** `null` unless `scoringStatus` is `ready`. */
   scoring: StaffScoring | null
+  scoringStatus: ScoringStatus
+  /** Why a finished scoring has no result, for the employee; `null` otherwise. */
+  scoringIssue: string | null
   checks: CheckResult[]
   recommendation: Recommendation | null
   turnover: MonthlyTurnover[]

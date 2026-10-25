@@ -78,6 +78,8 @@ function getReviewInput(record: StoredRecord): ReviewInput {
     arbitrationCases: record.company.arbitrationCases,
     taxDebt: record.company.taxDebt,
     collateralValue: record.collateral?.value ?? null,
+    isRegisterReceived: true,
+    isHistoryReceived: true,
     isCompanyActive: true,
     isBankrupt: false,
   }
@@ -239,6 +241,8 @@ export function toStaffApplicationDto(record: StoredRecord, now: number) {
     applicant: record.applicant,
     collateral: record.collateral,
     scoring,
+    scoringStatus: isScored ? 'ready' : 'pending',
+    scoringIssue: null,
     checks,
     recommendation: scoring ? buildRecommendation(input, scoring, checks) : null,
     turnover: buildTurnover(input, now),
@@ -287,7 +291,6 @@ export function decideMockStaffApplication(id: string, decision: Decision, actor
   const { type, comment, ...details } = decision
   record.decision = { type, comment, ...details, byEmployeeId: actor.id, at: now }
   record.status = option.resultingStatus
-  record.assigneeId ??= actor.id
   record.history.push({
     at: now,
     title: option.historyTitle,

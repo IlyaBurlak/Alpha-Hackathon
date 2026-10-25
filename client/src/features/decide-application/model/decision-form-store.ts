@@ -7,6 +7,7 @@ import {
   DOCUMENT_REQUESTS,
   MIN_COMMENT_LENGTH,
   MIN_OFFER_AMOUNT,
+  OTHER_REJECTION_REASON,
   decideStaffApplication,
   getStaffCapabilities,
 } from '@/entities/staff-application'
@@ -30,8 +31,11 @@ const RECOMMENDED_DOCUMENTS = [DOCUMENT_REQUESTS[0], DOCUMENT_REQUESTS[4]]
 
 export type DecisionField = 'comment' | 'reason' | 'documents' | 'offer'
 
+type DecisionMessage = keyof typeof DECISION_MESSAGES
+
 export const DECISION_MESSAGES = {
   comment: 'Напишите клиенту комментарий, хотя бы пару слов',
+  otherReasonComment: 'Опишите причину отказа, хотя бы пару слов',
   reason: 'Выберите причину отказа',
   documents: 'Отметьте, какие данные нужны',
   offer: 'Проверьте сумму и ставку',
@@ -94,6 +98,12 @@ export class DecisionFormStore {
     return calculateAnnuityPayment(this.amount, this.rate, this.termInMonths)
   }
 
+  /** A request for data always needs a comment; a refusal only when its reason is "other": the others explain themselves. */
+  get isCommentRequired(): boolean {
+    if (this.type === DECISION_TYPES.clarify) return true
+    return this.type === DECISION_TYPES.reject && this.reason === OTHER_REJECTION_REASON
+  }
+
   /** The decision as it is going to be sent. */
   get decision(): Decision {
     const comment = this.comment.trim()
@@ -145,7 +155,7 @@ export class DecisionFormStore {
     const problem = this.findProblem()
     if (problem) {
       this.invalidField = problem
-      this.errorMessage = DECISION_MESSAGES[problem]
+      this.errorMessage = DECISION_MESSAGES[this.getMessageKey(problem)]
       return
     }
     this.isConfirming = true
@@ -170,10 +180,13 @@ export class DecisionFormStore {
     }
   }
 
+  private getMessageKey(problem: DecisionField): DecisionMessage {
+    return problem === 'comment' && this.type === DECISION_TYPES.reject ? 'otherReasonComment' : problem
+  }
+
   private findProblem(): DecisionField | null {
-    const needsComment = this.type === DECISION_TYPES.clarify || this.type === DECISION_TYPES.reject
-    if (needsComment && this.comment.trim().length < MIN_COMMENT_LENGTH) return 'comment'
     if (this.type === DECISION_TYPES.reject && this.reason === '') return 'reason'
+    if (this.isCommentRequired && this.comment.trim().length < MIN_COMMENT_LENGTH) return 'comment'
     if (this.type === DECISION_TYPES.clarify && this.documents.length === 0) return 'documents'
     if (this.type === DECISION_TYPES.offer && (this.amount < MIN_OFFER_AMOUNT || this.rate <= 0)) return 'offer'
     return null

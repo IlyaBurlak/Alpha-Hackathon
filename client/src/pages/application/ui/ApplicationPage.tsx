@@ -16,12 +16,11 @@ import { ConditionsBox } from './conditions-box/ConditionsBox'
 import { SignModal } from './sign-modal/SignModal'
 import { StatusBlock } from './status-block/StatusBlock'
 import { StatusTimeline } from './status-timeline/StatusTimeline'
-import { WithdrawModal } from './withdraw-modal/WithdrawModal'
 
 /** The payout is a timer on the client: it ends without any request to the server. */
 const PAYOUT_SETTLE_DELAY_MS = 300
 
-type OpenModal = 'withdraw' | 'sign' | null
+type OpenModal = 'sign' | null
 
 function getPayoutEnd(application: Application | null): Date | null {
   return application?.status === APPLICATION_STATUSES.payout ? application.issuedAt : null
@@ -60,20 +59,13 @@ export const ApplicationPage = observer(function ApplicationPage() {
     return () => window.clearTimeout(timer)
   }, [store, applicationList, payoutEnd])
 
-  const handleWithdraw = () => {
-    setOpenModal(null)
-    void store
-      .withdraw(id)
-      .then(() => applicationList.refresh())
-      .then(() => showToast('Заявка отозвана'))
-  }
-
   const handleSign = () => {
     setOpenModal(null)
     void store
       .sign(id)
       .then(() => applicationList.refresh())
       .then(() => showToast('Договор подписан'))
+      .catch((error: unknown) => showToast(getErrorMessage(error)))
   }
 
   const handleAnswerOffer = (isAccepted: boolean) => {
@@ -115,11 +107,6 @@ export const ApplicationPage = observer(function ApplicationPage() {
               <span>Подана {formatWhen(application.submittedAt ?? application.createdAt)}</span>
             </div>
           </div>
-          {application.status === APPLICATION_STATUSES.submitted && (
-            <Button view="secondary" size="small" onClick={() => setOpenModal('withdraw')}>
-              Отозвать
-            </Button>
-          )}
         </div>
         <StatusBlock application={application} account={organization.account} onSign={() => setOpenModal('sign')} onAnswerOffer={handleAnswerOffer} />
         <div className={styles.columns}>
@@ -132,7 +119,6 @@ export const ApplicationPage = observer(function ApplicationPage() {
           </section>
           <ConditionsBox application={application} />
         </div>
-        {openModal === 'withdraw' && <WithdrawModal onClose={() => setOpenModal(null)} onConfirm={handleWithdraw} />}
         {openModal === 'sign' && (
           <SignModal application={application} onClose={() => setOpenModal(null)} onConfirm={handleSign} />
         )}

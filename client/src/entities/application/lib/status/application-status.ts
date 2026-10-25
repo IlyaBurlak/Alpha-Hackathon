@@ -11,7 +11,7 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   [APPLICATION_STATUSES.offered]: 'Другие условия',
   [APPLICATION_STATUSES.offerAccepted]: 'Условия приняты',
   [APPLICATION_STATUSES.offerDeclined]: 'Вы отказались',
-  [APPLICATION_STATUSES.withdrawn]: 'Отозвана',
+  [APPLICATION_STATUSES.signed]: 'Договор подписан',
   [APPLICATION_STATUSES.payout]: 'Выдача',
   [APPLICATION_STATUSES.issued]: 'Кредит выдан',
 }
@@ -24,7 +24,7 @@ export const APPLICATION_STATUS_TONES: Record<ApplicationStatus, StatusTone> = {
   [APPLICATION_STATUSES.offered]: 'attention',
   [APPLICATION_STATUSES.offerAccepted]: 'positive',
   [APPLICATION_STATUSES.offerDeclined]: 'neutral',
-  [APPLICATION_STATUSES.withdrawn]: 'neutral',
+  [APPLICATION_STATUSES.signed]: 'positive',
   [APPLICATION_STATUSES.payout]: 'positive',
   [APPLICATION_STATUSES.issued]: 'default',
 }
@@ -35,6 +35,7 @@ const ACTIVE_STATUSES: readonly ApplicationStatus[] = [
   APPLICATION_STATUSES.approved,
   APPLICATION_STATUSES.offered,
   APPLICATION_STATUSES.offerAccepted,
+  APPLICATION_STATUSES.signed,
   APPLICATION_STATUSES.payout,
 ]
 
@@ -61,7 +62,7 @@ const TIMELINE_STATES: Record<ApplicationStatus, readonly TimelineStepState[]> =
   [APPLICATION_STATUSES.offered]: ['done', 'done', 'wait', 'todo', 'todo'],
   [APPLICATION_STATUSES.offerAccepted]: ['done', 'done', 'done', 'wait', 'todo'],
   [APPLICATION_STATUSES.offerDeclined]: ['done', 'done', 'stop', 'todo', 'todo'],
-  [APPLICATION_STATUSES.withdrawn]: ['done', 'stop', 'todo', 'todo', 'todo'],
+  [APPLICATION_STATUSES.signed]: ['done', 'done', 'done', 'done', 'now'],
   [APPLICATION_STATUSES.payout]: ['done', 'done', 'done', 'done', 'now'],
   [APPLICATION_STATUSES.issued]: ['done', 'done', 'done', 'done', 'done'],
 }

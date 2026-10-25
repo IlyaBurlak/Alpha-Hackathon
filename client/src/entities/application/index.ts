@@ -1,5 +1,5 @@
 export { createApplication, getApplication, selectApplicationProduct } from './api/applications'
-export { discardApplication, signApplication, withdrawApplication } from './api/mocks/mock-actions'
+export { discardApplication } from './api/mocks/mock-actions'
 export { suggestLowerSum } from './api/mocks/mock-scoring'
 export { CREDIT_GOALS, LOAN_TERMS_IN_MONTHS, MAX_LOAN_SUM, MIN_LOAN_SUM } from './config/loan-form'
 export type { CreditGoalId } from './config/loan-form'

@@ -31,11 +31,14 @@ export const DOCUMENT_REQUESTS = [
   'Пояснение по арбитражным делам',
 ] as const
 
+/** The reason that explains nothing by itself: the comment is then required. */
+export const OTHER_REJECTION_REASON = 'Другое'
+
 export const REJECTION_REASONS = [
   'Высокая долговая нагрузка',
   'Негативная кредитная история',
   'Недостаточная выручка',
   'Отрицательные результаты проверок',
   'Недостоверные данные в заявке',
-  'Другое',
+  OTHER_REJECTION_REASON,
 ] as const

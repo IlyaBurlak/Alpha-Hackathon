@@ -22,8 +22,9 @@ export const APPLICATION_STATUSES = {
   offered: 'SPECIALPRODUCTOFFERED',
   offerAccepted: 'SPECIALPRODUCTACCEPTED',
   offerDeclined: 'SPECIALPRODUCTREJECTED',
+  /** All documents are signed, the bank is to credit the money (`PUT /applications/:id/sign`). */
+  signed: 'SIGNED',
   /** The statuses below are not sent by the backend yet; see docs/frontend-mocks.md. */
-  withdrawn: 'WITHDRAWN',
   payout: 'PAYOUT',
   issued: 'ISSUED',
 } as const

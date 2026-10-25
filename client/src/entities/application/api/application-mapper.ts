@@ -180,7 +180,18 @@ export function mapApplication(dto: unknown): Application {
   }
 }
 
+/**
+ * An application the client cannot read (a status of a newer backend, a damaged record) is left out of the list:
+ * it must not hide all the others. Opening it by its number still reports the problem.
+ */
 export function mapApplications(dto: unknown): Application[] {
   if (!Array.isArray(dto)) throw new UnexpectedResponseError('invalid applications list')
-  return dto.map(mapApplication)
+  return dto.flatMap((item) => {
+    try {
+      return [mapApplication(item)]
+    } catch (error) {
+      if (error instanceof UnexpectedResponseError) return []
+      throw error
+    }
+  })
 }

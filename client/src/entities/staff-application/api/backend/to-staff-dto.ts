@@ -1,22 +1,25 @@
 /**
  * Turns what the backend sends to an operator (`/applications/all`, `/applications/:id/score`) into the shape the
- * staff mapper reads. What the backend does not send yet is filled in from the mock review (api/mocks/mock-review.ts)
- * or left as a placeholder; whatever the backend sends wins (docs/frontend-mocks.md, "Staff cabinet on the backend").
+ * staff mapper reads. The scoring comes only from the ML result the backend sends (ml-scoring.ts): without it the
+ * report says so. The figures of the company the backend does not send yet (turnover, credit lines) are filled in from
+ * the mock review (api/mocks/mock-review.ts); whatever the backend sends wins (docs/frontend-mocks.md).
  */
 import { UnexpectedResponseError, readNumber, readRecord, readString } from '@/shared/api'
 import { isRecord } from '@/shared/lib'
 
-import { REJECTION_REASONS } from '../../config/review-rules'
+import { OTHER_REJECTION_REASON, REJECTION_REASONS } from '../../config/review-rules'
 import { HISTORY_TONES, STAFF_STATUSES } from '../../model/types'
 import type { StaffStatus } from '../../model/types'
-import { buildChecks, buildLoans, buildRecommendation, buildScoring, buildTurnover } from '../mocks/mock-review'
+import { recommendDecision } from '../../lib/recommendation'
+import { buildChecks, buildLoans } from '../mocks/mock-review'
 import type { ReviewInput } from '../mocks/mock-review'
+import { SCORING_PENDING, readMlScoring } from './ml-scoring'
 
 const MONTHS_IN_YEAR = 12
 const DAYS_IN_MONTH = 30
 const UNKNOWN = '—'
+const NAME_NOT_RECEIVED = 'Название не получено'
 const SCORING_IN_PROGRESS = ['PENDINGCRREDITHISTORY', 'PENDINGREGISTER', 'WAITNGSCORING']
-const REVENUE_TO_AMOUNT_FALLBACK = 4
 const UNSTABLE_MONTH_SHARE = 0.3
 const OPERATOR_ID_PREFIX = 'op'
 /** The backend does not record the reason of a refusal separately; it is the start of the comment. */
@@ -63,6 +66,7 @@ function mapStatus(applicationStatus: string, scoringStatus: string | null): Sta
       return scoringStatus === null || SCORING_IN_PROGRESS.includes(scoringStatus) ? STAFF_STATUSES.scoring : STAFF_STATUSES.ready
     case 'APPROVED':
     case 'SPECIALPRODUCTACCEPTED':
+    case 'SIGNED':
       return STAFF_STATUSES.approved
     case 'REJECTED':
     case 'SPECIALPRODUCTREJECTED':
@@ -90,6 +94,7 @@ function mapProduct(application: Source) {
     name,
     shortName,
     isSecured,
+    rate: product && optionalNumber(product, 'persentage'),
     reviewProductId: isGovernment ? 'gov' : isSecured ? 'line' : 'any',
   }
 }
@@ -125,18 +130,27 @@ function toIso(moment: number): string {
   return new Date(moment).toISOString()
 }
 
-function mapDecision(application: Source, status: string, assigneeId: string | null, receivedAt: string) {
+/** The signed documents say nothing about what was signed: the terms of an offer in the product tell the two apart. */
+function getDecidedStatus(application: Source, status: string): string {
+  if (status !== 'SIGNED') return status
+  const product = optionalRecord(application, 'product')
+  return product && optionalNumber(product, 'sum') !== null ? 'SPECIALPRODUCTACCEPTED' : 'APPROVED'
+}
+
+function mapDecision(application: Source, backendStatus: string, assigneeId: string | null, receivedAt: string) {
+  const status = getDecidedStatus(application, backendStatus)
   const comment = optionalString(application, 'solutionComment') ?? ''
   const base = { byEmployeeId: assigneeId ?? UNKNOWN, at: receivedAt, comment }
   switch (status) {
     case 'APPROVED':
       return { type: 'approve', ...base }
     case 'REJECTED': {
-      const reason = REJECTION_REASONS.find((candidate) => comment.startsWith(`${candidate}${REASON_SEPARATOR}`))
+      // The comment is the reason alone, or the reason, a separator and the words of the employee.
+      const reason = REJECTION_REASONS.find((candidate) => comment === candidate || comment.startsWith(`${candidate}${REASON_SEPARATOR}`))
       return {
         type: 'reject',
         ...base,
-        reason: reason ?? 'Другое',
+        reason: reason ?? OTHER_REJECTION_REASON,
         comment: reason ? comment.slice(reason.length + REASON_SEPARATOR.length) : comment,
       }
     }
@@ -169,12 +183,15 @@ function describeDecisionOutcome(status: string): string | null {
       return 'Клиент принял другие условия'
     case 'SPECIALPRODUCTREJECTED':
       return 'Клиент отказался от других условий'
+    case 'SIGNED':
+      return 'Клиент подписал договор'
     default:
       return null
   }
 }
 
 const OUTCOME_TONES: Record<string, string> = {
+  SIGNED: HISTORY_TONES.positive,
   APPROVED: HISTORY_TONES.default,
   REJECTED: HISTORY_TONES.negative,
   SPECIALPRODUCTOFFERED: HISTORY_TONES.attention,
@@ -205,29 +222,36 @@ export function toStaffApplicationDto(value: unknown, now: number) {
 
   const register = score && optionalRecord(score, 'registerInfo')
   const history = score && optionalRecord(score, 'history')
+  // A service that did not answer leaves its figures empty: nothing stands in for them, the report says "no data".
+  const isRegisterReceived = register !== null
+  const isHistoryReceived = history !== null
   const balances = lastYearBalances(register)
-  const annualRevenue = (register && optionalNumber(register, 'annualIncome')) ?? amount * REVENUE_TO_AMOUNT_FALLBACK
-  const registeredAt = (register && optionalString(register, 'registrationDate')) ?? receivedAtIso
+  const annualRevenue = register && optionalNumber(register, 'annualIncome')
+  const registeredAt = register && optionalString(register, 'registrationDate')
+  const bankClientSince = register && optionalString(register, 'bankClientSince')
   const head = (register && optionalString(register, 'head')) ?? UNKNOWN
   const product = mapProduct(application)
-  const isSoleProprietor = (register && optionalString(register, 'type')) === 'ИП'
+  const organization = optionalRecord(application, 'organization')
+  const isSoleProprietor =
+    (organization && optionalString(organization, 'type')) === 'IndividualEntrepreneur' || (register && optionalString(register, 'type')) === 'ИП'
+  // The name and the INN come only from the organization of the application; no placeholder with a number stands for them.
   const company = {
-    name: `Организация №${readNumber(application, 'organizationId')}`,
-    inn: UNKNOWN,
+    name: (organization && optionalString(organization, 'fullName')) ?? NAME_NOT_RECEIVED,
+    inn: (organization && optionalString(organization, 'inn')) ?? UNKNOWN,
     kpp: isSoleProprietor ? null : register && optionalString(register, 'kpp'),
     ogrn: (register && optionalString(register, 'ogrn')) ?? UNKNOWN,
     okved: (register && optionalString(register, 'okved')) ?? UNKNOWN,
     address: (register && optionalString(register, 'address')) ?? UNKNOWN,
     head,
     registeredAt,
-    employeesCount: (register && optionalNumber(register, 'employeesCount')) ?? 0,
+    employeesCount: register && optionalNumber(register, 'employeesCount'),
     annualRevenue,
-    debt: unpaidDebt(history),
+    debt: history && unpaidDebt(history),
     overdueCount: (history && optionalNumber(history, 'casesDelayedPayment')) ?? 0,
     hasStableTurnover: hasStableTurnover(balances),
     arbitrationCases: 0,
     taxDebt: 0,
-    clientSince: new Date((register && optionalString(register, 'bankClientSince')) ?? registeredAt).getFullYear(),
+    clientSince: bankClientSince ? new Date(bankClientSince).getFullYear() : null,
     account: (register && optionalString(register, 'account')) ?? UNKNOWN,
   }
 
@@ -237,19 +261,22 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     amount,
     termInMonths,
     inn: company.inn,
-    registeredAt: new Date(registeredAt).getTime(),
-    annualRevenue,
-    debt: company.debt,
+    registeredAt: registeredAt ? new Date(registeredAt).getTime() : receivedAt,
+    annualRevenue: annualRevenue ?? 0,
+    debt: company.debt ?? 0,
     overdueCount: company.overdueCount,
     hasStableTurnover: company.hasStableTurnover,
     arbitrationCases: 0,
     taxDebt: 0,
     collateralValue: null,
+    isRegisterReceived,
+    isHistoryReceived,
     isCompanyActive: register?.isActive !== false,
     isBankrupt: history?.bankrupt === true,
   }
-  const scoring = status === STAFF_STATUSES.scoring ? null : buildScoring(input, now)
-  const checks = scoring ? buildChecks(input, scoring.rate) : []
+  const reading = status === STAFF_STATUSES.scoring ? SCORING_PENDING : readMlScoring(score && optionalRecord(score, 'mlScore'), product.rate)
+  const { scoring } = reading
+  const checks = status === STAFF_STATUSES.scoring ? [] : buildChecks(input, scoring?.rate ?? null)
   const outcome = describeDecisionOutcome(backendStatus)
 
   const entries: { at: string; title: string; description: string | null; tone: string }[] = [
@@ -286,13 +313,16 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     applicant: { name: head, role: UNKNOWN, phone: UNKNOWN, email: UNKNOWN },
     collateral: null,
     scoring,
+    scoringStatus: reading.status,
+    scoringIssue: reading.issue,
     checks,
-    recommendation: scoring ? buildRecommendation(input, scoring, checks) : null,
+    recommendation: scoring ? recommendDecision(scoring, checks) : null,
+    // Without the twelve balances of the register the chart is empty; without the credit bureau there are no credit lines.
     turnover:
       balances.length === MONTHS_IN_YEAR
         ? balances.map((amountOfMonth, index) => ({ month: monthName(MONTHS_IN_YEAR - index, now), amount: amountOfMonth }))
-        : buildTurnover(input, now),
-    loans: buildLoans(input),
+        : [],
+    loans: isHistoryReceived ? buildLoans(input) : [],
     decision: mapDecision(application, backendStatus, assigneeId, receivedAtIso),
     history: entries,
   }

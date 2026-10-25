@@ -2,8 +2,7 @@ import { makeAutoObservable, observableRef } from 'mobx'
 
 import { getErrorMessage } from '@/shared/api'
 
-import { answerSpecialOffer, getApplication } from '../api/applications'
-import { signApplication, withdrawApplication } from '../api/mocks/mock-actions'
+import { answerSpecialOffer, getApplication, signApplication } from '../api/applications'
 import { settlePayout } from '../api/mocks/mock-enrichment'
 import type { Application } from './types'
 
@@ -39,13 +38,7 @@ export class ApplicationDetailStore {
     }
   }
 
-  /** Withdraws the application from review and shows the result. */
-  async withdraw(applicationId: number): Promise<void> {
-    withdrawApplication(applicationId)
-    await this.refresh(applicationId)
-  }
-
-  /** Signs the contract of an approved application and shows the result. */
+  /** Signs the documents of an approved application and shows the result. */
   async sign(applicationId: number): Promise<void> {
     signApplication(applicationId)
     await this.refresh(applicationId)

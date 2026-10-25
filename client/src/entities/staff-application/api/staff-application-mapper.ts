@@ -5,6 +5,8 @@ import {
   readDate,
   readNumber,
   readOneOf,
+  readOptionalDate,
+  readOptionalNumber,
   readOptionalString,
   readRecord,
   readString,
@@ -15,6 +17,7 @@ import {
   DECISION_TYPES,
   HISTORY_TONES,
   RISK_CLASSES,
+  SCORING_STATUSES,
   STAFF_STATUSES,
 } from '../model/types'
 import type {
@@ -38,6 +41,7 @@ const STATUS_VALUES = Object.values(STAFF_STATUSES)
 const DECISION_VALUES = Object.values(DECISION_TYPES)
 const CHECK_LEVEL_VALUES = Object.values(CHECK_LEVELS)
 const HISTORY_TONE_VALUES = Object.values(HISTORY_TONES)
+const SCORING_STATUS_VALUES = Object.values(SCORING_STATUSES)
 
 function mapList<Item>(value: unknown, description: string, mapItem: (item: unknown) => Item): Item[] {
   return readArray(value, description).map(mapItem)
@@ -63,15 +67,15 @@ function mapCompany(value: unknown): StaffCompany {
     okved: readString(dto, 'okved'),
     address: readString(dto, 'address'),
     head: readString(dto, 'head'),
-    registeredAt: readDate(dto, 'registeredAt'),
-    employeesCount: readNumber(dto, 'employeesCount'),
-    annualRevenue: readNumber(dto, 'annualRevenue'),
-    debt: readNumber(dto, 'debt'),
+    registeredAt: readOptionalDate(dto, 'registeredAt'),
+    employeesCount: readOptionalNumber(dto, 'employeesCount'),
+    annualRevenue: readOptionalNumber(dto, 'annualRevenue'),
+    debt: readOptionalNumber(dto, 'debt'),
     overdueCount: readNumber(dto, 'overdueCount'),
     hasStableTurnover: readBoolean(dto, 'hasStableTurnover'),
     arbitrationCases: readNumber(dto, 'arbitrationCases'),
     taxDebt: readNumber(dto, 'taxDebt'),
-    clientSince: readNumber(dto, 'clientSince'),
+    clientSince: readOptionalNumber(dto, 'clientSince'),
     account: readString(dto, 'account'),
   }
 }
@@ -202,6 +206,8 @@ export function mapStaffApplication(value: unknown): StaffApplication {
     applicant: mapApplicant(dto.applicant),
     collateral: mapCollateral(dto.collateral),
     scoring: mapScoring(dto.scoring),
+    scoringStatus: readOneOf(dto, 'scoringStatus', SCORING_STATUS_VALUES),
+    scoringIssue: readOptionalString(dto, 'scoringIssue'),
     checks: mapList(dto.checks, 'checks', mapCheck),
     recommendation: mapRecommendation(dto.recommendation),
     turnover: mapList(dto.turnover, 'turnover', mapTurnover),

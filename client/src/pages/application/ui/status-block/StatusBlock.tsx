@@ -188,20 +188,6 @@ function RejectedState({ application }: Pick<StatusBlockProps, 'application'>) {
   )
 }
 
-function WithdrawnState() {
-  return (
-    <div className={styles.state}>
-      <span className={classNames(styles.stateKind, styles.stateKindMuted)}>Заявка отозвана</span>
-      <h2 className={styles.stateTitle}>Рассмотрение остановлено</h2>
-      <div className={styles.actions}>
-        <Link className={getButtonClassName({ view: 'secondary' })} to={ROUTES.cabinet}>
-          Подать заново
-        </Link>
-      </div>
-    </div>
-  )
-}
-
 /** The big card under the title: what is happening with the application and what comes next. */
 export function StatusBlock({ application, account, onSign, onAnswerOffer }: StatusBlockProps) {
   switch (application.status) {
@@ -220,8 +206,6 @@ export function StatusBlock({ application, account, onSign, onAnswerOffer }: Sta
       return <IssuedState application={application} account={account} />
     case APPLICATION_STATUSES.rejected:
       return <RejectedState application={application} />
-    case APPLICATION_STATUSES.withdrawn:
-      return <WithdrawnState />
     default:
       return null
   }

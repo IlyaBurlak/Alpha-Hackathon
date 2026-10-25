@@ -9,13 +9,14 @@ export {
   DOCUMENT_REQUESTS,
   MIN_COMMENT_LENGTH,
   MIN_OFFER_AMOUNT,
+  OTHER_REJECTION_REASON,
   PAYMENT_TO_MONTHLY_REVENUE_LIMIT,
   REFUSAL_SCORE_BELOW,
   REJECTION_REASONS,
   SLA_HOURS,
   TERM_OPTIONS_IN_MONTHS,
 } from './config/review-rules'
-export { assignStaffApplication, decideStaffApplication, reopenStaffApplication } from './api/staff-applications'
+export { assignStaffApplication, decideStaffApplication, reopenStaffApplication, restartStaffScoring } from './api/staff-applications'
 export { getStaffCapabilities } from './api/staff-capabilities'
 export type { StaffCapabilities } from './api/staff-capabilities'
 export type { ActingEmployee } from './api/staff-applications'
@@ -37,7 +38,7 @@ export { QueueViewStore } from './model/queue-view-store'
 export { StaffApplicationDetailStore } from './model/staff-application-detail-store'
 export { StaffApplicationListStore } from './model/staff-application-list-store'
 export { StaffApplicationListStoreContext, useStaffApplicationListStore } from './model/staff-application-list-context'
-export { CHECK_LEVELS, DECISION_TYPES, STAFF_STATUSES } from './model/types'
+export { CHECK_LEVELS, DECISION_TYPES, SCORING_STATUSES, STAFF_STATUSES } from './model/types'
 export type {
   CheckLevel,
   CheckResult,
@@ -49,6 +50,7 @@ export type {
   MonthlyTurnover,
   Recommendation,
   RecordedDecision,
+  ScoringStatus,
   ScoringFactor,
   StaffApplicant,
   StaffApplication,

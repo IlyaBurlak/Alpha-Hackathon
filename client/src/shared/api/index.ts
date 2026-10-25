@@ -6,6 +6,8 @@ export {
   readDate,
   readNumber,
   readOneOf,
+  readOptionalDate,
+  readOptionalNumber,
   readOptionalString,
   readRecord,
   readString,

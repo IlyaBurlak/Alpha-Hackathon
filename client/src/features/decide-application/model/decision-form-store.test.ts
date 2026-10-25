@@ -14,7 +14,7 @@ import { DecisionFormStore } from './decision-form-store'
 vi.mock('@/entities/staff-application', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/staff-application')>()),
   decideStaffApplication: vi.fn(),
-  getStaffCapabilities: vi.fn(() => ({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })),
+  getStaffCapabilities: vi.fn(() => ({ canRequestData: true, canReopenDecision: true, canAssignOthers: true, canRestartScoring: false })),
 }))
 
 const ACTOR = { id: 'u1', name: 'Мария Иванова' }
@@ -33,7 +33,7 @@ function createStore(application = APPROVE) {
 
 beforeEach(() => {
   vi.mocked(decideStaffApplication).mockReset()
-  vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: true, canReopenDecision: true, canAssignOthers: true })
+  vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: true, canReopenDecision: true, canAssignOthers: true, canRestartScoring: false })
 })
 
 describe('DecisionFormStore: what the backend cannot do', () => {
@@ -42,11 +42,64 @@ describe('DecisionFormStore: what the backend cannot do', () => {
   })
 
   it('hides "request data" for a backend operator and turns that advice into other terms', () => {
-    vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: false, canReopenDecision: false, canAssignOthers: false })
+    vi.mocked(getStaffCapabilities).mockReturnValue({ canRequestData: false, canReopenDecision: false, canAssignOthers: false, canRestartScoring: true })
     const { store } = createStore(createApplication({ type: 'clarify', reasons: [], offer: null }))
 
     expect(store.availableTypes).not.toContain('clarify')
     expect(store.type).toBe('offer')
+  })
+})
+
+describe('DecisionFormStore: the comment of a refusal', () => {
+  function prepareRefusal(reason: string, comment = '') {
+    const { store } = createStore()
+    store.choose('reject')
+    store.setReason(reason)
+    store.setComment(comment)
+    return store
+  }
+
+  it('does not need a comment when the reason explains the refusal', () => {
+    const store = prepareRefusal('Недостаточная выручка')
+
+    expect(store.isCommentRequired).toBe(false)
+    store.requestConfirmation()
+
+    expect(store.invalidField).toBeNull()
+    expect(store.isConfirming).toBe(true)
+  })
+
+  it('needs a comment of at least ten characters for the reason "other"', () => {
+    const store = prepareRefusal('Другое', 'коротко')
+
+    expect(store.isCommentRequired).toBe(true)
+    store.requestConfirmation()
+
+    expect(store).toMatchObject({ invalidField: 'comment', errorMessage: 'Опишите причину отказа, хотя бы пару слов', isConfirming: false })
+  })
+
+  it('accepts the reason "other" with a comment', () => {
+    const store = prepareRefusal('Другое', 'Нестандартная ситуация с залогом')
+
+    store.requestConfirmation()
+
+    expect(store.isConfirming).toBe(true)
+  })
+
+  it('asks for the reason first', () => {
+    const store = prepareRefusal('', '')
+
+    store.requestConfirmation()
+
+    expect(store).toMatchObject({ invalidField: 'reason', errorMessage: 'Выберите причину отказа' })
+  })
+
+  it('still needs a comment for a request of data and none for an approval', () => {
+    const { store } = createStore(createApplication({ type: 'clarify', reasons: [], offer: null }))
+    expect(store.isCommentRequired).toBe(true)
+
+    store.choose('approve')
+    expect(store.isCommentRequired).toBe(false)
   })
 })
 

@@ -47,6 +47,10 @@ export interface ReviewInput {
   arbitrationCases: number
   taxDebt: number
   collateralValue: number | null
+  /** Whether the register answered; without it the company is neither active nor inactive for the check. */
+  isRegisterReceived: boolean
+  /** Whether the credit bureau answered; without it nothing is known about delays and bankruptcy. */
+  isHistoryReceived: boolean
   /** From the register; the demo applications are all active. */
   isCompanyActive: boolean
   /** From the credit bureau; the demo applications have none. */
@@ -176,18 +180,24 @@ interface Check {
 const PASSED = 'Пройдена'
 const ATTENTION = 'Внимание'
 const FAILED = 'Не пройдена'
+const NO_DATA = 'Нет данных'
 
-export function buildChecks(input: ReviewInput, rate: number): Check[] {
+/** `rate` is the annual rate of the loan; without it (no scoring result) the check of the new payment is left out. */
+export function buildChecks(input: ReviewInput, rate: number | null): Check[] {
   const { ok, warning, fail } = CHECK_LEVELS
   const checks: Check[] = [
-    input.isCompanyActive
-      ? { title: 'ЕГРЮЛ', description: 'Компания действующая, сведения о руководителе совпадают', level: ok, resultLabel: PASSED }
-      : { title: 'ЕГРЮЛ', description: 'Компания не действует по данным реестра', level: fail, resultLabel: FAILED },
+    !input.isRegisterReceived
+      ? { title: 'ЕГРЮЛ', description: 'Данные реестра не получены, проверить нечего', level: warning, resultLabel: NO_DATA }
+      : input.isCompanyActive
+        ? { title: 'ЕГРЮЛ', description: 'Компания действующая, сведения о руководителе совпадают', level: ok, resultLabel: PASSED }
+        : { title: 'ЕГРЮЛ', description: 'Компания не действует по данным реестра', level: fail, resultLabel: FAILED },
     { title: 'ФНС «Прозрачный бизнес»', description: 'Нет массового адреса и массового руководителя', level: ok, resultLabel: PASSED },
     input.taxDebt
       ? { title: 'Налоговая задолженность', description: `Задолженность ${formatMoney(input.taxDebt)}`, level: warning, resultLabel: ATTENTION }
       : { title: 'Налоговая задолженность', description: 'Задолженности нет', level: ok, resultLabel: PASSED },
-    input.isBankrupt
+    !input.isHistoryReceived
+      ? { title: 'Бюро кредитных историй', description: 'Данные бюро не получены, проверить нечего', level: warning, resultLabel: NO_DATA }
+      : input.isBankrupt
       ? { title: 'Бюро кредитных историй', description: 'Компания признана банкротом', level: fail, resultLabel: FAILED }
       : input.overdueCount === 0
         ? { title: 'Бюро кредитных историй', description: 'Просрочек нет, все кредиты обслуживаются', level: ok, resultLabel: PASSED }
@@ -219,9 +229,14 @@ export function buildChecks(input: ReviewInput, rate: number): Check[] {
   }
 
   if (input.annualRevenue <= 0) {
-    checks.push({ title: 'Платёжеспособность', description: 'Нет данных о выручке, платёж оценить нельзя', level: fail, resultLabel: FAILED })
+    checks.push(
+      input.isRegisterReceived
+        ? { title: 'Платёжеспособность', description: 'Нет данных о выручке, платёж оценить нельзя', level: fail, resultLabel: FAILED }
+        : { title: 'Платёжеспособность', description: 'Выручка неизвестна: реестр не ответил', level: warning, resultLabel: NO_DATA },
+    )
     return checks
   }
+  if (rate === null) return checks
 
   const payment = calculateAnnuityPayment(input.amount, rate, input.termInMonths)
   const paymentShare = payment / (input.annualRevenue / MONTHS_IN_YEAR)
