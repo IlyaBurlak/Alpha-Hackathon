@@ -1,8 +1,10 @@
 import logging
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from app.config import load_scoring
 from app.features import MissingDataError
 from app.schemas import ApplicationIn, ScoreResponse
 from app.scoring import Mode, ScoringService
@@ -24,6 +26,24 @@ async def unhandled_error(request: Request, exc: Exception) -> JSONResponse:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "model_version": service.model_version}
+
+
+@app.get("/thresholds")
+def thresholds() -> dict[str, Any]:
+    cfg = load_scoring()
+    return {
+        "interface": cfg.get("thresholds", {}),
+        "risk": {
+            "reject_below": 45,
+            "auto_approve": 75,
+        },
+        "score": {
+            "min": 0,
+            "max": 100,
+        },
+        "stop_factors": cfg.get("stop_factors", {}),
+        "factors": cfg.get("factors", {}),
+    }
 
 
 def _score(application: ApplicationIn, mode: Mode) -> ScoreResponse:
