@@ -80,17 +80,36 @@ export async function getApplicationScore(operatorToken: string, applicationId: 
   return res.json();
 }
 
-export async function waitForScoreStatus(operatorToken: string, applicationId: number, status: string): Promise<void> {
+export interface WaitOptions {
+  timeoutMs?: number;
+  intervalMs?: number;
+}
+
+export async function waitForScoreStatus(
+  operatorToken: string,
+  applicationId: number,
+  status: string,
+  options?: WaitOptions,
+): Promise<void> {
   await waitFor(async () => {
     const body = await getApplicationScore(operatorToken, applicationId);
     return body?.applicationScore?.status === status;
-  });
+  }, options);
 }
 
-export async function waitFor(
-  check: () => Promise<boolean>,
-  { timeoutMs = 10000, intervalMs = 300 }: { timeoutMs?: number; intervalMs?: number } = {},
+export async function waitForScoreStatusChange(
+  operatorToken: string,
+  applicationId: number,
+  fromStatus: string,
+  options?: WaitOptions,
 ): Promise<void> {
+  await waitFor(async () => {
+    const body = await getApplicationScore(operatorToken, applicationId);
+    return body?.applicationScore?.status !== undefined && body.applicationScore.status !== fromStatus;
+  }, options);
+}
+
+export async function waitFor(check: () => Promise<boolean>, { timeoutMs = 10000, intervalMs = 300 }: WaitOptions = {}): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     if (await check()) return;
@@ -99,4 +118,35 @@ export async function waitFor(
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
+}
+
+export async function createApplicationId(token: string, overrides: { organizationId?: number; sum?: number; creditTime?: CreditTimeInput } = {}): Promise<number> {
+  const res = await createApplication(token, {
+    organizationId: overrides.organizationId ?? 1,
+    sum: overrides.sum ?? 50000,
+    creditTime: overrides.creditTime ?? { units: 'MONTH', value: 12 },
+  });
+  if (res.status !== 200) {
+    throw new Error(`createApplicationId failed with status ${res.status}`);
+  }
+  const body = await res.json();
+  return body.id;
+}
+
+export async function createConfirmedApplicationId(
+  userToken: string,
+  operatorToken: string,
+  productId = 2,
+  options?: WaitOptions,
+): Promise<number> {
+  const id = await createApplicationId(userToken);
+
+  const confirmRes = await confirmApplication(userToken, id, productId);
+  if (confirmRes.status !== 200) {
+    throw new Error(`createConfirmedApplicationId: confirm failed with status ${confirmRes.status}`);
+  }
+
+  await waitForScoreStatus(operatorToken, id, 'WAITONGOPERATOR', options);
+
+  return id;
 }

@@ -6,26 +6,17 @@ import {
   login,
   loginOperator,
   authHeaders,
-  createApplication,
+  createApplicationId,
   confirmApplication,
   setMockActive,
   waitForScoreStatus,
 } from './helpers';
-
-const CREDIT_TIME_WITHIN_RANGE = { units: 'MONTH' as const, value: 12 };
 
 let operatorToken: string;
 
 before(async () => {
   operatorToken = await loginOperator('alfaOperator1', 'alfaOperator1!');
 });
-
-async function createFreshApplicationId(token: string, sum = 50000): Promise<number> {
-  const res = await createApplication(token, { organizationId: 1, sum, creditTime: CREDIT_TIME_WITHIN_RANGE });
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  return body.id;
-}
 
 async function confirmAndDrainScoring(token: string, applicationId: number, productId: number): Promise<Response> {
   const res = await confirmApplication(token, applicationId, productId);
@@ -41,7 +32,7 @@ test('confirming a product the caller is entitled to succeeds', async () => {
   await description('A fresh application for organization 1, confirmed with product id 2 (which is in range for sum 50000/12 months).');
 
   const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application', () => createFreshApplicationId(token));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
 
   const res = await step('PUT /?applicationId&productId=2, then wait for scoring to settle', () =>
     confirmAndDrainScoring(token, applicationId, 2),
@@ -93,7 +84,7 @@ test('confirming someone else\'s (not yet confirmed) application is rejected', a
   );
 
   const owner = await step('log in as alfaTest (the owner)', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application as the owner', () => createFreshApplicationId(owner));
+  const applicationId = await step('create a fresh application as the owner', () => createApplicationId(owner));
 
   const intruder = await step('log in as alfaIlia (unrelated user)', () => login('alfaIlia', 'alfaIlia!'));
   const res = await step('PUT /?applicationId&productId=2 as the intruder', () => confirmApplication(intruder, applicationId, 2));
@@ -109,7 +100,7 @@ test('confirming an already-confirmed application is rejected', async () => {
   await description('A second confirm call on the same application must hit the "Продукт уже выбран" guard.');
 
   const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application', () => createFreshApplicationId(token));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
 
   await step('confirm it once (expected to succeed), then wait for scoring to settle', async () => {
     const res = await confirmAndDrainScoring(token, applicationId, 2);
@@ -129,7 +120,7 @@ test('confirming a product unavailable to the application is rejected', async ()
   await description('Product id 3 ("Деньги на дело") is IE-only (ieAvailable, not ooAvailable) — organization 1 is OO.');
 
   const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application', () => createFreshApplicationId(token));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
 
   const res = await step('PUT /?applicationId&productId=3', () => confirmApplication(token, applicationId, 3));
 
@@ -144,7 +135,7 @@ test('confirming while the bank mock is down is rejected', async () => {
   await description('confirmApplication re-fetches the available products and explicitly rejects when the gateway call fails.');
 
   const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application while the bank mock is still up', () => createFreshApplicationId(token));
+  const applicationId = await step('create a fresh application while the bank mock is still up', () => createApplicationId(token));
 
   await step('disable the bank mock', () => setMockActive('banks', false));
   try {
@@ -169,7 +160,7 @@ test('confirming triggers the async scoring chain through to WAITONGOPERATOR', a
 
   const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
   const applicationId = await step('create and confirm a fresh application', async () => {
-    const id = await createFreshApplicationId(token);
+    const id = await createApplicationId(token);
     const res = await confirmApplication(token, id, 2);
     assert.equal(res.status, 200);
     return id;

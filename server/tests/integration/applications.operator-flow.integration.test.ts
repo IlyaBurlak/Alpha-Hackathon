@@ -6,9 +6,10 @@ import {
   login,
   loginOperator,
   authHeaders,
-  createApplication,
-  confirmApplication,
+  createConfirmedApplicationId,
+  setMockActive,
   waitForScoreStatus,
+  waitForScoreStatusChange,
 } from './helpers';
 
 const CREDIT_TIME_WITHIN_RANGE = { units: 'MONTH' as const, value: 12 };
@@ -20,19 +21,6 @@ let sharedOperatorToken: string;
 before(async () => {
   sharedOperatorToken = await loginOperator(OPERATOR_LOGIN, OPERATOR_PASSWORD);
 });
-
-async function createConfirmedApplicationId(userToken: string, productId = 2): Promise<number> {
-  const createRes = await createApplication(userToken, { organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE });
-  assert.equal(createRes.status, 200);
-  const { id } = await createRes.json();
-
-  const confirmRes = await confirmApplication(userToken, id, productId);
-  assert.equal(confirmRes.status, 200);
-
-  await waitForScoreStatus(sharedOperatorToken, id, 'WAITONGOPERATOR');
-
-  return id;
-}
 
 async function takeApplication(operatorToken: string, applicationId: number): Promise<void> {
   const res = await fetch(`${SERVER_BASE_URL}/api/applications/${applicationId}/take`, {
@@ -65,7 +53,7 @@ async function signApplication(userToken: string, applicationId: number): Promis
 }
 
 async function prepareForOperatorSolution(userToken: string, operatorToken: string): Promise<number> {
-  const applicationId = await createConfirmedApplicationId(userToken);
+  const applicationId = await createConfirmedApplicationId(userToken, operatorToken);
   await takeApplication(operatorToken, applicationId);
   return applicationId;
 }
@@ -76,7 +64,7 @@ test('an operator can take an unassigned application', async () => {
   await description('After taking it, the application shows up in GET /all with this operator attached.');
 
   const user = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create a fresh application', () => createConfirmedApplicationId(user));
+  const applicationId = await step('create a fresh application', () => createConfirmedApplicationId(user, sharedOperatorToken));
 
   const operator = await step('log in as operator alfaOperator1', () => loginOperator(OPERATOR_LOGIN, OPERATOR_PASSWORD));
   await step('POST /:id/take', () => takeApplication(operator, applicationId));
@@ -320,7 +308,7 @@ test('special product: responding when not in SPECIALPRODUCTOFFERED is rejected'
   await description('A freshly confirmed application is SUBMITTED, not SPECIALPRODUCTOFFERED.');
 
   const user = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user));
+  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user, sharedOperatorToken));
 
   const res = await step('PUT /:id/special?status=SPECIALPRODUCTACCEPTED', () => acceptSpecialProduct(user, applicationId, 'SPECIALPRODUCTACCEPTED'));
 
@@ -410,7 +398,7 @@ test('sign: a SUBMITTED application cannot be signed yet', async () => {
   await description('A freshly confirmed application is SUBMITTED — no operator decision has been made yet.');
 
   const user = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user));
+  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user, sharedOperatorToken));
 
   const res = await step('PUT /:id/sign', () => signApplication(user, applicationId));
 
@@ -453,17 +441,28 @@ test('restart scoring: a SUBMITTED application can be restarted by an operator',
   await description('A freshly confirmed application is SUBMITTED, which is the one status restartScoring accepts.');
 
   const user = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
-  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user));
+  const applicationId = await step('create and confirm a fresh application', () => createConfirmedApplicationId(user, sharedOperatorToken));
 
-  const res = await step('POST /:id/restart', () =>
-    fetch(`${SERVER_BASE_URL}/api/applications/${applicationId}/restart`, { method: 'POST', headers: authHeaders(sharedOperatorToken) }),
+  await step('disable the register mock so the restart is observable mid-flight', () => setMockActive('register', false));
+  try {
+    const res = await step('POST /:id/restart', () =>
+      fetch(`${SERVER_BASE_URL}/api/applications/${applicationId}/restart`, { method: 'POST', headers: authHeaders(sharedOperatorToken) }),
+    );
+
+    await step('response is 200', () => {
+      assert.equal(res.status, 200);
+    });
+
+    await step('scoring leaves WAITONGOPERATOR while the register mock is down, proving the chain actually restarted', () =>
+      waitForScoreStatusChange(sharedOperatorToken, applicationId, 'WAITONGOPERATOR', { timeoutMs: 3000, intervalMs: 100 }),
+    );
+  } finally {
+    await step('re-enable the register mock', () => setMockActive('register', true));
+  }
+
+  await step('scoring settles again after the restart', () =>
+    waitForScoreStatus(sharedOperatorToken, applicationId, 'WAITONGOPERATOR', { timeoutMs: 20000 }),
   );
-
-  await step('response is 200', () => {
-    assert.equal(res.status, 200);
-  });
-
-  await step('scoring settles again after the restart', () => waitForScoreStatus(sharedOperatorToken, applicationId, 'WAITONGOPERATOR'));
 });
 
 test('restart scoring with a regular user\'s token is forbidden', async () => {

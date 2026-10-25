@@ -6,27 +6,14 @@ import {
   login,
   loginOperator,
   authHeaders,
-  createApplication,
-  confirmApplication,
+  createConfirmedApplicationId,
   setMockActive,
   waitForScoreStatus,
   getApplicationScore,
 } from './helpers';
 
-const CREDIT_TIME_WITHIN_RANGE = { units: 'MONTH' as const, value: 12 };
 const OPERATOR_LOGIN = 'alfaOperator1';
 const OPERATOR_PASSWORD = 'alfaOperator1!';
-
-async function createAndConfirmApplicationId(userToken: string): Promise<number> {
-  const createRes = await createApplication(userToken, { organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE });
-  assert.equal(createRes.status, 200);
-  const { id } = await createRes.json();
-
-  const confirmRes = await confirmApplication(userToken, id, 2);
-  assert.equal(confirmRes.status, 200);
-
-  return id;
-}
 
 test('scoring still completes when the credit bureau mock is down, with no credit history recorded', async () => {
   await suite('Applications');
@@ -41,9 +28,9 @@ test('scoring still completes when the credit bureau mock is down, with no credi
 
   await step('disable the credit bureau mock', () => setMockActive('credit-bureaus', false));
   try {
-    const applicationId = await step('create and confirm a fresh application', () => createAndConfirmApplicationId(user));
-
-    await step('scoring reaches WAITONGOPERATOR despite the outage', () => waitForScoreStatus(operator, applicationId, 'WAITONGOPERATOR'));
+    const applicationId = await step('create and confirm a fresh application, waiting for scoring to settle', () =>
+      createConfirmedApplicationId(user, operator),
+    );
 
     await step('no credit history was recorded', async () => {
       const body = await getApplicationScore(operator, applicationId);
@@ -68,9 +55,9 @@ test('scoring still completes when the unified register mock is down, with no re
 
   await step('disable the register mock', () => setMockActive('register', false));
   try {
-    const applicationId = await step('create and confirm a fresh application', () => createAndConfirmApplicationId(user));
-
-    await step('scoring reaches WAITONGOPERATOR despite the outage', () => waitForScoreStatus(operator, applicationId, 'WAITONGOPERATOR'));
+    const applicationId = await step('create and confirm a fresh application, waiting for scoring to settle', () =>
+      createConfirmedApplicationId(user, operator),
+    );
 
     await step('no register info was recorded', async () => {
       const body = await getApplicationScore(operator, applicationId);
@@ -95,10 +82,9 @@ test('scoring still completes when every external mock is down at once', async (
   const user = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
   const operator = await step('log in as operator alfaOperator1', () => loginOperator(OPERATOR_LOGIN, OPERATOR_PASSWORD));
 
-  const applicationId = await step('create and confirm a fresh application while mocks are up', () =>
-    createAndConfirmApplicationId(user),
+  const applicationId = await step('create and confirm a fresh application while mocks are up, waiting for scoring to settle', () =>
+    createConfirmedApplicationId(user, operator),
   );
-  await step('let the first scoring chain settle', () => waitForScoreStatus(operator, applicationId, 'WAITONGOPERATOR'));
 
   await step('disable every external mock', async () => {
     await setMockActive('banks', false);
@@ -106,16 +92,17 @@ test('scoring still completes when every external mock is down at once', async (
     await setMockActive('register', false);
   });
   try {
-    const freshApplicationId = await step('restart scoring on that application as an operator', async () => {
+    await step('restart scoring on that application as an operator', async () => {
       const res = await fetch(`${SERVER_BASE_URL}/api/applications/${applicationId}/restart`, {
         method: 'POST',
         headers: authHeaders(operator),
       });
       assert.equal(res.status, 200);
-      return applicationId;
     });
 
-    await step('scoring still reaches WAITONGOPERATOR', () => waitForScoreStatus(operator, freshApplicationId, 'WAITONGOPERATOR'));
+    await step('scoring still reaches WAITONGOPERATOR, despite each failed gateway call retrying for several seconds', () =>
+      waitForScoreStatus(operator, applicationId, 'WAITONGOPERATOR', { timeoutMs: 20000 }),
+    );
   } finally {
     await step('re-enable every external mock', async () => {
       await setMockActive('banks', true);
