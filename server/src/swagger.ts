@@ -12,7 +12,6 @@ const options: swaggerJsdoc.Options = {
     tags: [
       { name: 'Users', description: 'Авторизация и данные текущего пользователя' },
       { name: 'Applications', description: 'Кредитные заявки пользователя' },
-      { name: 'Support', description: 'Сервис поддержки' },
     ],
     components: {
       securitySchemes: {
@@ -28,9 +27,17 @@ const options: swaggerJsdoc.Options = {
           properties: {
             id: { type: 'integer', example: 2 },
             inn: { type: 'string', example: '5001234569' },
+            ogrn: { type: 'string', example: '1234567890124' },
             fullName: { type: 'string', example: 'ООО "Кот не знает"' },
+            head: { type: 'string', nullable: true },
+            account: { type: 'string', example: '4015****23' },
+            address: { type: 'string', nullable: true },
             type: { type: 'string', example: 'OO' },
           },
+        },
+        Error: {
+          type: 'object',
+          properties: { error: { type: 'string', example: 'Доступ запрещен' } },
         },
         User: {
           type: 'object',
@@ -72,6 +79,42 @@ const options: swaggerJsdoc.Options = {
             createdAt: { type: 'string', format: 'date-time' },
             creditTime: { $ref: '#/components/schemas/CreditTime' },
             loanIssuanceDate: { type: 'string', format: 'date-time' },
+            productId: { type: 'integer', example: 1 },
+            product: { type: 'object', additionalProperties: true },
+            organization: { $ref: '#/components/schemas/Organization' },
+            operator: { $ref: '#/components/schemas/User' },
+            applicationScore: { $ref: '#/components/schemas/ApplicationScore' },
+          },
+        },
+        ApplicationScore: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            applicationId: { type: 'integer', example: 1 },
+            score: { type: 'number', example: 0.0546 },
+            status: { type: 'string', example: 'WAITONGOPERATOR' },
+            scoringDate: { type: 'string', format: 'date-time' },
+            mlScore: {
+              type: 'object',
+              properties: {
+                pd: { type: 'number', example: 0.0546 },
+                score: { type: 'number', example: 64 },
+                risk_class: { type: 'string', example: 'C' },
+                rate_premium_pp: { type: 'number', example: 1 },
+                model_version: { type: 'string', example: 'logreg-0.1' },
+                updated_at: { type: 'string', format: 'date-time' },
+                factors: { type: 'array', items: { type: 'object', additionalProperties: true } },
+              },
+            },
+          },
+        },
+        OperatorSolution: {
+          type: 'object',
+          required: ['status'],
+          properties: {
+            status: { type: 'string', enum: ['APPROVED', 'REJECTED', 'SPECIALPRODUCTOFFERED'] },
+            comment: { type: 'string' },
+            product: { type: 'object', additionalProperties: true },
           },
         },
       },

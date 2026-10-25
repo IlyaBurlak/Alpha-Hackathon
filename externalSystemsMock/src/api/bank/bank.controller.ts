@@ -32,6 +32,28 @@ export class BankController extends BaseController implements IBankController {
     ]);
     }
 
+    /**
+     * @swagger
+     * /api/banks/products:
+     *   get:
+     *     tags: [Bank]
+     *     summary: Получить банковские продукты
+     *     responses:
+     *       200:
+     *         description: Список кредитных продуктов
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Product'
+     *       503:
+     *         description: Банковский сервис отключен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
     async getProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            const result = [
@@ -123,6 +145,26 @@ export class BankController extends BaseController implements IBankController {
         } 
     }
 
+    /**
+     * @swagger
+     * /api/banks/setActive:
+     *   post:
+     *     tags: [Bank]
+     *     summary: Включить или отключить банковский сервис
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/ActiveState'
+     *     responses:
+     *       200:
+     *         description: Состояние обновлено
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Message'
+     */
     async setActive(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            (global as any).bankisActive = req.body.isActive;

@@ -99,19 +99,18 @@ export class UserController extends BaseController implements IUserController {
 
       const user = await this.userService.login(login, password);
       const token = jwt.sign(
-          { login: user.login, id: user.id }, 
+          { login: user.login, id: user.id },
           process.env.JWT_SECRET!,
           { expiresIn: '1d' }
       );
-      
-     res.json({ token });
-      
+
+      res.json({ token });
     } catch (err) {
       next(err);
     }
   }
 
-  /**
+      /**
    * @swagger
    * /api/users/info:
    *   get:
@@ -144,6 +143,26 @@ export class UserController extends BaseController implements IUserController {
       }
   }
 
+  /**
+   * @swagger
+   * /api/users/admin-info:
+   *   get:
+   *     tags: [Users]
+   *     summary: Получить данные текущего оператора
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Данные оператора
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
+   *       401:
+   *         description: Требуется действительный JWT-токен
+   *       403:
+   *         description: Доступ только для оператора
+   */
   async getOperatorInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
       try {
         const isAdmin = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
@@ -165,6 +184,34 @@ export class UserController extends BaseController implements IUserController {
   }
 
 
+  /**
+   * @swagger
+   * /api/users/admin-login:
+   *   post:
+   *     tags: [Users]
+   *     summary: Авторизация оператора
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [login, password]
+   *             properties:
+   *               login: { type: string, example: alfaSergey }
+   *               password: { type: string, format: password, example: "1234" }
+   *     responses:
+   *       200:
+   *         description: Оператор успешно авторизован
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 token: { type: string, example: '******' }
+   *       401:
+   *         description: Неверный логин или пароль
+   */
   async loginOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
       try {
       const { login, password } = req.body;

@@ -38,6 +38,33 @@ export class RegisterController extends BaseController implements IRegisterContr
     ]);
     }
 
+    /**
+     * @swagger
+     * /api/register/legal:
+     *   get:
+     *     tags: [Unified register]
+     *     summary: Получить данные юридического лица по ИНН
+     *     parameters:
+     *       - in: query
+     *         name: inn
+     *         required: true
+     *         schema:
+     *           type: string
+     *         example: '5001234569'
+     *     responses:
+     *       200:
+     *         description: Данные юридического лица
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/RegisterInfo'
+     *       503:
+     *         description: Реестр отключен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
     async legal(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            const data =  [
@@ -146,6 +173,33 @@ export class RegisterController extends BaseController implements IRegisterContr
     }
 
 
+     /**
+      * @swagger
+      * /api/register/invidual:
+      *   get:
+      *     tags: [Unified register]
+      *     summary: Получить данные индивидуального предпринимателя по ИНН
+      *     parameters:
+      *       - in: query
+      *         name: inn
+      *         required: true
+      *         schema:
+      *           type: string
+      *         example: '2301234560'
+      *     responses:
+      *       200:
+      *         description: Данные индивидуального предпринимателя
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/RegisterInfo'
+     *       503:
+     *         description: Реестр отключен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+      */
      async invidual(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
           const data =  [
@@ -205,6 +259,26 @@ export class RegisterController extends BaseController implements IRegisterContr
         } 
     }
 
+    /**
+     * @swagger
+     * /api/register/setActive:
+     *   post:
+     *     tags: [Unified register]
+     *     summary: Включить или отключить единый реестр
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/ActiveState'
+     *     responses:
+     *       200:
+     *         description: Состояние обновлено
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Message'
+     */
     async setActive(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            (global as any).registerisActive = req.body.isActive;

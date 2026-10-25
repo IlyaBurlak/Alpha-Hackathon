@@ -9,12 +9,13 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      client: ${{ steps.filter.outputs.client }}
       server: ${{ steps.filter.outputs.server }}
     steps:
       - uses: actions/checkout@v4
@@ -22,11 +23,15 @@ jobs:
         id: filter
         with:
           filters: |
+            client:
+              - 'client/**'
             server:
               - 'server/**'
               - 'docker-compose.test.yml'
 
-  client:
+  client-lint:
+    needs: [changes]
+    if: needs.changes.outputs.client == 'true' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,10 +45,44 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: npm ci
       - run: npm run lint
+
+  client-test:
+    needs: [changes]
+    if: needs.changes.outputs.client == 'true' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
       - run: npm test
+
+  client-build:
+    needs: [changes]
+    if: needs.changes.outputs.client == 'true' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
       - run: npm run build
 
   server:
+    needs: [changes]
+    if: needs.changes.outputs.server == 'true' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,6 +97,24 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+  server-unit:
+    needs: [changes]
+    if: needs.changes.outputs.server == 'true' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck:tests
+      - run: npm run test:unit
 
   external-systems:
     runs-on: ubuntu-latest
@@ -92,7 +149,7 @@ jobs:
 
   server-integration:
     needs: [changes, server]
-    if: needs.changes.outputs.server == 'true'
+    if: needs.changes.outputs.server == 'true' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -145,11 +202,16 @@ jobs:
         run: docker compose -f docker-compose.test.yml down -v --remove-orphans
 
   smoke:
-    needs: [client, server, external-systems, ml, server-integration]
+    needs: [changes, client-lint, client-test, client-build, server, server-unit, external-systems, ml, server-integration]
     if: |
       always() &&
-      needs.client.result == 'success' &&
-      needs.server.result == 'success' &&
+      needs.changes.result == 'success' &&
+      (needs.changes.outputs.client == 'true' || needs.changes.outputs.server == 'true' || startsWith(github.ref, 'refs/tags/v')) &&
+      (needs.client-lint.result == 'success' || needs.client-lint.result == 'skipped') &&
+      (needs.client-test.result == 'success' || needs.client-test.result == 'skipped') &&
+      (needs.client-build.result == 'success' || needs.client-build.result == 'skipped') &&
+      (needs.server.result == 'success' || needs.server.result == 'skipped') &&
+      (needs.server-unit.result == 'success' || needs.server-unit.result == 'skipped') &&
       needs.external-systems.result == 'success' &&
       needs.ml.result == 'success' &&
       (needs.server-integration.result == 'success' || needs.server-integration.result == 'skipped')
@@ -176,6 +238,7 @@ jobs:
       - run: curl --fail http://localhost:8080/
       - run: curl --fail http://localhost:8080/api/health
       - run: curl --fail http://localhost:8080/external-api/banks/products
+      - run: curl --fail --location http://localhost:8080/swagger/
       - name: Logs on failure
         if: failure()
         run: docker logs demo

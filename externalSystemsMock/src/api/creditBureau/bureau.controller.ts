@@ -31,6 +31,33 @@ export class CreditBureauController extends BaseController implements ICreditBur
     ]);
     }
 
+    /**
+     * @swagger
+     * /api/credit-bureaus/history:
+     *   get:
+     *     tags: [Credit bureau]
+     *     summary: Получить кредитную историю по ИНН
+     *     parameters:
+     *       - in: query
+     *         name: inn
+     *         required: true
+     *         schema:
+     *           type: string
+     *         example: '5001234569'
+     *     responses:
+     *       200:
+     *         description: Кредитная история
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/CreditHistory'
+     *       503:
+     *         description: Сервис отключен
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
     async getCreditHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            const data =  [
@@ -134,6 +161,26 @@ export class CreditBureauController extends BaseController implements ICreditBur
         } 
     }
 
+    /**
+     * @swagger
+     * /api/credit-bureaus/setActive:
+     *   post:
+     *     tags: [Credit bureau]
+     *     summary: Включить или отключить бюро кредитных историй
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/ActiveState'
+     *     responses:
+     *       200:
+     *         description: Состояние обновлено
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Message'
+     */
     async setActive(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
            (global as any).bureauisActive = req.body.isActive;
