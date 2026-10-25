@@ -261,6 +261,25 @@ export class ApplicationController extends BaseController implements IApplicatio
         }
       }
 
+      /**
+       * @swagger
+       * /api/applications/{id}/restart:
+       *   post:
+       *     tags: [Applications]
+       *     summary: Перезапустить скоринг заявки
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *     responses:
+       *       200:
+       *         description: Скоринг запущен
+       *       403:
+       *         description: Доступ только для оператора
+       */
       async restartScoring(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
@@ -281,6 +300,29 @@ export class ApplicationController extends BaseController implements IApplicatio
         
       }
 
+      /**
+       * @swagger
+       * /api/applications/{id}/score:
+       *   get:
+       *     tags: [Applications]
+       *     summary: Получить заявку с результатом скоринга
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *     responses:
+       *       200:
+       *         description: Заявка и результат скоринга
+       *         content:
+       *           application/json:
+       *             schema:
+       *               $ref: '#/components/schemas/Application'
+       *       403:
+       *         description: Доступ только для оператора
+       */
       async getApplicationWithScore(req: Request, res: Response, next: NextFunction): Promise<void> {
           try {
               const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
@@ -300,6 +342,31 @@ export class ApplicationController extends BaseController implements IApplicatio
           }
       }
 
+      /**
+       * @swagger
+       * /api/applications/{id}/solution:
+       *   post:
+       *     tags: [Applications]
+       *     summary: Сохранить решение оператора
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *     requestBody:
+       *       required: true
+       *       content:
+       *         application/json:
+       *           schema:
+       *             $ref: '#/components/schemas/OperatorSolution'
+       *     responses:
+       *       200:
+       *         description: Решение сохранено
+       *       403:
+       *         description: Доступ только для оператора
+       */
       async saveOperatorSolution(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
               const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
@@ -327,6 +394,26 @@ export class ApplicationController extends BaseController implements IApplicatio
       }
 
 
+      /**
+       * @swagger
+       * /api/applications/all:
+       *   get:
+       *     tags: [Applications]
+       *     summary: Получить все заявки для оператора
+       *     security:
+       *       - bearerAuth: []
+       *     responses:
+       *       200:
+       *         description: Список заявок
+       *         content:
+       *           application/json:
+       *             schema:
+       *               type: array
+       *               items:
+       *                 $ref: '#/components/schemas/Application'
+       *       403:
+       *         description: Доступ только для оператора
+       */
       async getAllApplicationsForOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
               const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;  
@@ -342,6 +429,25 @@ export class ApplicationController extends BaseController implements IApplicatio
       }
 
       
+      /**
+       * @swagger
+       * /api/applications/{id}/take:
+       *   post:
+       *     tags: [Applications]
+       *     summary: Взять заявку в работу
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *     responses:
+       *       200:
+       *         description: Заявка назначена оператору
+       *       403:
+       *         description: Доступ только для оператора
+       */
       async takeApplicationForOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
               const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;  
@@ -367,6 +473,29 @@ export class ApplicationController extends BaseController implements IApplicatio
       }
 
 
+      /**
+       * @swagger
+       * /api/applications/{id}/special:
+       *   put:
+       *     tags: [Applications]
+       *     summary: Принять или отклонить специальное предложение
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *       - in: query
+       *         name: status
+       *         required: true
+       *         schema:
+       *           type: string
+       *           enum: [SPECIALPRODUCTACCEPTED, SPECIALPRODUCTREJECTED]
+       *     responses:
+       *       200:
+       *         description: Решение по специальному предложению сохранено
+       */
       async confirmSpecialProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const applicationId = Number(req.params.id); 
@@ -387,6 +516,23 @@ export class ApplicationController extends BaseController implements IApplicatio
         }
       }
 
+      /**
+       * @swagger
+       * /api/applications/{id}/sign:
+       *   put:
+       *     tags: [Applications]
+       *     summary: Подписать заявку
+       *     security:
+       *       - bearerAuth: []
+       *     parameters:
+       *       - in: path
+       *         name: id
+       *         required: true
+       *         schema: { type: integer }
+       *     responses:
+       *       200:
+       *         description: Заявка подписана
+       */
       async sign(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const applicationId = Number(req.params.id); 

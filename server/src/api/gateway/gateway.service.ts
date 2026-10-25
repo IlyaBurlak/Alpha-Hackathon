@@ -6,8 +6,22 @@ import 'dotenv/config';
 import axiosRetry from 'axios-retry';
 import { OrganizationType } from '../organizations/entity/organization.entity';
 import { ApplicationEntity } from '../applications/entity/application.entity';
+import { injectable } from 'inversify';
 
+@injectable()
 export class GatewayService implements IGatewayService{
+
+    сonstructor() {
+           axiosRetry(axios, {
+                retries: 3,                          
+                retryDelay: (retryCount) => retryCount * 1000, 
+                retryCondition: (error) => {
+                    return axiosRetry.isNetworkOrIdempotentRequestError(error) 
+                        || error.code === 'ECONNABORTED'
+                        || (error.response?.status ?? 0) >= 500;
+                },
+            }); 
+    }
 
     async getBanksProducts(): Promise<any> {
         try {
@@ -70,15 +84,7 @@ export class GatewayService implements IGatewayService{
         try {
             console.log('Запрос на получение информации из единого реестра на ' + `${process.env.REGISTER_API}?inn=${inn}`); 
 
-            axiosRetry(axios, {
-                retries: 3,                          
-                retryDelay: (retryCount) => retryCount * 1000, 
-                retryCondition: (error) => {
-                    return axiosRetry.isNetworkOrIdempotentRequestError(error) 
-                        || error.code === 'ECONNABORTED'
-                        || (error.response?.status ?? 0) >= 500;
-                },
-            }); 
+         
             let endpoint = '';
             if (type === OrganizationType.IndividualEntrepreneur) {
                 endpoint = '/invidual';
