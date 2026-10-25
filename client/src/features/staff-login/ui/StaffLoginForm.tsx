@@ -9,7 +9,7 @@ import { Button, Checkbox, PasswordField, TextField } from '@/shared/ui'
 import { StaffLoginFormStore } from '../model/staff-login-form-store'
 import styles from './StaffLoginForm.module.css'
 
-const SESSION_HINT = 'Сессия 8 часов'
+const SESSION_HINT = 'Сессия 24 часа'
 
 interface StaffLoginFormProps {
   /** Called after the employee is signed in. */
