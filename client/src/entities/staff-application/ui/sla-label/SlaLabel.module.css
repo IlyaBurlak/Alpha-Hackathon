@@ -1,0 +1,42 @@
+.sla {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--tone);
+}
+
+.positive {
+  --tone: var(--color-positive);
+}
+
+.attention {
+  --tone: var(--color-attention);
+}
+
+.negative {
+  --tone: var(--color-negative);
+}
+
+.neutral {
+  --tone: var(--color-text-secondary);
+}
+
+.bar {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-fill);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--tone);
+}
+
+.empty {
+  color: var(--color-text-secondary);
+}

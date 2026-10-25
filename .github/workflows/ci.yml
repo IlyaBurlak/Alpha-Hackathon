@@ -12,17 +12,66 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  node:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - 'docker-compose.test.yml'
+
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 26
           cache: npm
+          cache-dependency-path: client/package-lock.json
       - run: npm ci
-      - run: npm run lint -w client
-      - run: npm run typecheck -w server
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  external-systems:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: externalSystemsMock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+      # No lock file in this service yet, so `npm install` instead of `npm ci`.
+      - run: npm install
+      - run: npm run typecheck
       - run: npm run build
 
   ml:
@@ -41,22 +90,95 @@ jobs:
       - run: ruff check .
       - run: pytest
 
+  server-integration:
+    needs: [changes, server]
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f docker-compose.test.yml build
+      - run: docker compose -f docker-compose.test.yml run --rm integration-tests
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.test.yml logs
+      - name: Get previous Allure history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Carry history into this run's results
+        if: always()
+        run: |
+          sudo mkdir -p allure-results/history
+          if [ -d gh-pages/history ]; then
+            sudo cp -r gh-pages/history/. allure-results/history/
+          fi
+          sudo chown -R "$(id -u):$(id -g)" allure-results
+      - name: Generate Allure report
+        if: always()
+        run: npx allure generate allure-results --clean -o allure-report
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+      # Only the published trend page for a stable branch should move — every
+      # open PR's report stays a downloadable artifact only, so concurrent PRs
+      # don't trample each other's history on gh-pages.
+      - name: Publish report to GitHub Pages
+        if: always() && github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-report
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v --remove-orphans
+
   smoke:
-    needs: [node, ml]
+    needs: [client, server, external-systems, ml, server-integration]
+    if: |
+      always() &&
+      needs.client.result == 'success' &&
+      needs.server.result == 'success' &&
+      needs.external-systems.result == 'success' &&
+      needs.ml.result == 'success' &&
+      (needs.server-integration.result == 'success' || needs.server-integration.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cp .env.example .env
-      - run: docker compose build
-      - run: docker compose up -d --wait --wait-timeout 120
-      - run: curl --fail --retry 5 --retry-delay 2 http://localhost:8080/
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: aio/Dockerfile
+          load: true
+          tags: alpha-hackathon:ci
+          cache-from: type=gha,scope=demo
+          cache-to: type=gha,scope=demo,mode=max
+      - run: docker run -d --name demo -e JWT_SECRET=ci-secret -p 8080:8080 alpha-hackathon:ci
+      - name: Wait until healthy
+        run: |
+          for i in $(seq 1 30); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' demo)" = healthy ] && exit 0
+            sleep 2
+          done
+          exit 1
+      - run: curl --fail http://localhost:8080/
       - run: curl --fail http://localhost:8080/api/health
+      - run: curl --fail http://localhost:8080/external-api/banks/products
       - name: Logs on failure
         if: failure()
-        run: docker compose logs
-      - name: Shutdown
-        if: always()
-        run: docker compose down -v
+        run: docker logs demo
 
   publish:
     needs: [smoke]
@@ -65,15 +187,13 @@ jobs:
     permissions:
       contents: read
       packages: write
-    strategy:
-      matrix:
-        service: [client, server, ml]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Tag must be on main
         run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -83,7 +203,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/alpha-hackathon-${{ matrix.service }}
+          images: ghcr.io/${{ github.repository_owner }}/alpha-hackathon
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -91,9 +211,10 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.service }}/Dockerfile
+          file: aio/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.service }}
-          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+          cache-from: type=gha,scope=demo
+          cache-to: type=gha,scope=demo,mode=max

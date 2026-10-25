@@ -1,30 +1,7 @@
 services:
-  db:
-    image: postgres:17.2-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
   ml:
     build: ./ml
-    ports:
-      - "8000:8000"
     restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
 
   server:
     build:
@@ -33,14 +10,27 @@ services:
     restart: unless-stopped
     environment:
       PORT: 3001
-      DATABASE_URL: ${DATABASE_URL}
       ML_SERVICE_URL: ${ML_SERVICE_URL}
       JWT_SECRET: ${JWT_SECRET}
+      BANK_API: http://external-systems:5006/api/banks
+      CREDIT_BUREAU_API: http://external-systems:5006/api/credit-bureaus
+      REGISTER_API: http://external-systems:5006/api/register
+      ML_SCORING_API: http://ml:8000/
+    volumes:
+      - server-data:/app/data
     depends_on:
-      db:
-        condition: service_healthy
       ml:
         condition: service_healthy
+      external-systems:
+        condition: service_healthy
+
+  external-systems:
+    build:
+      context: .
+      dockerfile: externalSystemsMock/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 5006
 
   client:
     build:
@@ -52,6 +42,8 @@ services:
     depends_on:
       server:
         condition: service_healthy
+      external-systems:
+        condition: service_healthy
 
 volumes:
-  db-data:
+  server-data:
