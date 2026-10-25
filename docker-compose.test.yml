@@ -27,6 +27,9 @@ services:
       JWT_SECRET: ci-integration-test-secret
       ML_SERVICE_URL: http://ml:8000
       BANK_API: http://external-systems:5006/api/banks
+      CREDIT_BUREAU_API: http://external-systems:5006/api/credit-bureaus
+      REGISTER_API: http://external-systems:5006/api/register
+      ML_SCORING_API: http://ml:8000/
     depends_on:
       ml:
         condition: service_healthy

@@ -6,6 +6,10 @@ import { Transaction } from 'sequelize';
 import { AnalysisStatus, MlScoreEntity } from './entity/application.score.entity';
 import { ApplicationScore } from '../../database/models/ApplicationScoring';
 import { sequelize } from '../../database/dbconfig';
+import { OperatorSolution } from './entity/operator.solution';
+import { Operator } from '../../database/models/Operator';
+import { Organization } from '../../database/models/Organization';
+import { UserEntity } from '../user/entity/user.entity';
 
 
 
@@ -61,6 +65,13 @@ export class ApplicationRepository implements IApplicationRepository {
         );
     }
 
+    async updateApplicationStatus(applicationId: number, status: ApplicationStatus): Promise<void> {
+        await Application.update(
+            { status },
+            { where: { id: applicationId } }
+        );
+    }
+
     async updateApplicationScoringInfo(applicationId: number, info: any): Promise<void> {
 
         return sequelize.transaction(async (transaction) => {
@@ -86,7 +97,7 @@ export class ApplicationRepository implements IApplicationRepository {
                 throw new Error(`ApplicationScore with id ${applicationId} not found`);
             }            
             await ApplicationScore.update(
-                { info: { ...prev.info, mlScore: { factors: info.factors, model_version: info.model_version} }, score: info.pd },
+                { info: { ...prev.info, mlScore: info }, score: info.pd, scoringDate: new Date() },
                 { where: { applicationId: applicationId  }, transaction }
             );
         });
@@ -95,7 +106,11 @@ export class ApplicationRepository implements IApplicationRepository {
     async getApplicationWithScore (id: number, transaction?: Transaction): Promise<ApplicationEntity> {
        const model = await Application.findOne({
             where: { id },
-            include: [{ model: ApplicationScore, as: 'applicationScore' }],
+            include: [
+                { model: ApplicationScore, as: 'applicationScore' },
+                { model: Operator, as: 'operator' },
+                { model: Organization, as: 'organization' },
+            ],
             transaction,
             })
         if (!model) {
@@ -117,6 +132,69 @@ export class ApplicationRepository implements IApplicationRepository {
                 info: {}
             }, { transaction });
         });
+    }
+    
+    async saveOperatorSolution(applicationId: number, solution: OperatorSolution, operatorId: number): Promise<void> {
+        return sequelize.transaction(async (transaction) => {
+            const prev = await ApplicationScore.findOne({ where: { applicationId: applicationId }, transaction });
+            const application = await Application.findOne({ where: { id: applicationId }, transaction });
+            if (application?.operatorId !== operatorId) {
+                throw new Error(`Эта заявка не назначена для данного оператора.`);
+            }
+            if (!prev) {
+                throw new Error(`Заявка с id ${applicationId} не найдена`);
+            } 
+            if (prev.status !== AnalysisStatus.WAITONGOPERATOR){
+                throw new Error(`По этой заявке не нужно решение оператора.`);
+            }
+            await ApplicationScore.update(
+                { status: AnalysisStatus.COMPLETED, },
+                { where: { applicationId: applicationId  }, transaction }  
+            );
+            let productCond = {};
+            if (solution.status === ApplicationStatus.SPECIALPRODUCTOFFERED && solution.product) {
+                productCond = {productConditions: {
+                   ...solution.product
+                }}
+            }
+            await Application.update(
+                { solutionComment: solution.comment, status: solution.status, ...productCond },
+                { where: { id: applicationId  }, transaction }  
+            );
+        });
+    }
+
+    async getAllApplicationsForOperator(): Promise<ApplicationEntity[]> {
+        const models = await Application.findAll({
+            where: {  },
+            include: [
+                { model: ApplicationScore, as: 'applicationScore' },
+                { model: Operator, as: 'operator' },
+                { model: Organization, as: 'organization' },
+            ],
+
+        });
+        
+        return models ? models.map((model: any) => { 
+            const result = new ApplicationEntity(model);
+          
+       
+            if (result.applicationScore) {
+                delete result.applicationScore.history;
+                delete result.applicationScore.registerInfo;
+            }
+            
+            return result;
+        }) : [];
+    }
+
+    async takeApplicationForOperator(applicationId: number, operatorId: number): Promise<void> {
+      
+        await Application.update(
+            { operatorId },
+            { where: { id: applicationId } }
+        );
+     
     }
     
 }

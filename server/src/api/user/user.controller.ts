@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { plainToInstance } from 'class-transformer';
 import { UserDto } from './dto/user.dto';
+import { OperatorDto } from './dto/operator.dto';
 
 @injectable()
 export class UserController extends BaseController implements IUserController {
@@ -35,6 +36,12 @@ export class UserController extends BaseController implements IUserController {
         path: '/info',
         method: 'get',
         func: this.getUserInfo,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
+        path: '/admin-info',
+        method: 'get',
+        func: this.getOperatorInfo,
         middleware: [passport.authenticate('jwt', { session: false })]
       }
      
@@ -136,6 +143,27 @@ export class UserController extends BaseController implements IUserController {
           next(err);
       }
   }
+
+  async getOperatorInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+      try {
+        const isAdmin = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
+        if (!isAdmin) {
+            res.status(403).json({ error: 'Forbidden' });
+            return;
+        }
+          const login = (req.user as { login?: string } | undefined)?.login;
+          if (!login) {
+              res.status(401).json({ error: 'Unauthorized' });
+              return;
+          }
+          const user = await this.userService.getOperatorByLogin(login);
+          res.json(plainToInstance(OperatorDto, user));
+         
+      } catch (err) {
+          next(err);
+      }
+  }
+
 
   async loginOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
       try {

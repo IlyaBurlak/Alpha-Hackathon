@@ -8,8 +8,16 @@ import {
   APPLICATION_WITH_OFFERS_DTO,
   APPLICATION_WITHOUT_OFFERS_DTO,
   PRODUCT_OFFER_DTO,
+  SCORED_APPLICATION_DTO,
   SELECTED_APPLICATION_DTO,
+  SUBMITTED_APPLICATION_WITHOUT_PRODUCT_DTO,
 } from './application-dtos.fixture'
+
+describe('mapApplication: statuses', () => {
+  it('knows the signed status of the backend', () => {
+    expect(mapApplication({ ...SELECTED_APPLICATION_DTO, status: 'SIGNED' }).status).toBe('SIGNED')
+  })
+})
 
 describe('mapApplication: base fields', () => {
   it('maps ids, sum, status, credit time and dates', () => {
@@ -24,6 +32,8 @@ describe('mapApplication: base fields', () => {
     })
     expect(application.createdAt).toEqual(new Date('2026-10-23T18:22:52.183Z'))
     expect(application.loanIssuanceDate).toEqual(new Date('2026-10-23T18:22:52.183Z'))
+    expect(application.goal).toBeNull()
+    expect(application).toMatchObject({ submittedAt: null, signedAt: null, issuedAt: null })
   })
 
   it.each(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'])('accepts status %s', (status) => {
@@ -51,6 +61,9 @@ describe('mapApplication: product choice', () => {
       collateral: 120_000,
       interestRate: 10,
       payments: 'ежемесячно, равными долями, с первым платежом через 6 месяцев',
+      description: null,
+      decisionTime: null,
+      scoring: null,
     })
   })
 
@@ -62,7 +75,7 @@ describe('mapApplication: product choice', () => {
     expect(mapApplication(APPLICATION_WITHOUT_OFFERS_DTO).productChoice).toEqual({ kind: 'not-selected' })
   })
 
-  it('maps the selected product when `productId` is set', () => {
+  it('maps the selected product from `product`', () => {
     expect(mapApplication(SELECTED_APPLICATION_DTO).productChoice).toEqual({
       kind: 'selected',
       product: {
@@ -73,9 +86,38 @@ describe('mapApplication: product choice', () => {
     })
   })
 
+  it('does not offer products again once the application was sent', () => {
+    expect(mapApplication(SUBMITTED_APPLICATION_WITHOUT_PRODUCT_DTO).productChoice).toEqual({ kind: 'not-selected' })
+  })
+
   it('prefers the selected product over offers', () => {
     const dto = { ...SELECTED_APPLICATION_DTO, products: [PRODUCT_OFFER_DTO] }
     expect(mapApplication(dto).productChoice.kind).toBe('selected')
+  })
+})
+
+describe('mapApplication: scoring and review stage', () => {
+  it('has none when the backend does not send them', () => {
+    expect(mapApplication(APPLICATION_WITHOUT_OFFERS_DTO)).toMatchObject({ scoring: null, reviewStage: null })
+  })
+
+  it('maps the application scoring, review stage and offer scoring', () => {
+    const application = mapApplication(SCORED_APPLICATION_DTO)
+
+    expect(application.reviewStage).toBe(1)
+    expect(application.scoring).toEqual({
+      score: 72,
+      factors: [
+        { title: 'Возраст бизнеса', description: '6 лет на рынке', points: 15, advice: null },
+        { title: 'Кредитная история', description: 'Есть просрочка до 30 дней', points: -10, advice: 'Закройте просрочку' },
+      ],
+    })
+  })
+
+  it('maps the scoring of an offer of a draft', () => {
+    const { productChoice } = mapApplication({ ...SCORED_APPLICATION_DTO, status: 'DRAFT' })
+
+    expect(productChoice.kind === 'offers' && productChoice.items[0].scoring?.score).toBe(72)
   })
 })
 
@@ -89,7 +131,9 @@ describe('mapApplication: invalid responses', () => {
     ['unknown credit time unit', { ...APPLICATION_WITHOUT_OFFERS_DTO, creditTime: { units: 'WEEK', value: 1 } }],
     ['numeric credit time unit', { ...APPLICATION_WITHOUT_OFFERS_DTO, creditTime: { units: 3, value: 1 } }],
     ['broken date', { ...APPLICATION_WITHOUT_OFFERS_DTO, createdAt: 'yesterday' }],
-    ['selected product without details', { ...SELECTED_APPLICATION_DTO, product: undefined }],
+    ['selected product without details', { ...SELECTED_APPLICATION_DTO, product: {} }],
+    ['scoring without factors', { ...APPLICATION_WITHOUT_OFFERS_DTO, scoring: { score: 50 } }],
+    ['unknown review stage', { ...APPLICATION_WITHOUT_OFFERS_DTO, reviewStage: 7 }],
     ['offer without id', { ...APPLICATION_WITH_OFFERS_DTO, products: [{ ...PRODUCT_OFFER_DTO, id: undefined }] }],
     ['offer with renamed rate field', { ...APPLICATION_WITH_OFFERS_DTO, products: [{ ...PRODUCT_OFFER_DTO, persentage: undefined }] }],
   ])('throws UnexpectedResponseError when %s', (_case, dto) => {
@@ -110,5 +154,44 @@ describe('mapApplications', () => {
 
   it('throws when the response is not an array', () => {
     expect(() => mapApplications({ error: 'oops' })).toThrow(UnexpectedResponseError)
+  })
+
+  it('leaves out an application it cannot read instead of failing the whole list', () => {
+    const unknownStatus = { ...SELECTED_APPLICATION_DTO, id: 90, status: 99 }
+    const damaged = { ...SELECTED_APPLICATION_DTO, id: 91, sum: 'abc' }
+
+    const applications = mapApplications([unknownStatus, SELECTED_APPLICATION_DTO, damaged])
+
+    expect(applications.map(({ id }) => id)).toEqual([SELECTED_APPLICATION_DTO.id])
+  })
+  describe('other conditions offered by an employee', () => {
+    const OFFER = {
+      name: 'Особое предложение',
+      persentage: 10,
+      sum: 500_000,
+      payments: 'ежемесячно',
+      creditTime: { units: 'MONTH', value: 6 },
+    }
+    const offerDto = (status: string) => ({ ...SELECTED_APPLICATION_DTO, status, product: OFFER, solutionComment: 'Меньше сумма' })
+
+    it('keeps the requested conditions while the offer waits for an answer', () => {
+      expect(mapApplication(offerDto('SPECIALPRODUCTOFFERED'))).toMatchObject({
+        status: 'SPECIALPRODUCTOFFERED',
+        sum: 1_000_000,
+        operatorComment: 'Меньше сумма',
+        specialOffer: { sum: 500_000, interestRate: 10, creditTime: { unit: 'MONTH', value: 6 } },
+      })
+    })
+
+    it('replaces the requested conditions with the accepted ones', () => {
+      expect(mapApplication(offerDto('SPECIALPRODUCTACCEPTED'))).toMatchObject({
+        sum: 500_000,
+        creditTime: { unit: 'MONTH', value: 6 },
+      })
+    })
+
+    it('rejects an offer without a sum', () => {
+      expect(() => mapApplication({ ...offerDto('SPECIALPRODUCTOFFERED'), product: { ...OFFER, sum: undefined } })).toThrow()
+    })
   })
 })

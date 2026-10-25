@@ -1,0 +1,42 @@
+.positive {
+  --tone: var(--color-positive);
+}
+
+.attention {
+  --tone: var(--color-attention);
+}
+
+.negative {
+  --tone: var(--color-negative);
+}
+
+.chanceHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.chanceHeader span {
+  color: var(--color-text-secondary);
+}
+
+.chanceHeader b {
+  color: var(--tone);
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.chanceBar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-line-strong);
+}
+
+.chanceBarOn {
+  background: var(--tone);
+}

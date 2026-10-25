@@ -50,6 +50,8 @@ COPY --from=external-build /repo/externalSystemsMock/node_modules external-syste
 COPY --from=external-build /repo/externalSystemsMock/package.json external-systems/package.json
 COPY --from=external-build /repo/externalSystemsMock/dist external-systems/dist
 COPY ml/app ml/app
+COPY ml/config ml/config
+COPY ml/model ml/model
 COPY --from=client-build /repo/client/dist /usr/share/nginx/html
 COPY aio/nginx.conf /etc/nginx/nginx.conf
 COPY aio/supervisord.conf /etc/supervisord.conf

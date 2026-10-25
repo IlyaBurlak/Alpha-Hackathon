@@ -36,14 +36,34 @@ describe('ApplicationDetailStore', () => {
     expect(store.state).toEqual({ status: 'error', message: 'Нет доступа к заявке' })
   })
 
-  it('replaces the application after an action returned a fresher copy', async () => {
-    vi.mocked(getApplication).mockResolvedValue(mapApplication(APPLICATION_WITH_OFFERS_DTO))
+  it('refreshes quietly and keeps the old data when the refresh fails', async () => {
+    const application = mapApplication(APPLICATION_WITH_OFFERS_DTO)
+    vi.mocked(getApplication).mockResolvedValueOnce(application).mockRejectedValueOnce(new ApiError(500, 'fail'))
     const store = new ApplicationDetailStore()
     await store.load(2)
-    const selected = mapApplication(SELECTED_APPLICATION_DTO)
 
-    store.update(selected)
+    await store.refresh(2)
 
-    expect(store.state).toEqual({ status: 'success', application: selected })
+    expect(store.state).toEqual({ status: 'success', application })
+  })
+
+  it('replaces the application with the refreshed one', async () => {
+    vi.mocked(getApplication)
+      .mockResolvedValueOnce(mapApplication(APPLICATION_WITH_OFFERS_DTO))
+      .mockResolvedValueOnce(mapApplication(SELECTED_APPLICATION_DTO))
+    const store = new ApplicationDetailStore()
+    await store.load(2)
+
+    await store.refresh(2)
+
+    expect(store.state).toMatchObject({ status: 'success', application: { status: 'SUBMITTED' } })
+  })
+
+  it('does not refresh what was never loaded', async () => {
+    const store = new ApplicationDetailStore()
+
+    await store.refresh(2)
+
+    expect(getApplication).not.toHaveBeenCalled()
   })
 })

@@ -3,6 +3,7 @@ import { sequelize } from '../dbconfig';
 import { Organization } from './Organization';
 import { UserToOrganization } from './UserToOrganization';
 import { ApplicationScore } from './ApplicationScoring';
+import { Operator } from './Operator';
 
 
 export class Application extends Model {
@@ -17,6 +18,8 @@ export class Application extends Model {
     public loanIssuanceDate!: Date;
     public productId!: number;
     public productConditions!: any;
+    public solutionComment!: string;
+    public operatorId!: number;
 
 
     static associate(models: { Organization: typeof Organization }) {
@@ -27,6 +30,10 @@ export class Application extends Model {
         this.hasOne(ApplicationScore, {
             foreignKey: 'applicationId',
             as: 'applicationScore',
+        });
+        this.belongsTo(Operator, {
+            foreignKey: 'operatorId',
+            as: 'operator',
         });
     }
 
@@ -81,6 +88,14 @@ Application.init(
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: NOW,
+    },
+    solutionComment: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    operatorId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {

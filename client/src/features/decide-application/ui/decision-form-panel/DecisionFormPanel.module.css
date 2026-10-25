@@ -1,0 +1,19 @@
+.box {
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  padding: 18px;
+  background: var(--color-surface);
+}
+
+.boxTitle {
+  margin-bottom: 12px;
+}
+
+.formSpace {
+  margin-top: 12px;
+}
+
+.modalText {
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}

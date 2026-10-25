@@ -1,3 +1,5 @@
+import { ApplicationStatus, CreditTime } from "./application.entity";
+
 export enum AnalysisStatus {
     PENDINGCRREDITHISTORY = 1,
     PENDINGREGISTER = 2,
@@ -26,10 +28,23 @@ export class RegisterInfo {
     public employeesCount!: number;
     public annualIncome!: number;
     public annualExpenses!: number;
+    public lastYearBalances!: number[];
+    public ogrn!: string;
+    public okved!: string
+    public head!: string;
+    public kpp!: string;
+    public bankClientSince!: Date;
+    public address!: string;
+    public account!: string;
+    public type!: string;
 }
 
 export class MlScoreEntity {
-    pd?: number;
+    pd!: number;
+    score!: number;
+    risk_class!: string;
+    rate_premium_pp!: number;
+    updated_at!: string;
     model_version!: string;
     factors!: any[];
 }
@@ -65,11 +80,28 @@ export class ApplicationScoreEntity {
                 authCapital: model.info.registerInfo?.authCapital,
                 employeesCount: model.info.registerInfo?.employeesCount,
                 annualIncome: model.info.registerInfo?.annualIncome,
-                annualExpenses: model.info.registerInfo?.annualExpenses
+                annualExpenses: model.info.registerInfo?.annualExpenses,
+                lastYearBalances: model.info.registerInfo?.lastYearBalances,
+                ogrn: model.info.registerInfo?.ogrn,
+                okved: model.info.registerInfo?.okved,
+                head: model.info.registerInfo?.head,
+                kpp: model.info.registerInfo?.kpp,
+                bankClientSince: model.info.registerInfo?.bankClientSince,
+                address: model.info.registerInfo?.address,
+                account: model.info.registerInfo?.account,
+                type: model.info.registerInfo?.type
+
             }
-            this.mlScore = {
-                model_version: model.info.mlScore?.model_version,
-                factors: model.info.mlScore?.factors
+            if (model.info.mlScore) {
+                this.mlScore = {
+                    pd: model.info.mlScore.pd,
+                    score: model.info.mlScore.score,
+                    risk_class: model.info.mlScore.risk_class,
+                    rate_premium_pp: model.info.mlScore.rate_premium_pp,
+                    updated_at: model.info.mlScore.updated_at,
+                    model_version: model.info.mlScore.model_version,
+                    factors: model.info.mlScore.factors,
+                };
             }
         }
     }

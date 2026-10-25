@@ -11,8 +11,9 @@ import 'dotenv/config';
 import { plainToInstance } from 'class-transformer';
 import { IApplicationController } from './application.controller.interface';
 import { IApplicationService } from './application.service.interface';
-import { ApplicationEntity, CreditTimeUnits } from './entity/application.entity';
+import { ApplicationEntity, ApplicationStatus, CreditTimeUnits } from './entity/application.entity';
 import { ApplicationDto } from './dto/application.dto';
+import { OperatorSolution } from './entity/operator.solution';
 
 @injectable()
 export class ApplicationController extends BaseController implements IApplicationController {
@@ -34,10 +35,17 @@ export class ApplicationController extends BaseController implements IApplicatio
         func: this.confirmApplication,
         middleware: [passport.authenticate('jwt', { session: false })]
       },
+     
       {
         path: '/my',
         method: 'get',
         func: this.getMyApplications,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
+        path: '/all',
+        method: 'get',
+        func: this.getAllApplicationsForOperator,
         middleware: [passport.authenticate('jwt', { session: false })]
       },
       {
@@ -47,18 +55,41 @@ export class ApplicationController extends BaseController implements IApplicatio
         middleware: [passport.authenticate('jwt', { session: false })]
       },
       {
+        path: '/:id/sign',
+        method: 'put',
+        func: this.sign,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
         path: '/:id/score',
         method: 'get',
         func: this.getApplicationWithScore,
         middleware: [passport.authenticate('jwt', { session: false })]
       },
-       {
+     {
+        path: '/:id/special',
+        method: 'put',
+        func: this.confirmSpecialProduct,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
         path: '/:id/restart',
         method: 'post',
         func: this.restartScoring,
         middleware: [passport.authenticate('jwt', { session: false })]
-      }
-    
+      },
+      {
+        path: '/:id/solution',
+        method: 'post',
+        func: this.saveOperatorSolution,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
+        path: '/:id/take',
+        method: 'post',
+        func: this.takeApplicationForOperator,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
      
     ]);
   }
@@ -215,12 +246,12 @@ export class ApplicationController extends BaseController implements IApplicatio
             const applicationId = Number(req.query.applicationId); 
             const productId = Number(req.query.productId);
             if (!applicationId || !productId) {
-                res.status(400).json({ error: 'Application ID or Product ID is missing' });
+                res.status(400).json({ error: 'Не указаны ID заявки и/или продукта' });
                 return;
             }
             const userId = (req.user as { id?: number } | undefined)?.id;
             if (!userId) {
-                res.status(400).json({ error: 'User ID is missing' });
+                res.status(400).json({ error: 'Не указан User ID' });
                 return;
             }
             const result = await this.applicationService.confirmApplication(applicationId, userId, productId);
@@ -234,7 +265,7 @@ export class ApplicationController extends BaseController implements IApplicatio
         try {
             const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
             if (!adminAccess) {
-                res.status(403).json({ error: 'Access denied' });
+                res.status(403).json({ error: 'Доступ запрещен' });
                 return;
             }
             const applicationId = Number(req.params.id);
@@ -254,7 +285,7 @@ export class ApplicationController extends BaseController implements IApplicatio
           try {
               const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
               if (!adminAccess) {
-                  res.status(403).json({ error: 'Access denied' });
+                  res.status(403).json({ error: 'Доступ запрещен' });
                   return;
               }
               const applicationId = Number(req.params.id);
@@ -269,8 +300,107 @@ export class ApplicationController extends BaseController implements IApplicatio
           }
       }
 
-      
+      async saveOperatorSolution(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+              const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;
+              if (!adminAccess) {
+                  res.status(403).json({ error: 'Доступ запрещен' });
+                  return;
+              }
+              const applicationId = Number(req.params.id);
+              if (!applicationId) {
+                  res.status(400).json({ error: 'Не указан ID заявки' });
+                  return;
+              }
+              const userId = (req.user as { id?:  number } | undefined)?.id;
+              if (!userId) {
+                  res.status(400).json({ error: 'Не получилось получить id  пользователя' });
+                  return;
+              }
+              const solution = req.body
+              solution.status = ApplicationStatus[solution.status as keyof typeof ApplicationStatus];
+              await this.applicationService.saveOperatorSolution(applicationId, solution, userId);
+              res.json(true)
+          }  catch (err) {
+              next(err);
+          }
+      }
 
+
+      async getAllApplicationsForOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+              const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;  
+              if (!adminAccess) {
+                  res.status(403).json({ error: 'Доступ запрещен' });
+                  return;
+              }
+              const result = await this.applicationService.getAllApplicationsForOperator();
+              res.json(plainToInstance(ApplicationDto, result))
+          }  catch (err) {
+              next(err);
+          }
+      }
+
+      
+      async takeApplicationForOperator(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+              const adminAccess = (req.user as { isAdmin?: boolean } | undefined)?.isAdmin;  
+              if (!adminAccess) {
+                  res.status(403).json({ error: 'Доступ запрещен' });
+                  return;
+              }
+               const userId = (req.user as { id?:  number } | undefined)?.id;
+              if (!userId) {
+                  res.status(400).json({ error: 'Не получилось получить id  пользователя' });
+                  return;
+              }
+              const applicationId = Number(req.params.id); 
+              if (!applicationId) {
+                  res.status(400).json({ error: 'Не указан ID заявки' });
+                  return;
+              }
+              await this.applicationService.takeApplicationForOperator(applicationId, userId);
+              res.json(true)
+          }  catch (err) {
+              next(err);
+          }
+      }
+
+
+      async confirmSpecialProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const applicationId = Number(req.params.id); 
+            const status = ApplicationStatus[req.query.status as keyof typeof ApplicationStatus];
+            if (!applicationId || !status) {
+                res.status(400).json({ error: 'Не указаны ID заявки и/или статуса' });
+                return;
+            }
+            const userId = (req.user as { id?: number } | undefined)?.id;
+            if (!userId) {
+                res.status(400).json({ error: 'Не указан User ID' });
+                return;
+            }
+            const result = await this.applicationService.acceptSpecialProduct(applicationId, status, userId);
+            res.json(true)
+        }  catch (err) {
+            next(err);
+        }
+      }
+
+      async sign(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const applicationId = Number(req.params.id); 
+            const userId = (req.user as { id?: number } | undefined)?.id;
+            if (!userId) {
+                res.status(400).json({ error: 'Не указан User ID' });
+                return;
+            }
+            await this.applicationService.signApplication(applicationId, userId);
+            res.json(true)
+        }  catch (err) {
+            next(err);
+        }
+      }
       
   
 }

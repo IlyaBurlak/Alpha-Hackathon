@@ -2,7 +2,8 @@ import { makeAutoObservable, observableRef } from 'mobx'
 
 import { getErrorMessage } from '@/shared/api'
 
-import { getApplication } from '../api/applications'
+import { answerSpecialOffer, getApplication, signApplication } from '../api/applications'
+import { settlePayout } from '../api/mocks/mock-enrichment'
 import type { Application } from './types'
 
 export type ApplicationDetailState =
@@ -27,9 +28,33 @@ export class ApplicationDetailStore {
     }
   }
 
-  /** Replaces the loaded application with a fresher copy returned by an action (e.g. product selection). */
-  update(application: Application): void {
-    this.setState({ status: 'success', application })
+  /** Updates a shown application quietly (e.g. while the bank reviews it); a failed refresh keeps the old data. */
+  async refresh(applicationId: number): Promise<void> {
+    if (this.state.status !== 'success') return
+    try {
+      this.setState({ status: 'success', application: await getApplication(applicationId) })
+    } catch {
+      // The application on screen is still valid; the next poll or a reload will show a real error.
+    }
+  }
+
+  /** Signs the documents of an approved application and shows the result. */
+  async sign(applicationId: number): Promise<void> {
+    signApplication(applicationId)
+    await this.refresh(applicationId)
+  }
+
+  /** Sends the answer to other conditions offered by the bank and shows the result. */
+  async answerOffer(applicationId: number, isAccepted: boolean): Promise<void> {
+    await answerSpecialOffer(applicationId, isAccepted)
+    await this.refresh(applicationId)
+  }
+
+  /** Shows the loan as issued when the payout timer is over; the payout is a client mock, so nothing is requested. */
+  settlePayout(): void {
+    if (this.state.status === 'success') {
+      this.setState({ status: 'success', application: settlePayout(this.state.application, Date.now()) })
+    }
   }
 
   private setState(state: ApplicationDetailState): void {

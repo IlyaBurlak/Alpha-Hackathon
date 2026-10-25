@@ -1,15 +1,15 @@
-FROM python:3.12.8-slim AS build
+FROM python:3.12-slim AS build
 WORKDIR /build
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-COPY ml/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN python -m venv /venv && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
-FROM python:3.12.8-slim
+FROM python:3.12-slim
 ENV PATH="/venv/bin:$PATH" PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY --from=build /venv /venv
-COPY ml/app ./app
+COPY app ./app
+COPY config ./config
+COPY model ./model
 RUN useradd --system --uid 10001 appuser
 USER appuser
 EXPOSE 8000

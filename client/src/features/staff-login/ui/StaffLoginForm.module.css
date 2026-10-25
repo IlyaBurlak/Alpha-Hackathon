@@ -1,0 +1,42 @@
+.form {
+  margin-top: 28px;
+  padding: 10px;
+  border-radius: 24px;
+  background: var(--color-surface);
+  box-shadow:
+    0 20px 60px -30px rgb(3 3 6 / 25%),
+    0 0 0 1px var(--color-line);
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+
+.error {
+  margin: 0;
+  padding: 2px 6px;
+  color: var(--color-negative);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px 4px;
+}
+
+.hint {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.submit {
+  display: grid;
+  margin-top: 4px;
+}
+
+.submit button {
+  height: 52px;
+}

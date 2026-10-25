@@ -1,4 +1,5 @@
 import { OrganizationEntity } from "../../organizations/entity/organization.entity";
+import { UserEntity } from "../../user/entity/user.entity";
 import { ApplicationScoreEntity } from "./application.score.entity";
 
 export enum CreditTimeUnits {
@@ -16,7 +17,11 @@ export enum ApplicationStatus {
     DRAFT = 1,
     SUBMITTED = 2,
     APPROVED = 3,
-    REJECTED = 4
+    REJECTED = 4,
+    SPECIALPRODUCTOFFERED = 5,
+    SPECIALPRODUCTACCEPTED = 6,
+    SPECIALPRODUCTREJECTED = 7,
+    SIGNED = 8
 }
 
 export class ApplicationEntity {
@@ -27,10 +32,14 @@ export class ApplicationEntity {
     productId!: number;
     product?: any;
     applicationScore?: ApplicationScoreEntity;
+    organization?: OrganizationEntity;
     status!: number;
     createdAt!: Date;
     creditTime: CreditTime;
     loanIssuanceDate!: Date;
+    solutionComment!: string;
+    operatorId!: number;
+    operator?: UserEntity;
 
     constructor(model: any) {
         this.id = model.id;
@@ -39,6 +48,8 @@ export class ApplicationEntity {
         this.sum = model.sum;
         this.status = model.status;
         this.createdAt = model.createdAt;
+        this.solutionComment = model.solutionComment;
+        this.operatorId = model.operatorId;
         this.creditTime = {
             units: model.creditTimeUnits,
             value: model.creditValue
@@ -46,6 +57,16 @@ export class ApplicationEntity {
        
         if (model.applicationScore) {
             this.applicationScore = new ApplicationScoreEntity(model.applicationScore);
+        }
+        if (model.productId) {
+            this.productId = model.productId;
+            this.product = model.productConditions;
+        }
+        if (model.operator) {
+            this.operator = new UserEntity(model.operator);
+        }
+        if (model.organization) {
+            this.organization = new OrganizationEntity(model.organization);
         }
         this.loanIssuanceDate = model.loanIssuanceDate;
         
