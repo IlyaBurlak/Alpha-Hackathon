@@ -22,10 +22,6 @@ export class SessionStore {
     makeAutoObservable(this)
   }
 
-  get isAuthenticated(): boolean {
-    return this.token !== null
-  }
-
   /** The login and the role the token was issued for; `null` while signed out. */
   get claims(): SessionClaims | null {
     return this.token === null ? null : readSessionClaims(this.token)

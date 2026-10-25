@@ -51,7 +51,7 @@ describe('SessionStore', () => {
 
     const session = new SessionStore()
 
-    expect(session.isAuthenticated).toBe(false)
+    expect(session.token).toBeNull()
     expect(sessionStorage.getItem('auth-token')).toBeNull()
   })
 
@@ -64,7 +64,7 @@ describe('SessionStore', () => {
   it('forgets a remembered token that has expired', () => {
     localStorage.setItem('auth-token', createToken({ login: 'alfaSergey', exp: PAST }))
 
-    expect(new SessionStore().isAuthenticated).toBe(false)
+    expect(new SessionStore().token).toBeNull()
     expect(localStorage.getItem('auth-token')).toBeNull()
   })
 
@@ -88,7 +88,7 @@ describe('SessionStore', () => {
 
     session.signOut()
 
-    expect(session.isAuthenticated).toBe(false)
+    expect(session.token).toBeNull()
     expect(sessionStorage.getItem('auth-token')).toBeNull()
     expect(sessionStorage.getItem('application-wizard:3')).toBeNull()
   })
