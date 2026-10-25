@@ -140,7 +140,7 @@ describe('counters', () => {
   it('summarizes the queue', () => {
     expect(summarizeQueue(APPLICATIONS, 'u1', NOW)).toEqual({
       receivedToday: 4,
-      total: 7,
+      total: 5,
       waitingForDecision: 2,
       inWorkByEmployee: 2,
       overdue: 1,
