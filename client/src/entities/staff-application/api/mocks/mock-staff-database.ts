@@ -289,7 +289,6 @@ export function decideMockStaffApplication(id: string, decision: Decision, actor
   const { type, comment, ...details } = decision
   record.decision = { type, comment, ...details, byEmployeeId: actor.id, at: now }
   record.status = option.resultingStatus
-  record.assigneeId ??= actor.id
   record.history.push({
     at: now,
     title: option.historyTitle,

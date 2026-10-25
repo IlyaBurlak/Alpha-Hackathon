@@ -218,6 +218,12 @@ describe('toStaffApplicationDto', () => {
     })
   })
 
+  it('reads a refusal that has only the reason, without the words of the employee', () => {
+    const application = mapStaffApplication(convert({ status: 'REJECTED', operator: OPERATOR, solutionComment: 'Недостаточная выручка' }))
+
+    expect(application.decision).toMatchObject({ type: 'reject', reason: 'Недостаточная выручка', comment: '' })
+  })
+
   it('maps the offer of other conditions and the answers of the client', () => {
     const offer = {
       name: 'Особое предложение',

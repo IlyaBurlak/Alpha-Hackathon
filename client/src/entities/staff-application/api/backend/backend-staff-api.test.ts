@@ -40,6 +40,7 @@ const scoreRequests = () => vi.mocked(httpClient.get).mock.calls.filter(([path])
 
 beforeEach(() => {
   vi.mocked(httpClient.get).mockReset()
+  vi.mocked(httpClient.post).mockReset()
 })
 
 describe('fetchBackendApplications', () => {
@@ -97,5 +98,35 @@ describe('fetchBackendApplications', () => {
     await fetchBackendApplications(NOW)
 
     expect(scoreRequests()).toBe(2)
+  })
+})
+
+describe('sendBackendDecision', () => {
+  it('sends the reason of a refusal alone when the employee wrote no comment', async () => {
+    const { sendBackendDecision } = await loadModule()
+    vi.mocked(httpClient.post).mockResolvedValue(true)
+
+    await sendBackendDecision('7', { type: 'reject', reason: 'Недостаточная выручка', comment: '' })
+
+    expect(httpClient.post).toHaveBeenCalledWith('/applications/7/solution', { status: 'REJECTED', comment: 'Недостаточная выручка' })
+  })
+
+  it('puts the reason before the comment of a refusal', async () => {
+    const { sendBackendDecision } = await loadModule()
+    vi.mocked(httpClient.post).mockResolvedValue(true)
+
+    await sendBackendDecision('7', { type: 'reject', reason: 'Другое', comment: 'Нестандартный случай' })
+
+    expect(httpClient.post).toHaveBeenCalledWith('/applications/7/solution', { status: 'REJECTED', comment: 'Другое. Нестандартный случай' })
+  })
+
+  it('does not take the application: only its responsible operator decides', async () => {
+    const { sendBackendDecision } = await loadModule()
+    vi.mocked(httpClient.post).mockResolvedValue(true)
+
+    await sendBackendDecision('7', { type: 'approve', comment: '' })
+
+    expect(httpClient.post).toHaveBeenCalledTimes(1)
+    expect(httpClient.post).toHaveBeenCalledWith('/applications/7/solution', { status: 'APPROVED', comment: '' })
   })
 })

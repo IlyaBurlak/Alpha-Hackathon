@@ -7,7 +7,7 @@
 import { UnexpectedResponseError, readNumber, readRecord, readString } from '@/shared/api'
 import { isRecord } from '@/shared/lib'
 
-import { REJECTION_REASONS } from '../../config/review-rules'
+import { OTHER_REJECTION_REASON, REJECTION_REASONS } from '../../config/review-rules'
 import { HISTORY_TONES, STAFF_STATUSES } from '../../model/types'
 import type { StaffStatus } from '../../model/types'
 import { recommendDecision } from '../../lib/recommendation'
@@ -146,11 +146,12 @@ function mapDecision(application: Source, backendStatus: string, assigneeId: str
     case 'APPROVED':
       return { type: 'approve', ...base }
     case 'REJECTED': {
-      const reason = REJECTION_REASONS.find((candidate) => comment.startsWith(`${candidate}${REASON_SEPARATOR}`))
+      // The comment is the reason alone, or the reason, a separator and the words of the employee.
+      const reason = REJECTION_REASONS.find((candidate) => comment === candidate || comment.startsWith(`${candidate}${REASON_SEPARATOR}`))
       return {
         type: 'reject',
         ...base,
-        reason: reason ?? 'Другое',
+        reason: reason ?? OTHER_REJECTION_REASON,
         comment: reason ? comment.slice(reason.length + REASON_SEPARATOR.length) : comment,
       }
     }

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCurrentEmployee } from '@/entities/employee'
 import type { StaffApplication, StaffApplicationDetailStore } from '@/entities/staff-application'
 import { useStaffApplicationListStore } from '@/entities/staff-application'
-import { AssigneeMenu, AssignmentStore } from '@/features/assign-application'
+import { AssigneeMenu, AssignmentStore, TakeApplicationButton } from '@/features/assign-application'
 import { DecisionPanel } from '@/features/decide-application'
 import { RestartScoringButton, RestartScoringStore } from '@/features/restart-scoring'
 import { useNow } from '@/shared/lib'
@@ -85,7 +85,20 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
           <HistorySection history={application.history} />
         </div>
         <aside className={styles.decision}>
-          <DecisionPanel application={application} list={list} detail={detail} onDecided={showToast} />
+          <DecisionPanel
+            application={application}
+            list={list}
+            detail={detail}
+            onDecided={showToast}
+            takeAction={
+              <TakeApplicationButton
+                applicationId={application.id}
+                employee={employee}
+                store={assignment}
+                onTaken={() => showToast('Заявка в работе у вас')}
+              />
+            }
+          />
         </aside>
       </div>
     </>

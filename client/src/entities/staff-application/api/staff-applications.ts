@@ -1,3 +1,5 @@
+import { ApiError } from '@/shared/api'
+
 import { mapStaffApplication, mapStaffApplications } from './staff-application-mapper'
 import {
   fetchBackendApplication,
@@ -53,17 +55,29 @@ export async function assignStaffApplication(applicationId: string, assignee: Ac
   return getStaffApplication(applicationId)
 }
 
+const CONFLICT_STATUS = 409
+
+/** Only the responsible employee decides: an application nobody took has to be taken first. */
+async function assertResponsible(applicationId: string, actor: ActingEmployee): Promise<void> {
+  const { assigneeId } = await getStaffApplication(applicationId)
+  if (assigneeId === actor.id) return
+  throw new ApiError(
+    CONFLICT_STATUS,
+    assigneeId === null ? 'Заявка никому не назначена. Сначала возьмите её в работу.' : 'Решение по заявке принимает её ответственный.',
+  )
+}
+
 /** POST /api/applications/:id/solution */
 export async function decideStaffApplication(
   applicationId: string,
   decision: Decision,
   actor: ActingEmployee,
 ): Promise<StaffApplication> {
+  await assertResponsible(applicationId, actor)
   if (getBackendOperatorEmployeeId() === null) {
     return mapStaffApplication(decideMockStaffApplication(applicationId, decision, actor))
   }
-  const current = await getStaffApplication(applicationId)
-  await sendBackendDecision(applicationId, decision, current.assigneeId !== null)
+  await sendBackendDecision(applicationId, decision)
   return getStaffApplication(applicationId)
 }
 

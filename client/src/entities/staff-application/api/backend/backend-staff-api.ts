@@ -96,7 +96,7 @@ function toSolutionBody(decision: Decision): Record<string, unknown> {
     case 'approve':
       return { status: 'APPROVED', comment: decision.comment }
     case 'reject':
-      return { status: 'REJECTED', comment: `${decision.reason}${REASON_SEPARATOR}${decision.comment}` }
+      return { status: 'REJECTED', comment: decision.comment ? `${decision.reason}${REASON_SEPARATOR}${decision.comment}` : decision.reason }
     case 'offer':
       return {
         status: 'SPECIALPRODUCTOFFERED',
@@ -115,10 +115,9 @@ function toSolutionBody(decision: Decision): Record<string, unknown> {
   }
 }
 
-/** POST /applications/:id/solution; only the responsible operator may decide, so an unassigned application is taken first. */
-export async function sendBackendDecision(applicationId: string, decision: Decision, hasAssignee: boolean): Promise<void> {
+/** POST /applications/:id/solution; the backend lets only the responsible operator decide. */
+export async function sendBackendDecision(applicationId: string, decision: Decision): Promise<void> {
   const body = toSolutionBody(decision)
-  if (!hasAssignee) await takeBackendApplication(applicationId)
   await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/solution`, body)
 }
 

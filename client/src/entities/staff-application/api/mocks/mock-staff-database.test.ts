@@ -78,7 +78,9 @@ describe('the mock staff database', () => {
     expect(released.history.at(-1)?.title).toBe('Ответственный снят')
   })
 
-  it('records a decision, takes the application on the deciding employee and keeps the comment in the history', () => {
+  it('records a decision of the responsible employee and keeps the comment in the history', () => {
+    assignMockStaffApplication('a204902', ACTOR, NOW)
+
     const decided = decideMockStaffApplication('a204902', { type: 'reject', reason: 'Недостаточная выручка', comment: 'Выручка мала для суммы' }, ACTOR, NOW)
 
     expect(decided).toMatchObject({ status: 'rejected', assigneeId: 'u1' })

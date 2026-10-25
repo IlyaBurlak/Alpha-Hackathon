@@ -50,6 +50,59 @@ describe('DecisionFormStore: what the backend cannot do', () => {
   })
 })
 
+describe('DecisionFormStore: the comment of a refusal', () => {
+  function prepareRefusal(reason: string, comment = '') {
+    const { store } = createStore()
+    store.choose('reject')
+    store.setReason(reason)
+    store.setComment(comment)
+    return store
+  }
+
+  it('does not need a comment when the reason explains the refusal', () => {
+    const store = prepareRefusal('Недостаточная выручка')
+
+    expect(store.isCommentRequired).toBe(false)
+    store.requestConfirmation()
+
+    expect(store.invalidField).toBeNull()
+    expect(store.isConfirming).toBe(true)
+  })
+
+  it('needs a comment of at least ten characters for the reason "other"', () => {
+    const store = prepareRefusal('Другое', 'коротко')
+
+    expect(store.isCommentRequired).toBe(true)
+    store.requestConfirmation()
+
+    expect(store).toMatchObject({ invalidField: 'comment', errorMessage: 'Опишите причину отказа, хотя бы пару слов', isConfirming: false })
+  })
+
+  it('accepts the reason "other" with a comment', () => {
+    const store = prepareRefusal('Другое', 'Нестандартная ситуация с залогом')
+
+    store.requestConfirmation()
+
+    expect(store.isConfirming).toBe(true)
+  })
+
+  it('asks for the reason first', () => {
+    const store = prepareRefusal('', '')
+
+    store.requestConfirmation()
+
+    expect(store).toMatchObject({ invalidField: 'reason', errorMessage: 'Выберите причину отказа' })
+  })
+
+  it('still needs a comment for a request of data and none for an approval', () => {
+    const { store } = createStore(createApplication({ type: 'clarify', reasons: [], offer: null }))
+    expect(store.isCommentRequired).toBe(true)
+
+    store.choose('approve')
+    expect(store.isCommentRequired).toBe(false)
+  })
+})
+
 describe('DecisionFormStore: defaults', () => {
   it('follows the recommendation until another option is chosen', () => {
     const { store } = createStore(createApplication({ type: 'reject', reasons: [], offer: null }))
