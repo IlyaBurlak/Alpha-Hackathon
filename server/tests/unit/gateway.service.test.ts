@@ -1,8 +1,12 @@
-import { test, mock } from 'node:test';
+import { test, mock, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import axios from 'axios';
 import { GatewayService } from '../../src/api/gateway/gateway.service';
 import { OrganizationType } from '../../src/api/organizations/entity/organization.entity';
+
+beforeEach(() => {
+  mock.restoreAll();
+});
 
 function mockGet(impl: (...args: any[]) => any) {
   const m = mock.method(axios, 'get', impl);
