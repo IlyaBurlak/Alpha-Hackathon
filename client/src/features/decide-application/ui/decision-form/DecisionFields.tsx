@@ -1,14 +1,20 @@
 import { observer } from 'mobx-react-lite'
 
-import { DECISION_TYPES, DOCUMENT_REQUESTS, REJECTION_REASONS, TERM_OPTIONS_IN_MONTHS } from '@/entities/staff-application'
+import { DECISION_TYPES, DOCUMENT_REQUESTS, MIN_OFFER_AMOUNT, REJECTION_REASONS, TERM_OPTIONS_IN_MONTHS } from '@/entities/staff-application'
 import { calculateAnnuityPayment, formatMoney, formatMonths, formatPercent } from '@/shared/lib'
 import { Checkbox, KeyValueList, SelectField, TextField } from '@/shared/ui'
 
 import type { DecisionFormStore } from '../../model/decision-form-store'
 import styles from './DecisionFields.module.css'
 
-const TERM_SELECT_OPTIONS = TERM_OPTIONS_IN_MONTHS.map((months) => ({ value: String(months), label: formatMonths(months) }))
-const REASON_SELECT_OPTIONS = REJECTION_REASONS.map((reason) => ({ value: reason, label: reason }))
+const TERM_SELECT_OPTIONS = TERM_OPTIONS_IN_MONTHS.map((months) => ({
+  value: String(months),
+  label: formatMonths(months),
+}))
+const REASON_SELECT_OPTIONS = REJECTION_REASONS.map((reason) => ({
+  value: reason,
+  label: reason,
+}))
 const PAYMENT_PLACEHOLDER = '—'
 
 interface DecisionFieldsProps {
@@ -28,7 +34,10 @@ export const DecisionFields = observer(function DecisionFields({ store }: Decisi
             { label: 'Сумма', value: formatMoney(application.amount) },
             { label: 'Срок', value: formatMonths(application.termInMonths) },
             { label: 'Ставка', value: formatPercent(rate) },
-            { label: 'Платёж', value: formatMoney(calculateAnnuityPayment(application.amount, rate, application.termInMonths)) },
+            {
+              label: 'Платёж',
+              value: formatMoney(calculateAnnuityPayment(application.amount, rate, application.termInMonths)),
+            },
           ]}
         />
       </div>
@@ -56,6 +65,9 @@ export const DecisionFields = observer(function DecisionFields({ store }: Decisi
           />
           <TextField label="Ставка" suffix="%" inputMode="decimal" value={store.rateText} onChange={(value) => store.setRate(value)} />
         </div>
+        <p className={store.invalidField === 'offer' ? styles.limitsInvalid : styles.limits}>
+          Сумма не меньше {formatMoney(MIN_OFFER_AMOUNT)}, ставка больше 0 %, срок до 60 месяцев
+        </p>
         <div className={styles.calc}>
           Платёж <b>{store.offerPayment === null ? PAYMENT_PLACEHOLDER : formatMoney(store.offerPayment)}</b>
         </div>
