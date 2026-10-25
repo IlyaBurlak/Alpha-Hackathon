@@ -62,5 +62,8 @@ export class ApplicationDto {
 
     @Type(()=> OperatorDto)
     operator!: OperatorDto;
+
+    @Type(()=> OrganizationDto)
+    organization?: OrganizationDto;
     
 }

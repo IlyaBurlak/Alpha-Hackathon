@@ -31,6 +31,7 @@ export class ApplicationEntity {
     productId!: number;
     product?: any;
     applicationScore?: ApplicationScoreEntity;
+    organization?: OrganizationEntity;
     status!: number;
     createdAt!: Date;
     creditTime: CreditTime;
@@ -62,6 +63,9 @@ export class ApplicationEntity {
         }
         if (model.operator) {
             this.operator = new UserEntity(model.operator);
+        }
+        if (model.organization) {
+            this.organization = new OrganizationEntity(model.organization);
         }
         this.loanIssuanceDate = model.loanIssuanceDate;
         

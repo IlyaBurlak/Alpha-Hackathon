@@ -8,6 +8,7 @@ import { ApplicationScore } from '../../database/models/ApplicationScoring';
 import { sequelize } from '../../database/dbconfig';
 import { OperatorSolution } from './entity/operator.solution';
 import { Operator } from '../../database/models/Operator';
+import { Organization } from '../../database/models/Organization';
 import { UserEntity } from '../user/entity/user.entity';
 
 
@@ -105,7 +106,11 @@ export class ApplicationRepository implements IApplicationRepository {
     async getApplicationWithScore (id: number, transaction?: Transaction): Promise<ApplicationEntity> {
        const model = await Application.findOne({
             where: { id },
-            include: [{ model: ApplicationScore, as: 'applicationScore' }, { model: Operator, as: 'operator' }],
+            include: [
+                { model: ApplicationScore, as: 'applicationScore' },
+                { model: Operator, as: 'operator' },
+                { model: Organization, as: 'organization' },
+            ],
             transaction,
             })
         if (!model) {
@@ -162,7 +167,11 @@ export class ApplicationRepository implements IApplicationRepository {
     async getAllApplicationsForOperator(): Promise<ApplicationEntity[]> {
         const models = await Application.findAll({
             where: {  },
-            include: [{ model: ApplicationScore, as: 'applicationScore' }, { model: Operator, as: 'operator' }],
+            include: [
+                { model: ApplicationScore, as: 'applicationScore' },
+                { model: Operator, as: 'operator' },
+                { model: Organization, as: 'organization' },
+            ],
 
         });
         
