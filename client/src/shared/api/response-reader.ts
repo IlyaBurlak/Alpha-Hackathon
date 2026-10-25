@@ -44,6 +44,20 @@ export function readOptionalString(source: Record<string, unknown>, key: string)
   return readString(source, key)
 }
 
+/** A number that may be absent or `null`. */
+export function readOptionalNumber(source: Record<string, unknown>, key: string): number | null {
+  const value = source[key]
+  if (value === undefined || value === null) return null
+  return readNumber(source, key)
+}
+
+/** A date that may be absent or `null`. */
+export function readOptionalDate(source: Record<string, unknown>, key: string): Date | null {
+  const value = source[key]
+  if (value === undefined || value === null) return null
+  return readDate(source, key)
+}
+
 /** Returns one of the allowed values, so that a union type can be built without a cast. */
 export function readOneOf<Value extends string>(
   source: Record<string, unknown>,

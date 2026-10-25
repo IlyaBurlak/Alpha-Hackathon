@@ -33,14 +33,15 @@ interface FinanceSectionProps {
 export function FinanceSection({ application }: FinanceSectionProps) {
   const { company, amount, termInMonths, scoring } = application
   // Without revenue the shares cannot be counted: the tiles say "—" instead of Infinity or NaN.
-  const hasRevenue = company.annualRevenue > 0
-  const amountShare = hasRevenue ? amount / company.annualRevenue : null
-  const debtShare = hasRevenue ? company.debt / company.annualRevenue : null
+  const { annualRevenue, debt } = company
+  const revenue = annualRevenue !== null && annualRevenue > 0 ? annualRevenue : null
+  const amountShare = revenue === null ? null : amount / revenue
+  const debtShare = revenue === null || debt === null ? null : debt / revenue
   const payment = scoring ? calculateAnnuityPayment(amount, scoring.rate, termInMonths) : null
-  const paymentShare = payment === null || !hasRevenue ? null : payment / (company.annualRevenue / MONTHS_IN_YEAR)
+  const paymentShare = payment === null || revenue === null ? null : payment / (revenue / MONTHS_IN_YEAR)
 
   const tiles: FigureTile[] = [
-    { label: 'Выручка за 12 мес', value: formatMoneyShort(company.annualRevenue) },
+    { label: 'Выручка за 12 мес', value: annualRevenue === null ? UNKNOWN : formatMoneyShort(annualRevenue) },
     {
       label: 'Сумма к выручке',
       value: amountShare === null ? UNKNOWN : formatShare(amountShare),
@@ -67,10 +68,14 @@ export function FinanceSection({ application }: FinanceSectionProps) {
       <h3 className={styles.title}>Обороты по расчётному счёту</h3>
       <p className={styles.hint}>Поступления по месяцам. Жёлтым отмечены провалы ниже половины среднего.</p>
       <div className={styles.chart}>
-        <TurnoverChart turnover={application.turnover} newPayment={payment} />
+        {application.turnover.length === 0 ? (
+          <p className={styles.hint}>Данных об оборотах нет: реестр не передал остатки по счёту.</p>
+        ) : (
+          <TurnoverChart turnover={application.turnover} newPayment={payment} />
+        )}
       </div>
       <h3 className={styles.loansTitle}>Действующие кредиты</h3>
-      <LoansTable loans={application.loans} />
+      {debt === null ? <p className={styles.hint}>Данных нет: бюро кредитных историй не передало кредиты.</p> : <LoansTable loans={application.loans} />}
     </ReviewSection>
   )
 }

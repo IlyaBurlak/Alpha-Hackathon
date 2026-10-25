@@ -142,11 +142,51 @@ describe('toStaffApplicationDto', () => {
     )
   })
 
-  it('keeps placeholders when the register and the credit bureau did not answer', () => {
-    const application = mapStaffApplication(
-      convert({ applicationScore: { ...SCORED_APPLICATION.applicationScore, registerInfo: {}, history: undefined } }),
-    )
-    expect(application.company).toMatchObject({ ogrn: '—', head: '—', employeesCount: 0 })
+  describe('when a service did not answer', () => {
+    const noRegister = { applicationScore: { ...SCORED_APPLICATION.applicationScore, registerInfo: {} } }
+    const noHistory = { applicationScore: { ...SCORED_APPLICATION.applicationScore, history: undefined } }
+    const checkOf = (application: ReturnType<typeof mapStaffApplication>, title: string) => application.checks.find((check) => check.title === title)
+
+    it('leaves the figures of the register empty instead of inventing them', () => {
+      const { company, turnover } = mapStaffApplication(convert(noRegister))
+
+      expect(company).toMatchObject({
+        annualRevenue: null,
+        employeesCount: null,
+        registeredAt: null,
+        clientSince: null,
+        ogrn: '—',
+        head: '—',
+      })
+      expect(turnover).toEqual([])
+    })
+
+    it('does not call the company active: the register check says there is no data', () => {
+      const application = mapStaffApplication(convert(noRegister))
+
+      expect(checkOf(application, 'ЕГРЮЛ')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
+      expect(checkOf(application, 'Платёжеспособность')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
+    })
+
+    it('leaves the credit bureau figures empty and says there is no data instead of "no delays"', () => {
+      const application = mapStaffApplication(convert(noHistory))
+
+      expect(application.company.debt).toBeNull()
+      expect(application.loans).toEqual([])
+      expect(checkOf(application, 'Бюро кредитных историй')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
+    })
+
+    it('keeps the checks of the other service as they are', () => {
+      expect(checkOf(mapStaffApplication(convert(noHistory)), 'ЕГРЮЛ')).toMatchObject({ level: 'ok' })
+      expect(checkOf(mapStaffApplication(convert(noRegister)), 'Бюро кредитных историй')).toMatchObject({ level: 'ok' })
+    })
+
+    it('does not pass the report as clean: no data is not a passed check', () => {
+      const application = mapStaffApplication(convert({ applicationScore: { ...SCORED_APPLICATION.applicationScore, registerInfo: {}, history: undefined } }))
+
+      expect(application.checks.filter(({ level }) => level === 'ok').map(({ title }) => title)).not.toContain('ЕГРЮЛ')
+      expect(application.checks.filter(({ level }) => level === 'ok').map(({ title }) => title)).not.toContain('Бюро кредитных историй')
+    })
   })
 
   it('treats a sent application without a scoring record, or with a scoring in progress, as being scored', () => {

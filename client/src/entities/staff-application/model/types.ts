@@ -55,17 +55,18 @@ export interface StaffCompany {
   okved: string
   address: string
   head: string
-  registeredAt: Date
-  employeesCount: number
-  annualRevenue: number
-  debt: number
+  /** The figures of the register and the credit bureau are `null` when the service did not answer. */
+  registeredAt: Date | null
+  employeesCount: number | null
+  annualRevenue: number | null
+  debt: number | null
   /** Delays on credits over the last 12 months. */
   overdueCount: number
   hasStableTurnover: boolean
   arbitrationCases: number
   taxDebt: number
   /** The year the company became a client of the bank. */
-  clientSince: number
+  clientSince: number | null
   account: string
 }
 

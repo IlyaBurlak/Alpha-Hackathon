@@ -78,6 +78,8 @@ function getReviewInput(record: StoredRecord): ReviewInput {
     arbitrationCases: record.company.arbitrationCases,
     taxDebt: record.company.taxDebt,
     collateralValue: record.collateral?.value ?? null,
+    isRegisterReceived: true,
+    isHistoryReceived: true,
     isCompanyActive: true,
     isBankrupt: false,
   }

@@ -19,6 +19,8 @@ const STRONG_COMPANY: ReviewInput = {
   arbitrationCases: 0,
   taxDebt: 0,
   collateralValue: null,
+  isRegisterReceived: true,
+  isHistoryReceived: true,
   isCompanyActive: true,
   isBankrupt: false,
 }
@@ -107,6 +109,15 @@ describe('buildChecks and buildRecommendation', () => {
     expect(checks.find(({ title }) => title === 'Платёжеспособность')).toMatchObject({ level: 'fail' })
     expect(buildRecommendation(company, scoring, checks).type).toBe('reject')
     expect(buildTurnover(company, NOW).every(({ amount }) => amount === 0)).toBe(true)
+  })
+
+  it('says there is no data instead of passing the checks of a service that did not answer', () => {
+    const checks = buildChecks({ ...STRONG_COMPANY, isRegisterReceived: false, isHistoryReceived: false, annualRevenue: 0 }, null)
+    const byTitle = (title: string) => checks.find((check) => check.title === title)
+
+    expect(byTitle('ЕГРЮЛ')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
+    expect(byTitle('Бюро кредитных историй')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
+    expect(byTitle('Платёжеспособность')).toMatchObject({ level: 'warning', resultLabel: 'Нет данных' })
   })
 
   it('asks for data when there is tax debt', () => {

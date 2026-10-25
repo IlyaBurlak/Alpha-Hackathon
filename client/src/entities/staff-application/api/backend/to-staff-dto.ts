@@ -11,7 +11,7 @@ import { OTHER_REJECTION_REASON, REJECTION_REASONS } from '../../config/review-r
 import { HISTORY_TONES, STAFF_STATUSES } from '../../model/types'
 import type { StaffStatus } from '../../model/types'
 import { recommendDecision } from '../../lib/recommendation'
-import { buildChecks, buildLoans, buildTurnover } from '../mocks/mock-review'
+import { buildChecks, buildLoans } from '../mocks/mock-review'
 import type { ReviewInput } from '../mocks/mock-review'
 import { SCORING_PENDING, readMlScoring } from './ml-scoring'
 
@@ -20,7 +20,6 @@ const DAYS_IN_MONTH = 30
 const UNKNOWN = '—'
 const NAME_NOT_RECEIVED = 'Название не получено'
 const SCORING_IN_PROGRESS = ['PENDINGCRREDITHISTORY', 'PENDINGREGISTER', 'WAITNGSCORING']
-const REVENUE_TO_AMOUNT_FALLBACK = 4
 const UNSTABLE_MONTH_SHARE = 0.3
 const OPERATOR_ID_PREFIX = 'op'
 /** The backend does not record the reason of a refusal separately; it is the start of the comment. */
@@ -223,9 +222,13 @@ export function toStaffApplicationDto(value: unknown, now: number) {
 
   const register = score && optionalRecord(score, 'registerInfo')
   const history = score && optionalRecord(score, 'history')
+  // A service that did not answer leaves its figures empty: nothing stands in for them, the report says "no data".
+  const isRegisterReceived = register !== null
+  const isHistoryReceived = history !== null
   const balances = lastYearBalances(register)
-  const annualRevenue = (register && optionalNumber(register, 'annualIncome')) ?? amount * REVENUE_TO_AMOUNT_FALLBACK
-  const registeredAt = (register && optionalString(register, 'registrationDate')) ?? receivedAtIso
+  const annualRevenue = register && optionalNumber(register, 'annualIncome')
+  const registeredAt = register && optionalString(register, 'registrationDate')
+  const bankClientSince = register && optionalString(register, 'bankClientSince')
   const head = (register && optionalString(register, 'head')) ?? UNKNOWN
   const product = mapProduct(application)
   const organization = optionalRecord(application, 'organization')
@@ -241,14 +244,14 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     address: (register && optionalString(register, 'address')) ?? UNKNOWN,
     head,
     registeredAt,
-    employeesCount: (register && optionalNumber(register, 'employeesCount')) ?? 0,
+    employeesCount: register && optionalNumber(register, 'employeesCount'),
     annualRevenue,
-    debt: unpaidDebt(history),
+    debt: history && unpaidDebt(history),
     overdueCount: (history && optionalNumber(history, 'casesDelayedPayment')) ?? 0,
     hasStableTurnover: hasStableTurnover(balances),
     arbitrationCases: 0,
     taxDebt: 0,
-    clientSince: new Date((register && optionalString(register, 'bankClientSince')) ?? registeredAt).getFullYear(),
+    clientSince: bankClientSince ? new Date(bankClientSince).getFullYear() : null,
     account: (register && optionalString(register, 'account')) ?? UNKNOWN,
   }
 
@@ -258,14 +261,16 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     amount,
     termInMonths,
     inn: company.inn,
-    registeredAt: new Date(registeredAt).getTime(),
-    annualRevenue,
-    debt: company.debt,
+    registeredAt: registeredAt ? new Date(registeredAt).getTime() : receivedAt,
+    annualRevenue: annualRevenue ?? 0,
+    debt: company.debt ?? 0,
     overdueCount: company.overdueCount,
     hasStableTurnover: company.hasStableTurnover,
     arbitrationCases: 0,
     taxDebt: 0,
     collateralValue: null,
+    isRegisterReceived,
+    isHistoryReceived,
     isCompanyActive: register?.isActive !== false,
     isBankrupt: history?.bankrupt === true,
   }
@@ -312,11 +317,12 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     scoringIssue: reading.issue,
     checks,
     recommendation: scoring ? recommendDecision(scoring, checks) : null,
+    // Without the twelve balances of the register the chart is empty; without the credit bureau there are no credit lines.
     turnover:
       balances.length === MONTHS_IN_YEAR
         ? balances.map((amountOfMonth, index) => ({ month: monthName(MONTHS_IN_YEAR - index, now), amount: amountOfMonth }))
-        : buildTurnover(input, now),
-    loans: buildLoans(input),
+        : [],
+    loans: isHistoryReceived ? buildLoans(input) : [],
     decision: mapDecision(application, backendStatus, assigneeId, receivedAtIso),
     history: entries,
   }
