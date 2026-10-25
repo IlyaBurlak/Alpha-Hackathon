@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
@@ -46,7 +45,6 @@ def build_app_from_row(row: pd.Series):
     reg = created - timedelta(days=int(business_age_months * 30))
     bcs = created - timedelta(days=int(bank_client_months * 30)) if bank_client_months > 0 else None
 
-    ch = []
     if int(row.get("credit_history_len", 0)) > 0 and float(row.get("active_loans_count", 0)) >= 0:
         # simplified
         pass
