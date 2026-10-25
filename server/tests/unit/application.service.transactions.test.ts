@@ -1,4 +1,4 @@
-import { test, mock } from 'node:test';
+import { test, mock, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers/promises';
 import { sequelize } from '../../src/database/dbconfig';
@@ -9,6 +9,10 @@ import type { IApplicationRepository } from '../../src/api/applications/applicat
 import type { IUserRepository } from '../../src/api/user/user.repository.interface';
 import type { IGatewayService } from '../../src/api/gateway/gateway.service.interface';
 import { buildApplication } from './fixtures/application';
+
+beforeEach(() => {
+  mock.restoreAll();
+});
 
 // sequelize.transaction(cb) is called directly by createApplication/
 // confirmApplication/getApplicationById — replacing it with a stub that just
