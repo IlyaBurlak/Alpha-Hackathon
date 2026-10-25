@@ -25,6 +25,7 @@ export {
   countByFilter,
   countNavigation,
   selectModeApplications,
+  selectScopedApplications,
   selectQueueRows,
   summarizeQueue,
 } from './lib/queue-selection'

@@ -1,10 +1,12 @@
 import { classNames } from '@/shared/lib'
 
+import type { VariantTone } from '../../../lib/comparison'
+
 import styles from './VariantSwatch.module.css'
 
 interface VariantSwatchProps {
   /** The variant the colour stands for; `neutral` is for legends that are not about a variant. */
-  tone: 'plain' | 'secured' | 'neutral'
+  tone: VariantTone | 'neutral'
   /** A paler square, for the "interest" part of a payout bar. */
   isFaded?: boolean
   className?: string

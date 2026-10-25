@@ -17,10 +17,10 @@ beforeEach(() => {
 })
 
 describe('CreateApplicationFormStore: input', () => {
-  it('starts with 3 million for 24 months and no goal', () => {
+  it('starts with 100 thousand for 24 months and no goal', () => {
     const store = new CreateApplicationFormStore(1)
 
-    expect(store.sum).toBe(3_000_000)
+    expect(store.sum).toBe(100_000)
     expect(store.termInMonths).toBe(24)
     expect(store.goal).toBeNull()
   })

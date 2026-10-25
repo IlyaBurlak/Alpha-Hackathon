@@ -11,8 +11,8 @@ const NOT_AN_EMPLOYEE_MESSAGE = 'Этот аккаунт не относится
 export class StaffLoginFormStore {
   login = ''
   password = ''
-  /** Keeps the session after the tab is closed. */
-  isRemembered = true
+  /** Keeps the session after the tab is closed; off by default, so the token does not outlive the tab. */
+  isRemembered = false
   isSubmitting = false
   errorMessage: string | null = null
   /** The fields to mark red: the one that is empty, or the password after a wrong login. */

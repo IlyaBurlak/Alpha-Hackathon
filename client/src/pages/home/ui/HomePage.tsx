@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router'
 
 import { ApplicationRows, useApplicationListStore } from '@/entities/application'
 import type { Application } from '@/entities/application'
-import { getFirstName, useLoadedUser, useSelectedOrganization } from '@/entities/user'
+import { ORGANIZATION_TYPES, getFirstName, useLoadedUser, useSelectedOrganization } from '@/entities/user'
 import { CreateApplicationForm } from '@/features/create-application'
 import { ROUTES, getApplicationEditPath } from '@/shared/config'
 
@@ -46,7 +46,11 @@ export const HomePage = observer(function HomePage() {
         </p>
         <h1 className={styles.title}>Подберём кредит для бизнеса</h1>
         <p className={styles.subtitle}>Укажите задачу. Покажем подходящие варианты с платежом и шансом одобрения.</p>
-        <CreateApplicationForm key={organization.id} organizationId={organization.id} onCreated={handleCreated} />
+        <CreateApplicationForm
+          key={organization.id}
+          organizationId={organization.id}
+          isLegalEntity={organization.type === ORGANIZATION_TYPES.legalEntity}
+          onCreated={handleCreated} />
       </section>
       <ol className={styles.how} aria-label="Как это работает">
         {HOW_IT_WORKS.map(({ title, text }, index) => (

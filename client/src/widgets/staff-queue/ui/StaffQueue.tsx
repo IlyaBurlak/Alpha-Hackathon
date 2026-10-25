@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { useCurrentEmployee } from '@/entities/employee'
 import {
-  selectModeApplications,
+  selectScopedApplications,
   selectQueueRows,
   summarizeQueue,
   useQueueViewStore,
@@ -55,7 +55,12 @@ export const StaffQueue = observer(function StaffQueue({ mode }: StaffQueueProps
       )
     }
 
-    const modeApplications = selectModeApplications(state.applications, mode, employee.id)
+    const scopedApplications = selectScopedApplications(state.applications, {
+      mode,
+      onlyMine: view.onlyMine,
+      query: view.query,
+      employeeId: employee.id,
+    })
     const rows = selectQueueRows(state.applications, {
       mode,
       filter: view.filter,
@@ -79,7 +84,7 @@ export const StaffQueue = observer(function StaffQueue({ mode }: StaffQueueProps
             onShowOverdue={() => view.showMostUrgent()}
           />
         )}
-        <QueueToolbar mode={mode} modeApplications={modeApplications} />
+        <QueueToolbar mode={mode} scopedApplications={scopedApplications} />
         {rows.length > 0 ? (
           <QueueTable
             applications={rows}

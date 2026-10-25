@@ -8,14 +8,14 @@ import styles from './QueueToolbar.module.css'
 
 interface QueueToolbarProps {
   mode: QueueMode
-  /** The applications of the mode before the status filter: the numbers on the tabs count them. */
-  modeApplications: readonly StaffApplication[]
+  /** The applications of the mode after "only mine" and the search, before the status tab: the numbers on the tabs count them. */
+  scopedApplications: readonly StaffApplication[]
 }
 
 /** The status tabs, the "only mine" switch and the search box above the table. */
-export const QueueToolbar = observer(function QueueToolbar({ mode, modeApplications }: QueueToolbarProps) {
+export const QueueToolbar = observer(function QueueToolbar({ mode, scopedApplications }: QueueToolbarProps) {
   const view = useQueueViewStore()
-  const tabs = QUEUE_FILTERS.map(({ value, label }) => ({ value, label, count: countByFilter(modeApplications, value) }))
+  const tabs = QUEUE_FILTERS.map(({ value, label }) => ({ value, label, count: countByFilter(scopedApplications, value) }))
 
   return (
     <div className={styles.toolbar}>

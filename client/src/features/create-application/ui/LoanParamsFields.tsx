@@ -1,13 +1,12 @@
 import { observer } from 'mobx-react-lite'
 
-import { CREDIT_GOALS, LOAN_TERMS_IN_MONTHS } from '@/entities/application'
+import { CREDIT_GOALS } from '@/entities/application'
 import { SelectField, TextField } from '@/shared/ui'
 import { formatMonths } from '@/shared/lib'
 
 import type { CreateApplicationFormStore } from '../model/create-application-form-store'
 
 const GOAL_OPTIONS = CREDIT_GOALS.map(({ id, label }) => ({ value: id, label }))
-const TERM_OPTIONS = LOAN_TERMS_IN_MONTHS.map((months) => ({ value: String(months), label: formatMonths(months) }))
 
 interface LoanParamsFieldsProps {
   form: CreateApplicationFormStore
@@ -38,7 +37,7 @@ export const LoanParamsFields = observer(function LoanParamsFields({ form, isOnS
       <SelectField
         label="Срок"
         value={String(form.termInMonths)}
-        options={TERM_OPTIONS}
+        options={form.termOptions.map((months) => ({ value: String(months), label: formatMonths(months) }))}
         isOnSurface={isOnSurface}
         onChange={(value) => form.setTermInMonths(Number(value))}
       />

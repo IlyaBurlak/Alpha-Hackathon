@@ -1,40 +1,27 @@
-import { ApprovalChanceMeter, calculateLoan, formatCreditTime } from '@/entities/application'
-import type { ProductOffer, VariantKind } from '@/entities/application'
+import { ApprovalChanceMeter, calculateLoan, formatCreditTime, isSecuredOffer } from '@/entities/application'
+import type { ProductOffer } from '@/entities/application'
 import { classNames, formatMoney, formatPercent } from '@/shared/lib'
 import { Badge, Button, KeyValueList } from '@/shared/ui'
 
-import { VARIANT_LABELS } from '../../lib/comparison'
+import type { VariantTone } from '../../lib/comparison'
 import styles from './VariantCard.module.css'
 
 interface VariantCardProps {
-  kind: VariantKind
-  /** `null` when the bank has no product of this kind for the requested sum and term. */
-  offer: ProductOffer | null
+  offer: ProductOffer
+  tone: VariantTone
   isRecommended: boolean
   isSelected: boolean
   onPick: (offerId: number) => void
 }
 
-export function VariantCard({ kind, offer, isRecommended, isSelected, onPick }: VariantCardProps) {
-  if (offer === null) {
-    return (
-      <article className={classNames(styles.card, styles.unavailable)}>
-        <div className={styles.cardTop}>
-          <span className={styles.kind}>{VARIANT_LABELS[kind]}</span>
-        </div>
-        <h3 className={styles.cardTitle}>Кредит {VARIANT_LABELS[kind].toLowerCase()}</h3>
-        <p className={styles.description}>Недоступен: нет подходящего продукта для этой суммы и срока</p>
-      </article>
-    )
-  }
-
+export function VariantCard({ offer, tone, isRecommended, isSelected, onPick }: VariantCardProps) {
   const { monthlyPayment, totalInterest } = calculateLoan(offer)
   return (
     <article className={classNames(styles.card, isRecommended && styles.recommended, isSelected && styles.selected)}>
       <div className={styles.cardTop}>
         <span className={styles.kind}>
-          <i className={classNames(styles.kindDot, kind === 'secured' && styles.kindDotSecured)} />
-          {VARIANT_LABELS[kind]}
+          <i className={classNames(styles.kindDot, styles[tone])} />
+          {isSecuredOffer(offer) ? 'С залогом' : 'Без залога'}
         </span>
         {isSelected && <Badge tone="positive">Выбран</Badge>}
         {!isSelected && isRecommended && <Badge tone="dark">Рекомендуем</Badge>}

@@ -4,10 +4,12 @@ const NBSP = ' '
 const MILLION = 1_000_000
 const THOUSAND = 1000
 const HUNDRED_THOUSAND_UNITS = 10_000
+const PRECISE_THOUSANDS_BELOW = 100_000
 const CENTS = 100
 
 const rubleFormat = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 })
 const numberFormat = new Intl.NumberFormat('ru-RU')
+const thousandFormat = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 })
 const percentFormat = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 const dateFormat = new Intl.DateTimeFormat('ru-RU')
 const dayMonthFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' })
@@ -17,13 +19,15 @@ export function formatMoney(amount: number): string {
   return rubleFormat.format(amount)
 }
 
-/** Short money for chart labels: `2,5 млн ₽`, `300 тыс ₽`. */
+/** Short money for chart labels: `2,5 млн ₽`, `300 тыс ₽`; below 100 thousand one decimal stays (`4,6 тыс ₽`), small sums are not rounded to a round figure. */
 export function formatMoneyShort(amount: number): string {
   if (amount >= MILLION) {
     const millions = Math.round(amount / HUNDRED_THOUSAND_UNITS) / CENTS
     return `${numberFormat.format(millions)}${NBSP}млн${NBSP}₽`
   }
-  return `${numberFormat.format(Math.round(amount / THOUSAND))}${NBSP}тыс${NBSP}₽`
+  if (amount < THOUSAND) return `${numberFormat.format(Math.round(amount))}${NBSP}₽`
+  const thousands = amount < PRECISE_THOUSANDS_BELOW ? thousandFormat.format(amount / THOUSAND) : numberFormat.format(Math.round(amount / THOUSAND))
+  return `${thousands}${NBSP}тыс${NBSP}₽`
 }
 
 /** Digits grouped by thousands, for amount inputs. */

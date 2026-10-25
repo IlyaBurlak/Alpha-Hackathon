@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useCurrentEmployee } from '@/entities/employee'
 import type { StaffApplication, StaffApplicationDetailStore } from '@/entities/staff-application'
@@ -48,6 +48,9 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
   const [restartScoring] = useState(() => new RestartScoringStore(list, detail))
   const now = useNow(CLOCK_INTERVAL_MS)
 
+  // Leaving the page stops the short wait for the result of a restarted scoring.
+  useEffect(() => () => restartScoring.stopWaiting(), [restartScoring])
+
   return (
     <>
       <ReviewHeader
@@ -80,6 +83,8 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
             scoring={application.scoring}
             scoringStatus={application.scoringStatus}
             scoringIssue={application.scoringIssue}
+            isRestarted={restartScoring.isWaiting}
+            onRefresh={() => void detail.refresh(application.id)}
             action={<RestartScoringButton application={application} store={restartScoring} />}
           />
           <HistorySection history={application.history} />

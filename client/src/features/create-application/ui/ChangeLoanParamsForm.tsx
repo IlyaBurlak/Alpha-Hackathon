@@ -13,6 +13,8 @@ import { LoanParamsFields } from './LoanParamsFields'
 interface ChangeLoanParamsFormProps {
   /** The draft being edited: its goal, sum and term fill the form. */
   application: Application
+  /** The kind of the company decides which products, and so which sums, the bank offers. */
+  isLegalEntity: boolean
   /** Gets the new application created for the changed parameters. */
   onCreated: (application: Application) => void
 }
@@ -23,15 +25,20 @@ interface ChangeLoanParamsFormProps {
  */
 export const ChangeLoanParamsForm = observer(function ChangeLoanParamsForm({
   application,
+  isLegalEntity,
   onCreated,
 }: ChangeLoanParamsFormProps) {
   const [form] = useState(
     () =>
-      new CreateApplicationFormStore(application.organizationId, {
-        goal: application.goal,
-        sum: application.sum,
-        termInMonths: getTermInMonths(application.creditTime),
-      }),
+      new CreateApplicationFormStore(
+        application.organizationId,
+        {
+          goal: application.goal,
+          sum: application.sum,
+          termInMonths: getTermInMonths(application.creditTime),
+        },
+        { isLegalEntity },
+      ),
   )
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

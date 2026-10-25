@@ -28,16 +28,16 @@ export function ScheduleView({ variants, startDate, isExpanded, onToggleExpanded
             <tr>
               <th rowSpan={2}>№</th>
               <th rowSpan={2}>Дата</th>
-              {variants.map(({ kind, label }) => (
-                <th key={kind} colSpan={3} className={styles.group}>
-                  <VariantSwatch tone={kind} className={styles.swatchSpacing} />
+              {variants.map(({ id, tone, label }) => (
+                <th key={id} colSpan={3} className={styles.group}>
+                  <VariantSwatch tone={tone} className={styles.swatchSpacing} />
                   {label}
                 </th>
               ))}
             </tr>
             <tr>
-              {variants.map(({ kind }) => (
-                <ScheduleSubheaders key={kind} />
+              {variants.map(({ id }) => (
+                <ScheduleSubheaders key={id} />
               ))}
             </tr>
           </thead>
@@ -46,17 +46,17 @@ export function ScheduleView({ variants, startDate, isExpanded, onToggleExpanded
               <tr key={date.getTime()}>
                 <td className={styles.muted}>{index + 1}</td>
                 <td>{formatDate(date)}</td>
-                {variants.map(({ kind, loan }) => {
+                {variants.map(({ id, loan }) => {
                   const row = loan.schedule[index]
                   if (!row) {
                     return (
-                      <td key={kind} colSpan={3} className={`${styles.right} ${styles.muted}`}>
+                      <td key={id} colSpan={3} className={`${styles.right} ${styles.muted}`}>
                         Погашен
                       </td>
                     )
                   }
                   return (
-                    <ScheduleCells key={kind} payment={row.payment} interest={row.interest} balance={row.balance} />
+                    <ScheduleCells key={id} payment={row.payment} interest={row.interest} balance={row.balance} />
                   )
                 })}
               </tr>
@@ -65,8 +65,8 @@ export function ScheduleView({ variants, startDate, isExpanded, onToggleExpanded
           <tfoot>
             <tr>
               <td colSpan={2}>Итого</td>
-              {variants.map(({ kind, loan }) => (
-                <ScheduleTotals key={kind} payout={loan.totalPayout} interest={loan.totalInterest} />
+              {variants.map(({ id, loan }) => (
+                <ScheduleTotals key={id} payout={loan.totalPayout} interest={loan.totalInterest} />
               ))}
             </tr>
           </tfoot>
