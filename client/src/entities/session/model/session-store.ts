@@ -6,6 +6,11 @@ import { readSessionClaims } from '../lib/read-session-claims'
 import { isTokenExpired } from '../lib/token-expiry'
 import type { SessionClaims } from '../lib/read-session-claims'
 
+interface SignInOptions {
+  /** `true` keeps the session after the tab is closed. */
+  isPersistent?: boolean
+}
+
 export class SessionStore {
   token: string | null = null
 
@@ -26,9 +31,9 @@ export class SessionStore {
     return this.token === null ? null : readSessionClaims(this.token)
   }
 
-  signIn(token: string): void {
+  signIn(token: string, { isPersistent = false }: SignInOptions = {}): void {
     this.token = token
-    tokenStorage.set(token)
+    tokenStorage.set(token, { isPersistent })
   }
 
   /** Forgets the token and the personal drafts kept for the tab. */

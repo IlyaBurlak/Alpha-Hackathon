@@ -34,7 +34,7 @@ afterEach(() => {
 })
 
 describe('tokenStorage', () => {
-  it('keeps the token in the session of the tab and never in the storage that outlives it', () => {
+  it('keeps the token in the session of the tab by default, not in the storage that outlives it', () => {
     tokenStorage.set('secret')
 
     expect(sessionStorage.getItem('auth-token')).toBe('secret')
@@ -42,19 +42,30 @@ describe('tokenStorage', () => {
     expect(tokenStorage.get()).toBe('secret')
   })
 
-  it('removes a token an earlier version left in localStorage and does not use it', () => {
-    localStorage.setItem('auth-token', 'old-persistent-token')
+  it('keeps the token after the tab is closed only when the user asked to be remembered', () => {
+    tokenStorage.set('secret', { isPersistent: true })
 
-    expect(tokenStorage.get()).toBeNull()
-    expect(localStorage.getItem('auth-token')).toBeNull()
+    expect(localStorage.getItem('auth-token')).toBe('secret')
+    expect(sessionStorage.getItem('auth-token')).toBeNull()
+    expect(tokenStorage.get()).toBe('secret')
   })
 
-  it('forgets the token', () => {
-    tokenStorage.set('secret')
+  it('keeps one token: a new sign-in replaces the one in the other storage', () => {
+    tokenStorage.set('remembered', { isPersistent: true })
+
+    tokenStorage.set('for-the-tab')
+
+    expect(localStorage.getItem('auth-token')).toBeNull()
+    expect(tokenStorage.get()).toBe('for-the-tab')
+  })
+
+  it('forgets the token wherever it is kept', () => {
+    tokenStorage.set('secret', { isPersistent: true })
 
     tokenStorage.clear()
 
     expect(tokenStorage.get()).toBeNull()
+    expect(localStorage.getItem('auth-token')).toBeNull()
   })
 
   it('works without any storage', () => {

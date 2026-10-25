@@ -69,16 +69,30 @@ describe('StaffLoginFormStore', () => {
     expect(form.errorMessage).toBeNull()
   })
 
-  it('keeps the token only for the tab, never in the storage that outlives it', async () => {
+  it('keeps the token only for the tab unless the employee asks to be remembered', async () => {
     vi.mocked(requestEmployeeToken).mockResolvedValue(createToken({ login: 'kim', isAdmin: true }))
     const { form } = createForm()
     form.setLogin('kim')
     form.setPassword('demo2026')
 
+    expect(form.isRemembered).toBe(false)
     await form.submit()
 
     expect(localStorage.getItem('auth-token')).toBeNull()
     expect(sessionStorage.getItem('auth-token')).not.toBeNull()
+  })
+
+  it('keeps the session after the tab is closed when "remember me" is on', async () => {
+    vi.mocked(requestEmployeeToken).mockResolvedValue(createToken({ login: 'kim', isAdmin: true }))
+    const { form } = createForm()
+    form.setLogin('kim')
+    form.setPassword('demo2026')
+    form.setRemembered(true)
+
+    await form.submit()
+
+    expect(localStorage.getItem('auth-token')).not.toBeNull()
+    expect(sessionStorage.getItem('auth-token')).toBeNull()
   })
 
   it('shows the message of the backend and marks the password', async () => {

@@ -55,11 +55,30 @@ describe('SessionStore', () => {
     expect(sessionStorage.getItem('auth-token')).toBeNull()
   })
 
-  it('does not resume a session from a token an earlier version left in localStorage', () => {
+  it('resumes a remembered session in a new tab', () => {
     localStorage.setItem('auth-token', createToken({ login: 'alfaSergey', exp: FUTURE }))
+
+    expect(new SessionStore().claims).toEqual({ login: 'alfaSergey', role: 'entrepreneur' })
+  })
+
+  it('forgets a remembered token that has expired', () => {
+    localStorage.setItem('auth-token', createToken({ login: 'alfaSergey', exp: PAST }))
 
     expect(new SessionStore().isAuthenticated).toBe(false)
     expect(localStorage.getItem('auth-token')).toBeNull()
+  })
+
+  it('signs in for the tab by default and for good when asked to remember', () => {
+    const token = createToken({ login: 'alfaSergey', exp: FUTURE })
+    const session = new SessionStore()
+
+    session.signIn(token)
+    expect(sessionStorage.getItem('auth-token')).toBe(token)
+    expect(localStorage.getItem('auth-token')).toBeNull()
+
+    session.signIn(token, { isPersistent: true })
+    expect(localStorage.getItem('auth-token')).toBe(token)
+    expect(sessionStorage.getItem('auth-token')).toBeNull()
   })
 
   it('forgets the token and the personal drafts on sign-out', () => {
