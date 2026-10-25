@@ -1,11 +1,12 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { ApplicationService } from '../../src/api/applications/application.service';
-import { ApplicationEntity, ApplicationStatus } from '../../src/api/applications/entity/application.entity';
+import { ApplicationStatus } from '../../src/api/applications/entity/application.entity';
 import type { IApplicationRepository } from '../../src/api/applications/application.repository.interface';
 import type { IUserRepository } from '../../src/api/user/user.repository.interface';
 import type { IGatewayService } from '../../src/api/gateway/gateway.service.interface';
 import type { OperatorSolution } from '../../src/api/applications/entity/operator.solution';
+import { buildApplication } from './fixtures/application';
 
 const NOOP_GATEWAY: IGatewayService = {
   getBanksProducts: async () => [],
@@ -13,21 +14,6 @@ const NOOP_GATEWAY: IGatewayService = {
   getRegisterInfo: async () => undefined,
   getMlScoring: async () => undefined,
 };
-
-function buildApplication(overrides: Record<string, unknown> = {}): ApplicationEntity {
-  return new ApplicationEntity({
-    id: 1,
-    userId: 1,
-    organizationId: 1,
-    sum: 50000,
-    status: ApplicationStatus.SPECIALPRODUCTOFFERED,
-    createdAt: new Date(),
-    creditTimeUnits: 2,
-    creditValue: 12,
-    loanIssuanceDate: new Date(),
-    ...overrides,
-  });
-}
 
 function buildService(repoOverrides: Partial<Record<keyof IApplicationRepository, unknown>> = {}) {
   const fakeAppRepo = {

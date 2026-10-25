@@ -1,12 +1,14 @@
 import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import { setImmediate } from 'node:timers/promises';
 import { sequelize } from '../../src/database/dbconfig';
 import { ApplicationService } from '../../src/api/applications/application.service';
-import { ApplicationEntity, ApplicationStatus, CreditTimeUnits } from '../../src/api/applications/entity/application.entity';
+import type { ApplicationEntity } from '../../src/api/applications/entity/application.entity';
 import { OrganizationEntity, OrganizationType } from '../../src/api/organizations/entity/organization.entity';
 import type { IApplicationRepository } from '../../src/api/applications/application.repository.interface';
 import type { IUserRepository } from '../../src/api/user/user.repository.interface';
 import type { IGatewayService } from '../../src/api/gateway/gateway.service.interface';
+import { buildApplication } from './fixtures/application';
 
 // sequelize.transaction(cb) is called directly by createApplication/
 // confirmApplication/getApplicationById — replacing it with a stub that just
@@ -25,21 +27,6 @@ const EMPTY_PRODUCTS_GATEWAY: IGatewayService = {
   getRegisterInfo: async () => undefined,
   getMlScoring: async () => undefined,
 };
-
-function buildApplication(overrides: Record<string, unknown> = {}): ApplicationEntity {
-  return new ApplicationEntity({
-    id: 1,
-    userId: 1,
-    organizationId: 1,
-    sum: 50000,
-    status: ApplicationStatus.DRAFT,
-    createdAt: new Date(),
-    creditTimeUnits: CreditTimeUnits.MONTH,
-    creditValue: 12,
-    loanIssuanceDate: new Date(),
-    ...overrides,
-  });
-}
 
 function buildService(opts: {
   appRepo?: Partial<Record<keyof IApplicationRepository, unknown>>;
@@ -139,6 +126,9 @@ test('confirmApplication confirms with a valid product', async (t) => {
   });
 
   const result = await service.confirmApplication(1, 1, 1);
+  // confirmApplication fires handleApplication's scoring chain without awaiting
+  // it; flush pending microtasks so it settles before the test (and mocks) go away.
+  await setImmediate();
 
   const confirmMock = fakeAppRepo.confirmApplication as unknown as ReturnType<typeof mock.fn>;
   assert.equal(confirmMock.mock.callCount(), 1);

@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ApplicationService } from '../../src/api/applications/application.service';
-import { ApplicationEntity, CreditTimeUnits } from '../../src/api/applications/entity/application.entity';
+import { CreditTimeUnits } from '../../src/api/applications/entity/application.entity';
 import { OrganizationEntity, OrganizationType } from '../../src/api/organizations/entity/organization.entity';
 import type { IApplicationRepository } from '../../src/api/applications/application.repository.interface';
 import type { IUserRepository } from '../../src/api/user/user.repository.interface';
 import type { IGatewayService } from '../../src/api/gateway/gateway.service.interface';
+import { buildApplication } from './fixtures/application';
 
 function freshBankProducts() {
   return [
@@ -48,22 +49,6 @@ function buildService() {
     getMlScoring: async () => undefined,
   };
   return new ApplicationService(fakeAppRepo, fakeUserRepo, fakeGateway);
-}
-
-function buildApplication(overrides: Partial<ApplicationEntity> = {}): ApplicationEntity {
-  return new ApplicationEntity({
-    id: 1,
-    userId: 1,
-    organizationId: 1,
-    sum: 50000,
-    status: 1,
-    createdAt: new Date(),
-    creditTimeUnits: CreditTimeUnits.MONTH,
-    creditValue: 12,
-    loanIssuanceDate: new Date(),
-    productId: undefined,
-    ...overrides,
-  });
 }
 
 const LEGAL_ENTITY = new OrganizationEntity({ id: 1, inn: '7701234568', fullName: 'ООО "Ромашка"', type: OrganizationType.OO });

@@ -113,6 +113,7 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
       - run: npm ci
+      - run: npm run typecheck:tests
       - run: npm run test:unit
 
   external-systems:
@@ -204,6 +205,7 @@ jobs:
     needs: [changes, client-lint, client-test, client-build, server, server-unit, external-systems, ml, server-integration]
     if: |
       always() &&
+      needs.changes.result == 'success' &&
       (needs.changes.outputs.client == 'true' || needs.changes.outputs.server == 'true' || startsWith(github.ref, 'refs/tags/v')) &&
       (needs.client-lint.result == 'success' || needs.client-lint.result == 'skipped') &&
       (needs.client-test.result == 'success' || needs.client-test.result == 'skipped') &&
