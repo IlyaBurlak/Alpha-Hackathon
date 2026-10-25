@@ -5,6 +5,11 @@ import type { Decision } from '../../model/types'
 import { operatorToEmployeeId, toStaffApplicationDto } from './to-staff-dto'
 
 const APPLICATIONS_PATH = '/applications'
+
+/** The id comes from the address of the page: it is encoded so that it cannot add or climb a segment of the path. */
+function applicationPath(applicationId: string): string {
+  return `${APPLICATIONS_PATH}/${encodeURIComponent(applicationId)}`
+}
 const UNSUPPORTED_STATUS = 501
 const DRAFT_STATUS = 'DRAFT'
 const OFFER_PAYMENTS = 'ежемесячно, равными долями'
@@ -54,7 +59,7 @@ async function loadScoredApplication(listItem: Record<string, unknown>, id: stri
   const cached = scoreCache.get(id)
   if (cached?.signature === signature) return cached.scored
   try {
-    const scored = await httpClient.get(`${APPLICATIONS_PATH}/${id}/score`)
+    const scored = await httpClient.get(`${applicationPath(id)}/score`)
     scoreCache.set(id, { signature, scored })
     return scored
   } catch {
@@ -76,19 +81,19 @@ export async function fetchBackendApplications(now: number): Promise<unknown[]> 
 
 /** GET /applications/:id/score */
 export async function fetchBackendApplication(applicationId: string, now: number): Promise<unknown> {
-  const dto = toStaffApplicationDto(await httpClient.get(`${APPLICATIONS_PATH}/${applicationId}/score`), now)
+  const dto = toStaffApplicationDto(await httpClient.get(`${applicationPath(applicationId)}/score`), now)
   if (dto === null) throw new ApiError(404, 'Заявка ещё не отправлена клиентом')
   return dto
 }
 
 /** POST /applications/:id/take: the operator of the token becomes the one responsible. */
 export async function takeBackendApplication(applicationId: string): Promise<void> {
-  await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/take`, {})
+  await httpClient.post(`${applicationPath(applicationId)}/take`, {})
 }
 
 /** POST /applications/:id/restart: the backend runs the whole scoring again and overwrites the previous data. */
 export async function restartBackendScoring(applicationId: string): Promise<void> {
-  await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/restart`, {})
+  await httpClient.post(`${applicationPath(applicationId)}/restart`, {})
 }
 
 function toSolutionBody(decision: Decision): Record<string, unknown> {
@@ -118,7 +123,7 @@ function toSolutionBody(decision: Decision): Record<string, unknown> {
 /** POST /applications/:id/solution; the backend lets only the responsible operator decide. */
 export async function sendBackendDecision(applicationId: string, decision: Decision): Promise<void> {
   const body = toSolutionBody(decision)
-  await httpClient.post(`${APPLICATIONS_PATH}/${applicationId}/solution`, body)
+  await httpClient.post(`${applicationPath(applicationId)}/solution`, body)
 }
 
 export function rejectUnsupportedReopen(): never {

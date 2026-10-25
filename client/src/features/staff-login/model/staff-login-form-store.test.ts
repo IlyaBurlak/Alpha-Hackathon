@@ -69,12 +69,11 @@ describe('StaffLoginFormStore', () => {
     expect(form.errorMessage).toBeNull()
   })
 
-  it('keeps the session only for the tab when "remember me" is off', async () => {
+  it('keeps the token only for the tab, never in the storage that outlives it', async () => {
     vi.mocked(requestEmployeeToken).mockResolvedValue(createToken({ login: 'kim', isAdmin: true }))
     const { form } = createForm()
     form.setLogin('kim')
     form.setPassword('demo2026')
-    form.setRemembered(false)
 
     await form.submit()
 

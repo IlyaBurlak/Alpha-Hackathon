@@ -11,8 +11,6 @@ const NOT_AN_EMPLOYEE_MESSAGE = 'Этот аккаунт не относится
 export class StaffLoginFormStore {
   login = ''
   password = ''
-  /** Keeps the session after the tab is closed. */
-  isRemembered = true
   isSubmitting = false
   errorMessage: string | null = null
   /** The fields to mark red: the one that is empty, or the password after a wrong login. */
@@ -35,10 +33,6 @@ export class StaffLoginFormStore {
     this.password = password
   }
 
-  setRemembered(isRemembered: boolean): void {
-    this.isRemembered = isRemembered
-  }
-
   /** Returns `true` when the employee is signed in. */
   async submit(): Promise<boolean> {
     if (this.isSubmitting) return false
@@ -51,7 +45,7 @@ export class StaffLoginFormStore {
     this.startSubmitting()
     try {
       const token = await requestEmployeeToken({ login, password: this.password })
-      this.session.signIn(token, { isPersistent: this.isRemembered })
+      this.session.signIn(token)
       const claims = this.session.claims
       if (claims?.role !== USER_ROLES.employee || claims.login === null) {
         this.session.signOut()

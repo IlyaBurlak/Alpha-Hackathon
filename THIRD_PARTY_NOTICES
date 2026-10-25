@@ -12,6 +12,7 @@ This project uses the following third-party software:
 | [FastAPI](https://fastapi.tiangolo.com/) | MIT | Web framework for ML service |
 | [Pydantic](https://docs.pydantic.dev/) | MIT | Data validation and schemas |
 | [uvicorn](https://www.uvicorn.org/) | BSD-3-Clause | ASGI server |
+| [Manrope](https://github.com/sharanda/manrope) | OFL-1.1 | Font of the client, served from the site itself (`client/public/fonts`) |
 
 ## Data Notice
 

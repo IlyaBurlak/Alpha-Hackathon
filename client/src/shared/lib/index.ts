@@ -17,7 +17,7 @@ export {
 export { formatPhone, isCompletePhone } from './input-mask/phone'
 export { isRecord } from './guards/is-record'
 export { decodeJwtPayload } from './jwt/decode-jwt-payload'
-export { jsonStorage } from './storage/json-storage'
+export { jsonStorage, sessionJsonStorage } from './storage/json-storage'
 export { clamp } from './math/clamp'
 export { pluralize } from './text/plural'
 export { tokenStorage } from './storage/token-storage'

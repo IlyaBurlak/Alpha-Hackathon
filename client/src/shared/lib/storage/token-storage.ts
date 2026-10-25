@@ -1,41 +1,41 @@
 const TOKEN_KEY = 'auth-token'
 
-interface TokenStorageOptions {
-  /** `false` keeps the token only until the tab is closed ("do not remember me"). */
-  isPersistent: boolean
-}
-
-function readFrom(storage: () => Storage): string | null {
+/**
+ * The token lives in `sessionStorage`: it belongs to one tab and is gone when the tab is closed, so a token does not
+ * stay on a shared computer. An earlier version kept it in `localStorage`, where it outlived the session; such a copy
+ * is removed on every access.
+ */
+function removeLegacyToken(): void {
   try {
-    return storage().getItem(TOKEN_KEY)
+    localStorage.removeItem(TOKEN_KEY)
   } catch {
-    return null
-  }
-}
-
-function removeFrom(storage: () => Storage): void {
-  try {
-    storage().removeItem(TOKEN_KEY)
-  } catch {
-    // Nothing to clear when storage is unavailable.
+    // Without localStorage there is no old copy to remove.
   }
 }
 
 export const tokenStorage = {
   get(): string | null {
-    return readFrom(() => localStorage) ?? readFrom(() => sessionStorage)
-  },
-  set(token: string, { isPersistent }: TokenStorageOptions = { isPersistent: true }): void {
-    this.clear()
+    removeLegacyToken()
     try {
-      const storage = isPersistent ? localStorage : sessionStorage
-      storage.setItem(TOKEN_KEY, token)
+      return sessionStorage.getItem(TOKEN_KEY)
+    } catch {
+      return null
+    }
+  },
+  set(token: string): void {
+    removeLegacyToken()
+    try {
+      sessionStorage.setItem(TOKEN_KEY, token)
     } catch {
       // The session then lives only until reload.
     }
   },
   clear(): void {
-    removeFrom(() => localStorage)
-    removeFrom(() => sessionStorage)
+    removeLegacyToken()
+    try {
+      sessionStorage.removeItem(TOKEN_KEY)
+    } catch {
+      // Nothing to clear when storage is unavailable.
+    }
   },
 }
