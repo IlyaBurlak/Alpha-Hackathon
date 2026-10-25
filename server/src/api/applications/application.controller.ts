@@ -55,12 +55,18 @@ export class ApplicationController extends BaseController implements IApplicatio
         middleware: [passport.authenticate('jwt', { session: false })]
       },
       {
+        path: '/:id/sign',
+        method: 'put',
+        func: this.sign,
+        middleware: [passport.authenticate('jwt', { session: false })]
+      },
+      {
         path: '/:id/score',
         method: 'get',
         func: this.getApplicationWithScore,
         middleware: [passport.authenticate('jwt', { session: false })]
       },
-        {
+     {
         path: '/:id/special',
         method: 'put',
         func: this.confirmSpecialProduct,
@@ -375,6 +381,21 @@ export class ApplicationController extends BaseController implements IApplicatio
                 return;
             }
             const result = await this.applicationService.acceptSpecialProduct(applicationId, status, userId);
+            res.json(true)
+        }  catch (err) {
+            next(err);
+        }
+      }
+
+      async sign(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const applicationId = Number(req.params.id); 
+            const userId = (req.user as { id?: number } | undefined)?.id;
+            if (!userId) {
+                res.status(400).json({ error: 'Не указан User ID' });
+                return;
+            }
+            await this.applicationService.signApplication(applicationId, userId);
             res.json(true)
         }  catch (err) {
             next(err);

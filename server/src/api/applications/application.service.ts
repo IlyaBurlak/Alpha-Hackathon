@@ -256,6 +256,18 @@ export class ApplicationService implements IApplicationService {
         return this.applicationRepository.updateApplicationStatus(applicationId, status);
     }
 
+    async signApplication(applicationId: number, userId: number): Promise<void> {
+
+        const application = await this.applicationRepository.getApplicationById(applicationId);
+        if (application.userId !== userId) {
+            throw new Error(`Нет доступа к заявке`);
+        }
+        if (application.status !== ApplicationStatus.SPECIALPRODUCTACCEPTED && application.status !== ApplicationStatus.APPROVED) {
+            throw new Error(`Заявка не находится в статусе SPECIALPRODUCTOFFERED`);
+        }
+        return this.applicationRepository.updateApplicationStatus(applicationId, ApplicationStatus.SIGNED);
+    }
+
     
 
 }

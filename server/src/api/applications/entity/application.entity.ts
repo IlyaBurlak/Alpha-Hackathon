@@ -20,7 +20,8 @@ export enum ApplicationStatus {
     REJECTED = 4,
     SPECIALPRODUCTOFFERED = 5,
     SPECIALPRODUCTACCEPTED = 6,
-    SPECIALPRODUCTREJECTED = 7
+    SPECIALPRODUCTREJECTED = 7,
+    SIGNED = 8
 }
 
 export class ApplicationEntity {

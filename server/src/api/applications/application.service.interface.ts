@@ -12,5 +12,6 @@ export interface IApplicationService {
   saveOperatorSolution(applicationId: number, solution: OperatorSolution, operatorId: number): Promise<void>;
   getAllApplicationsForOperator(): Promise<ApplicationEntity[]>;
   takeApplicationForOperator(applicationId: number, operatorId: number): Promise<void>;
-  acceptSpecialProduct(applicationId: number, status: ApplicationStatus, userId: number): Promise<void>
+  acceptSpecialProduct(applicationId: number, status: ApplicationStatus, userId: number): Promise<void>;
+  signApplication(applicationId: number, userId: number): Promise<void> 
 }
