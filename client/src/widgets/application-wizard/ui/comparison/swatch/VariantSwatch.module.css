@@ -7,12 +7,20 @@
   background: var(--variant-color);
 }
 
-.plain {
+.first {
   --variant-color: var(--color-text);
 }
 
-.secured {
+.second {
   --variant-color: var(--color-red);
+}
+
+.third {
+  --variant-color: var(--color-link);
+}
+
+.fourth {
+  --variant-color: var(--color-positive);
 }
 
 .neutral {

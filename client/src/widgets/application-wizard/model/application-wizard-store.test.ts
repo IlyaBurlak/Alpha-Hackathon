@@ -74,8 +74,7 @@ describe('ApplicationWizardStore: variants and steps', () => {
 
     expect(store.step).toBe(1)
     expect(store.selectedOffer).toBeNull()
-    expect(store.variants.plain?.id).toBe(2)
-    expect(store.variants.secured?.id).toBe(1)
+    expect(store.variants.offers.map(({ id }) => id)).toEqual([2, 1])
   })
 
   it('moves to the data step after a variant is picked', () => {

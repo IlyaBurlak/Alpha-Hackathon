@@ -1,9 +1,9 @@
-import { getApprovalChance, suggestLowerSum } from '@/entities/application'
+import { getApprovalChance, isSecuredOffer, suggestLowerSum } from '@/entities/application'
 import type { CreditVariants } from '@/entities/application'
 import { Button } from '@/shared/ui'
 import { formatMoneyShort, formatPercent } from '@/shared/lib'
 
-import { buildComparison } from '../../lib/comparison'
+import { buildComparison, getVariantTone } from '../../lib/comparison'
 import type { ComparisonTab } from '../../model/application-wizard-store'
 import { ComparisonSection } from '../comparison/ComparisonSection'
 import styles from './VariantStep.module.css'
@@ -23,16 +23,22 @@ interface VariantStepProps {
   onApplySuggestedSum: (sum: number) => void
 }
 
-function getAdvice({ plain, secured, recommended }: CreditVariants): string | null {
-  if (recommended === 'secured') return 'Без залога шанс одобрения невысокий. Залог заметно повышает его и снижает ставку.'
-  if (recommended === 'plain') return 'Без залога шанс одобрения хороший, оформить можно быстрее.'
+function getAdvice({ offers, recommendedId }: CreditVariants): string | null {
+  const recommended = offers.find(({ id }) => id === recommendedId)
+  if (recommended) {
+    return isSecuredOffer(recommended)
+      ? 'Без залога шанс одобрения невысокий. Залог заметно повышает его и снижает ставку.'
+      : 'Без залога шанс одобрения хороший, оформить можно быстрее.'
+  }
+  const plain = offers.filter((offer) => !isSecuredOffer(offer)).sort((first, second) => first.interestRate - second.interestRate)[0]
+  const secured = offers.filter(isSecuredOffer).sort((first, second) => first.interestRate - second.interestRate)[0]
   if (plain && secured && secured.interestRate < plain.interestRate) {
     return `С залогом ставка ниже на ${formatPercent(plain.interestRate - secured.interestRate)}.`
   }
   return null
 }
 
-/** Step 1: the best offer without and with collateral and their comparison. */
+/** Step 1: every offer of the bank for the sum and the term, and their comparison. */
 export function VariantStep({
   variants,
   organizationId,
@@ -45,14 +51,14 @@ export function VariantStep({
   onToggleScheduleExpanded,
   onApplySuggestedSum,
 }: VariantStepProps) {
-  const { plain, secured, recommended } = variants
+  const { offers, recommendedId } = variants
   const advice = getAdvice(variants)
   const compared = buildComparison(variants)
-  const scoredOffer = (recommended === null ? plain : variants[recommended]) ?? secured
+  const scoredOffer = offers.find(({ id }) => id === recommendedId) ?? offers[0]
   const scoring = scoredOffer?.scoring ?? null
-  const bestScore = Math.max(plain?.scoring?.score ?? 0, secured?.scoring?.score ?? 0)
+  const bestScore = Math.max(0, ...offers.map((offer) => offer.scoring?.score ?? 0))
   const suggestion = scoring
-    ? suggestLowerSum({ organizationId, sum, hasSecuredVariant: secured !== null, bestScore })
+    ? suggestLowerSum({ organizationId, sum, hasSecuredVariant: offers.some(isSecuredOffer), bestScore })
     : null
 
   return (
@@ -71,20 +77,16 @@ export function VariantStep({
         advice && <p className={styles.hint}>{advice}</p>
       )}
       <div className={styles.variants}>
-        <VariantCard
-          kind="plain"
-          offer={plain}
-          isRecommended={recommended === 'plain'}
-          isSelected={plain !== null && plain.id === selectedOfferId}
-          onPick={onPick}
-        />
-        <VariantCard
-          kind="secured"
-          offer={secured}
-          isRecommended={recommended === 'secured'}
-          isSelected={secured !== null && secured.id === selectedOfferId}
-          onPick={onPick}
-        />
+        {offers.map((offer, index) => (
+          <VariantCard
+            key={offer.id}
+            offer={offer}
+            tone={getVariantTone(index)}
+            isRecommended={offer.id === recommendedId}
+            isSelected={offer.id === selectedOfferId}
+            onPick={onPick}
+          />
+        ))}
       </div>
       <ComparisonSection
         variants={compared}

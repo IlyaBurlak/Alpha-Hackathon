@@ -20,10 +20,6 @@
   box-shadow: 0 0 0 4px var(--color-positive-soft);
 }
 
-.unavailable {
-  opacity: 0.6;
-}
-
 .cardTop {
   display: flex;
   justify-content: space-between;
@@ -48,8 +44,20 @@
   background: var(--color-text);
 }
 
-.kindDotSecured {
+.first {
+  background: var(--color-text);
+}
+
+.second {
   background: var(--color-red);
+}
+
+.third {
+  background: var(--color-link);
+}
+
+.fourth {
+  background: var(--color-positive);
 }
 
 .cardTitle {

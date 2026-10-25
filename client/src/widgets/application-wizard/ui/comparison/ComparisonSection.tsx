@@ -15,7 +15,7 @@ import { StructureView } from './StructureView'
 
 const TAB_OPTIONS: ReadonlyArray<{ value: ComparisonTab; label: string }> = [
   { value: 'structure', label: 'Структура выплат' },
-  { value: 'balance', label: 'Выплаты по месяцам' },
+  { value: 'balance', label: 'Переплата по месяцам' },
   { value: 'schedule', label: 'График платежей' },
 ]
 
@@ -28,31 +28,20 @@ interface ComparisonSectionProps {
   onToggleScheduleExpanded: () => void
 }
 
-function getWinner(difference: number, wins: string, loses: string): string {
-  return difference > 0 ? wins : loses
-}
-
 interface DifferenceCardsProps {
   difference: ComparisonDifference
 }
 
+/** Who has the smaller figure: the cheapest offer when the difference is positive, otherwise the other one. */
+function getSmaller(value: number, { cheapest, priciest }: ComparisonDifference, word: string): string {
+  return `${word} у «${(value > 0 ? cheapest : priciest).label}»`
+}
+
 function DifferenceCards({ difference }: DifferenceCardsProps) {
   const cards = [
-    {
-      label: 'Разница в переплате',
-      value: formatMoney(Math.abs(difference.overpayment)),
-      note: getWinner(difference.overpayment, 'меньше с залогом', 'меньше без залога'),
-    },
-    {
-      label: 'Разница в платеже',
-      value: formatMoney(Math.abs(difference.monthlyPayment)),
-      note: getWinner(difference.monthlyPayment, 'в месяц меньше с залогом', 'в месяц меньше без залога'),
-    },
-    {
-      label: 'Разница в ставке',
-      value: formatPercent(Math.abs(difference.rate)),
-      note: getWinner(difference.rate, 'ниже с залогом', 'ниже без залога'),
-    },
+    { label: 'Разница в переплате', value: formatMoney(Math.abs(difference.overpayment)), note: getSmaller(difference.overpayment, difference, 'меньше') },
+    { label: 'Разница в платеже', value: formatMoney(Math.abs(difference.monthlyPayment)), note: getSmaller(difference.monthlyPayment, difference, 'в месяц меньше') },
+    { label: 'Разница в ставке', value: formatPercent(Math.abs(difference.rate)), note: getSmaller(difference.rate, difference, 'ниже') },
   ]
   return (
     <div className={styles.diff}>
@@ -67,7 +56,7 @@ function DifferenceCards({ difference }: DifferenceCardsProps) {
   )
 }
 
-/** Variants side by side: how the payout splits into loan and interest, the monthly balance chart and the schedule. */
+/** Offers side by side: how the payout splits into loan and interest, the monthly balance chart and the schedule. */
 export function ComparisonSection({
   variants,
   sum,
@@ -94,16 +83,16 @@ export function ComparisonSection({
         {tab === 'balance' && (
           <>
             <div className={styles.legend}>
-              {variants.map(({ kind, label, offer }) => (
-                <span key={kind}>
-                  <VariantSwatch tone={kind} />
+              {variants.map(({ id, tone, label, offer }) => (
+                <span key={id}>
+                  <VariantSwatch tone={tone} />
                   {label}, {formatCreditTime(offer.creditTime)}
                 </span>
               ))}
             </div>
             <BalanceChart variants={variants} sum={sum} />
             <p className={styles.chartNote}>
-              Сколько всего вы заплатите банку к каждому месяцу. Наведите на график, чтобы увидеть сумму и остаток долга.
+              Сколько процентов вы отдадите банку к каждому месяцу. Чем дальше линии друг от друга, тем дороже обходится продукт. Наведите на график: увидите переплату и остаток долга.
             </p>
           </>
         )}

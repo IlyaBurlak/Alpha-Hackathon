@@ -12,15 +12,18 @@ import { LoanParamsFields } from './LoanParamsFields'
 interface CreateApplicationFormProps {
   /** The form is bound to one organization: remount it (`key`) when the organization changes. */
   organizationId: number
+  /** The kind of the company decides which products, and so which sums, the bank offers. */
+  isLegalEntity: boolean
   onCreated: (application: Application) => void
 }
 
 /** The "what do you need money for" panel: goal, sum and term lead to the offers. */
 export const CreateApplicationForm = observer(function CreateApplicationForm({
   organizationId,
+  isLegalEntity,
   onCreated,
 }: CreateApplicationFormProps) {
-  const [form] = useState(() => new CreateApplicationFormStore(organizationId))
+  const [form] = useState(() => new CreateApplicationFormStore(organizationId, undefined, { isLegalEntity }))
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
