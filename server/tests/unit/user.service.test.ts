@@ -49,3 +49,17 @@ test('loginOperator rejects when the password does not match', async () => {
 
   await assert.rejects(() => service.loginOperator('alfaOperator1', 'wrong-password'));
 });
+
+test('getUserByLogin delegates to the repository', async () => {
+  const user = buildUser();
+  const service = buildService(user);
+
+  assert.equal(await service.getUserByLogin('alfaTest'), user);
+});
+
+test('getOperatorByLogin delegates to the repository', async () => {
+  const user = buildUser();
+  const service = buildService(user);
+
+  assert.equal(await service.getOperatorByLogin('alfaOperator1'), user);
+});
