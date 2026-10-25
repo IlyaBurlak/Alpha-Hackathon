@@ -105,7 +105,7 @@ describe('StaffLoginFormStore', () => {
 
     expect(form.errorMessage).toBe('Неверный логин или пароль')
     expect(form.invalidFields).toEqual(['password'])
-    expect(session.isAuthenticated).toBe(false)
+    expect(session.token).toBeNull()
     expect(form.isSubmitting).toBe(false)
   })
 
@@ -117,7 +117,7 @@ describe('StaffLoginFormStore', () => {
 
     expect(await form.submit()).toBe(false)
 
-    expect(session.isAuthenticated).toBe(false)
+    expect(session.token).toBeNull()
     expect(form.errorMessage).toBe('Этот аккаунт не относится к сотрудникам банка')
   })
 })

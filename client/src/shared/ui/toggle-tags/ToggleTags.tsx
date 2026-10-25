@@ -23,20 +23,20 @@ export function ToggleTags<Value extends string>({ options, value, onChange, err
 
   return (
     <div>
-    <div className={styles.tags} role="group" aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          className={styles.tag}
-          aria-pressed={option.value === value}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-    {error && <FieldError id={errorId}>{error}</FieldError>}
+      <div className={styles.tags} role="group" aria-describedby={error ? errorId : undefined}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={styles.tag}
+            aria-pressed={option.value === value}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+      {error && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   )
 }

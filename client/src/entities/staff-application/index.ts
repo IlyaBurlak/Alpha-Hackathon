@@ -24,16 +24,13 @@ export {
   QUEUE_FILTERS,
   countByFilter,
   countNavigation,
-  selectModeApplications,
   selectScopedApplications,
   selectQueueRows,
   summarizeQueue,
 } from './lib/queue-selection'
 export type { QueueFilter, QueueMode, QueueSortKey, QueueSummary } from './lib/queue-selection'
 export { formatMoment } from './lib/format-moment'
-export { getSla } from './lib/sla'
 export type { Sla } from './lib/sla'
-export { STAFF_STATUS_VIEWS, isFinalStatus } from './lib/status-view'
 export { QueueViewStoreContext, useQueueViewStore } from './model/queue-view-context'
 export { QueueViewStore } from './model/queue-view-store'
 export { StaffApplicationDetailStore } from './model/staff-application-detail-store'

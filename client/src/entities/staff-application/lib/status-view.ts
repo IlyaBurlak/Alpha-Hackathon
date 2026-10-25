@@ -18,8 +18,3 @@ export const STAFF_STATUS_VIEWS: Record<StaffStatus, StatusView> = {
   [STAFF_STATUSES.approved]: { label: 'Одобрено', tone: 'default', isBlinking: false },
   [STAFF_STATUSES.rejected]: { label: 'Отказ', tone: 'negative', isBlinking: false },
 }
-
-/** Applications the bank has answered for good. */
-export function isFinalStatus(status: StaffStatus): boolean {
-  return status === STAFF_STATUSES.approved || status === STAFF_STATUSES.rejected
-}

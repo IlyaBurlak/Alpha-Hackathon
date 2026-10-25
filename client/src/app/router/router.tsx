@@ -8,6 +8,7 @@ import { CabinetLayout } from '@/widgets/cabinet-shell'
 import { StaffLayout } from '@/widgets/staff-shell'
 
 import { GuestOnly, RequireRole, RootRedirect } from './guards'
+import { RouteError } from './RouteError'
 
 const LoginPage = lazy(() => import('@/pages/login').then((module) => ({ default: module.LoginPage })))
 const AdminPage = lazy(() => import('@/pages/admin').then((module) => ({ default: module.AdminPage })))
@@ -27,41 +28,46 @@ const StaffApplicationPage = lazy(() =>
 )
 
 const router = createBrowserRouter([
-  { path: ROUTES.root, element: <RootRedirect /> },
   {
-    element: <GuestOnly />,
+    errorElement: <RouteError />,
     children: [
-      { path: ROUTES.login, element: <LoginPage /> },
-      { path: ROUTES.staffLogin, element: <StaffLoginPage /> },
-    ],
-  },
-  {
-    element: <RequireRole role={USER_ROLES.entrepreneur} />,
-    children: [
+      { path: ROUTES.root, element: <RootRedirect /> },
       {
-        element: <CabinetLayout />,
+        element: <GuestOnly />,
         children: [
-          { path: ROUTES.cabinet, element: <HomePage /> },
-          { path: ROUTES.applications, element: <ApplicationsPage /> },
-          { path: ROUTES.application, element: <ApplicationPage /> },
-          { path: ROUTES.applicationEdit, element: <ApplicationEditPage /> },
-          { path: ROUTES.help, element: <HelpPage /> },
+          { path: ROUTES.login, element: <LoginPage /> },
+          { path: ROUTES.staffLogin, element: <StaffLoginPage /> },
         ],
       },
-    ],
-  },
-  {
-    element: <RequireRole role={USER_ROLES.employee} />,
-    children: [
-      // The panel switches the external systems of the whole environment: only for employees.
-      { path: ROUTES.admin, element: <AdminPage /> },
       {
-        element: <StaffLayout />,
+        element: <RequireRole role={USER_ROLES.entrepreneur} />,
         children: [
-          { path: ROUTES.staff, element: <StaffQueuePage mode="queue" /> },
-          { path: ROUTES.staffMine, element: <StaffQueuePage mode="mine" /> },
-          { path: ROUTES.staffDone, element: <StaffQueuePage mode="done" /> },
-          { path: ROUTES.staffApplication, element: <StaffApplicationPage /> },
+          {
+            element: <CabinetLayout />,
+            children: [
+              { path: ROUTES.cabinet, element: <HomePage /> },
+              { path: ROUTES.applications, element: <ApplicationsPage /> },
+              { path: ROUTES.application, element: <ApplicationPage /> },
+              { path: ROUTES.applicationEdit, element: <ApplicationEditPage /> },
+              { path: ROUTES.help, element: <HelpPage /> },
+            ],
+          },
+        ],
+      },
+      {
+        element: <RequireRole role={USER_ROLES.employee} />,
+        children: [
+          // The panel switches the external systems of the whole environment: only for employees.
+          { path: ROUTES.admin, element: <AdminPage /> },
+          {
+            element: <StaffLayout />,
+            children: [
+              { path: ROUTES.staff, element: <StaffQueuePage mode="queue" /> },
+              { path: ROUTES.staffMine, element: <StaffQueuePage mode="mine" /> },
+              { path: ROUTES.staffDone, element: <StaffQueuePage mode="done" /> },
+              { path: ROUTES.staffApplication, element: <StaffApplicationPage /> },
+            ],
+          },
         ],
       },
     ],

@@ -1,41 +1,33 @@
-import { makeAutoObservable, observableRef } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 
-import { getErrorMessage } from '@/shared/api'
+import { AsyncResource } from '@/shared/api'
+import type { ResourceState } from '@/shared/api'
 
 import { answerSpecialOffer, getApplication, signApplication } from '../api/applications'
-import { settlePayout } from '../api/mocks/mock-enrichment'
+import { settlePayout } from '../lib/status/settle-payout'
 import type { Application } from './types'
 
-export type ApplicationDetailState =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; application: Application }
-  | { status: 'error'; message: string }
+export type ApplicationDetailState = ResourceState<{ application: Application }>
 
 export class ApplicationDetailStore {
-  state: ApplicationDetailState = { status: 'idle' }
+  private readonly resource = new AsyncResource<{ application: Application }>()
 
   constructor() {
-    makeAutoObservable(this, { state: observableRef })
+    makeAutoObservable(this)
+  }
+
+  get state(): ApplicationDetailState {
+    return this.resource.state
   }
 
   async load(applicationId: number): Promise<void> {
-    this.setState({ status: 'loading' })
-    try {
-      this.setState({ status: 'success', application: await getApplication(applicationId) })
-    } catch (error) {
-      this.setState({ status: 'error', message: getErrorMessage(error) })
-    }
+    await this.resource.load(async () => ({ application: await getApplication(applicationId) }))
   }
 
   /** Updates a shown application quietly (e.g. while the bank reviews it); a failed refresh keeps the old data. */
   async refresh(applicationId: number): Promise<void> {
     if (this.state.status !== 'success') return
-    try {
-      this.setState({ status: 'success', application: await getApplication(applicationId) })
-    } catch {
-      // The application on screen is still valid; the next poll or a reload will show a real error.
-    }
+    await this.resource.refresh(async () => ({ application: await getApplication(applicationId) }))
   }
 
   /** Signs the documents of an approved application and shows the result. */
@@ -53,11 +45,7 @@ export class ApplicationDetailStore {
   /** Shows the loan as issued when the payout timer is over; the payout is a client mock, so nothing is requested. */
   settlePayout(): void {
     if (this.state.status === 'success') {
-      this.setState({ status: 'success', application: settlePayout(this.state.application, Date.now()) })
+      this.resource.set({ application: settlePayout(this.state.application, Date.now()) })
     }
-  }
-
-  private setState(state: ApplicationDetailState): void {
-    this.state = state
   }
 }
