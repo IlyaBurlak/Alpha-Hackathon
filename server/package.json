@@ -6,8 +6,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc --noEmit -p tsconfig.test.json",
     "start": "node dist/index.js",
-    "test:integration": "tsx --test --import allure-node-test/setup --test-reporter spec --test-reporter-destination stdout --test-reporter allure-node-test/reporter --test-reporter-destination stdout tests/integration/**/*.test.ts"
+    "test:unit": "tsx --test \"tests/unit/**/*.test.ts\"",
+    "test:integration": "tsx --test --import allure-node-test/setup --test-reporter spec --test-reporter-destination stdout --test-reporter allure-node-test/reporter --test-reporter-destination stdout \"tests/integration/**/*.test.ts\""
   },
   "keywords": [],
   "author": "",
