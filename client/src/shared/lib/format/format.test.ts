@@ -1,0 +1,114 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  formatDate,
+  formatLongDate,
+  formatMoney,
+  formatMoneyShort,
+  formatMonths,
+  formatPercent,
+  formatWhen,
+  groupDigits,
+  normalizeDigits,
+  parseDigits,
+} from './format'
+
+describe('formatMoney', () => {
+  it('formats rubles without kopecks', () => {
+    expect(formatMoney(1_000_000)).toMatch(/^1\s000\s000\s₽$/)
+  })
+})
+
+describe('formatMoneyShort', () => {
+  it('uses millions from one million up', () => {
+    expect(formatMoneyShort(2_500_000)).toMatch(/^2,5\sмлн\s₽$/)
+  })
+
+  it('uses thousands below one million', () => {
+    expect(formatMoneyShort(300_000)).toMatch(/^300\sтыс\s₽$/)
+  })
+})
+
+describe('formatPercent', () => {
+  it('always shows one decimal', () => {
+    expect(formatPercent(5)).toBe('5,0%')
+    expect(formatPercent(18.9)).toBe('18,9%')
+  })
+})
+
+describe('formatDate', () => {
+  it('formats a date in the Russian locale', () => {
+    expect(formatDate(new Date(2026, 9, 23))).toBe('23.10.2026')
+  })
+})
+
+describe('formatLongDate', () => {
+  it('has no "г." and keeps the day with its month', () => {
+    expect(formatLongDate(new Date(2026, 4, 12))).toBe('12\u00A0мая 2026')
+  })
+})
+
+describe('formatWhen', () => {
+  const now = new Date(2026, 9, 23, 18, 0)
+
+  it('shows the time for today', () => {
+    expect(formatWhen(new Date(2026, 9, 23, 14, 5), now)).toBe('сегодня, 14:05')
+  })
+
+  it('shows the long date for other days', () => {
+    expect(formatWhen(new Date(2026, 4, 12, 10, 20), now)).toBe('12\u00A0мая 2026')
+  })
+})
+
+describe('formatMonths', () => {
+  it('declines the noun', () => {
+    expect(formatMonths(1)).toMatch(/^1\sмесяц$/)
+    expect(formatMonths(24)).toMatch(/^24\sмесяца$/)
+    expect(formatMonths(36)).toMatch(/^36\sмесяцев$/)
+  })
+})
+
+const NBSP = '\u00a0'
+
+describe('groupDigits', () => {
+  it('groups the digits of a typed text and drops everything else', () => {
+    expect(groupDigits('2500000')).toBe(`2${NBSP}500${NBSP}000`)
+    expect(groupDigits('50 000 руб')).toBe(`50${NBSP}000`)
+    expect(groupDigits('abc')).toBe('')
+    expect(groupDigits('')).toBe('')
+  })
+
+  it('keeps the zeros that are left after the first digit is deleted', () => {
+    expect(groupDigits('000000')).toBe(`000${NBSP}000`)
+    expect(groupDigits('0005000000')).toBe(`0${NBSP}005${NBSP}000${NBSP}000`)
+  })
+
+  it('cuts a pasted number that is too long to stay exact', () => {
+    expect(groupDigits('9'.repeat(30)).replace(/\D/g, '')).toHaveLength(12)
+    expect(groupDigits('123456', 4).replace(/\D/g, '')).toBe('1234')
+  })
+})
+
+describe('parseDigits', () => {
+  it('reads grouped digits and treats garbage as zero', () => {
+    expect(parseDigits('2 500 000')).toBe(2_500_000)
+    expect(parseDigits('')).toBe(0)
+    expect(parseDigits('abc')).toBe(0)
+  })
+
+  it('does not lose precision on a very long text', () => {
+    expect(Number.isSafeInteger(parseDigits('9'.repeat(30)))).toBe(true)
+  })
+})
+
+describe('normalizeDigits', () => {
+  it('drops the zeros in front and regroups', () => {
+    expect(normalizeDigits(`0${NBSP}005${NBSP}000`)).toBe(`5${NBSP}000`)
+    expect(normalizeDigits('0050')).toBe('50')
+  })
+
+  it('leaves an empty text empty and a lone zero as zero', () => {
+    expect(normalizeDigits('')).toBe('')
+    expect(normalizeDigits('000')).toBe('0')
+  })
+})

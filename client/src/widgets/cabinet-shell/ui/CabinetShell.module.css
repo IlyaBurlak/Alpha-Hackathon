@@ -1,0 +1,136 @@
+.shell {
+  color-scheme: light only;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  font-family: var(--font-cabinet);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 500;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+:where(.shell),
+:where(.shell) *,
+:where(.shell) *::before,
+:where(.shell) *::after {
+  box-sizing: border-box;
+}
+
+:where(.shell) h1,
+:where(.shell) h2,
+:where(.shell) h3,
+:where(.shell) p {
+  margin: 0;
+}
+
+:where(.shell) h1 {
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+:where(.shell) h2 {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+:where(.shell) h3 {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+:where(.shell) a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:where(.shell) button,
+:where(.shell) input,
+:where(.shell) select,
+:where(.shell) textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:where(.shell) :focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.page {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.panel {
+  grid-column: 2;
+  background: var(--color-surface);
+  margin: 8px 8px 8px 0;
+  border-radius: 24px;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  box-shadow: 0 0 0 1px rgb(3 3 6 / 4%);
+}
+
+.main {
+  padding: 40px 48px 64px;
+  max-width: 1040px;
+  margin: 0 auto;
+  outline: 0;
+}
+
+@media (height <= 860px) and (width > 860px) {
+  .main {
+    padding-top: 24px;
+    padding-bottom: 32px;
+  }
+}
+
+@media (width <= 1100px) {
+  .main {
+    padding: 32px 32px 56px;
+  }
+}
+
+@media (width <= 860px) {
+  .page {
+    height: auto;
+    overflow: visible;
+  }
+
+  .shell {
+    display: block;
+    height: auto;
+  }
+
+  .panel {
+    overflow: visible;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+  }
+
+  .main {
+    padding: 20px 16px calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+
+  :where(.shell) h1 {
+    font-size: 26px;
+    line-height: 32px;
+  }
+}

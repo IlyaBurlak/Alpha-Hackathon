@@ -1,0 +1,15 @@
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--gap-16);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-24);
+  width: 100%;
+  max-width: 400px;
+}
