@@ -239,6 +239,8 @@ export function toStaffApplicationDto(record: StoredRecord, now: number) {
     applicant: record.applicant,
     collateral: record.collateral,
     scoring,
+    scoringStatus: isScored ? 'ready' : 'pending',
+    scoringIssue: null,
     checks,
     recommendation: scoring ? buildRecommendation(input, scoring, checks) : null,
     turnover: buildTurnover(input, now),

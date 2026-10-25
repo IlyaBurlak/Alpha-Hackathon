@@ -76,7 +76,12 @@ export const StaffApplicationReview = observer(function StaffApplicationReview({
           <CompanySection company={application.company} now={now} />
           <FinanceSection application={application} />
           <ChecksSection checks={application.checks} />
-          <ScoringSection scoring={application.scoring} action={<RestartScoringButton application={application} store={restartScoring} />} />
+          <ScoringSection
+            scoring={application.scoring}
+            scoringStatus={application.scoringStatus}
+            scoringIssue={application.scoringIssue}
+            action={<RestartScoringButton application={application} store={restartScoring} />}
+          />
           <HistorySection history={application.history} />
         </div>
         <aside className={styles.decision}>

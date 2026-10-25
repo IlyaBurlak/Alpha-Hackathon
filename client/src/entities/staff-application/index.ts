@@ -37,7 +37,7 @@ export { QueueViewStore } from './model/queue-view-store'
 export { StaffApplicationDetailStore } from './model/staff-application-detail-store'
 export { StaffApplicationListStore } from './model/staff-application-list-store'
 export { StaffApplicationListStoreContext, useStaffApplicationListStore } from './model/staff-application-list-context'
-export { CHECK_LEVELS, DECISION_TYPES, STAFF_STATUSES } from './model/types'
+export { CHECK_LEVELS, DECISION_TYPES, SCORING_STATUSES, STAFF_STATUSES } from './model/types'
 export type {
   CheckLevel,
   CheckResult,
@@ -49,6 +49,7 @@ export type {
   MonthlyTurnover,
   Recommendation,
   RecordedDecision,
+  ScoringStatus,
   ScoringFactor,
   StaffApplicant,
   StaffApplication,

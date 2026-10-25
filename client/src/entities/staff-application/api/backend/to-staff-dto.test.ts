@@ -5,7 +5,29 @@ import { toStaffApplicationDto } from './to-staff-dto'
 
 const NOW = new Date('2026-10-26T12:00:00Z').getTime()
 
-/** Copied from GET /applications/:id/score of a running server (server/README.md). */
+/** The answer of the ML service as the server logs it (docs/ml-contract.md); the server does not keep it yet. */
+const ML_RESULT = {
+  pd: 0.0546,
+  score: 64,
+  risk_class: 'C',
+  rate_premium_pp: 1,
+  model_version: 'logreg-0.1',
+  updated_at: '2026-10-25T14:55:46.000Z',
+  mode: 'full',
+  factors: [
+    { feature: 'bank_client_months', title: 'Стаж клиента банка', description: 'Вы клиент банка 45 мес.', points: 2 },
+    { feature: 'avg_revenue_monthly', title: 'Среднемесячная выручка', description: 'Выручка мала.', points: -5, advice: 'Запросите меньше.' },
+  ],
+}
+
+/** What the server keeps in `mlScore` today. */
+const STUB = { model_version: 'stub-0.0', factors: ['revenue_cv', 'profit_cv'] }
+
+function withScoring(mlScore: unknown) {
+  return { applicationScore: { ...SCORED_APPLICATION.applicationScore, mlScore } }
+}
+
+/** Copied from GET /applications/:id/score of a running server (server/README.md), with the real answer of the model. */
 const SCORED_APPLICATION = {
   id: 1,
   userId: 2,
@@ -47,7 +69,7 @@ const SCORED_APPLICATION = {
       account: '4015****23',
       type: 'ООО',
     },
-    mlScore: {},
+    mlScore: ML_RESULT,
   },
   productId: 4,
   product: {
@@ -77,7 +99,40 @@ describe('toStaffApplicationDto', () => {
       product: { name: 'Кредит для бизнеса с господдержкой', isSecured: false },
       company: { ogrn: '1234567890124', kpp: '500101001', head: 'Василенко Анжелика', employeesCount: 24, annualRevenue: 400_000 },
     })
-    expect(application.scoring).not.toBeNull()
+    expect(application).toMatchObject({
+      scoringStatus: 'ready',
+      scoringIssue: null,
+      scoring: { score: 64, riskClass: 'C', probabilityOfDefault: 0.0546, rate: 6, modelVersion: 'logreg-0.1' },
+    })
+    expect(application.scoring?.factors).toHaveLength(2)
+  })
+
+  it('shows no scoring, and says why, while the backend keeps a stub instead of the answer of the model', () => {
+    const application = mapStaffApplication(convert(withScoring(STUB)))
+
+    expect(application).toMatchObject({ status: 'ready', scoring: null, scoringStatus: 'unavailable', recommendation: null })
+    expect(application.scoringIssue).toContain('pd, score, risk_class')
+    expect(application.checks.map(({ title }) => title)).not.toContain('Платёжеспособность')
+  })
+
+  it('shows no scoring when the backend sent an empty result', () => {
+    expect(mapStaffApplication(convert(withScoring({})))).toMatchObject({ scoring: null, scoringStatus: 'unavailable' })
+  })
+
+  it('shows a running scoring as pending, with no checks and no recommendation', () => {
+    const application = mapStaffApplication(convert({ applicationScore: { ...SCORED_APPLICATION.applicationScore, status: 'WAITNGSCORING' } }))
+
+    expect(application).toMatchObject({ status: 'scoring', scoring: null, scoringStatus: 'pending', scoringIssue: null, checks: [], recommendation: null })
+  })
+
+  it('checks the new payment with the rate of the model', () => {
+    const titles = mapStaffApplication(convert({})).checks.map(({ title }) => title)
+
+    expect(titles).toContain('Платёжеспособность')
+  })
+
+  it('advises from the real score: refuse below the threshold, approve above it when the checks are clear', () => {
+    expect(mapStaffApplication(convert(withScoring({ ...ML_RESULT, score: 30 }))).recommendation?.type).toBe('reject')
   })
 
   it('shows the last twelve account balances as the turnover', () => {
@@ -132,7 +187,7 @@ describe('toStaffApplicationDto', () => {
     const named = { organization: { id: 2, fullName: 'ООО «Кот не знает»', inn: '5001234569', type: 'OO' } }
 
     expect(mapStaffApplication(convert(named)).company).toMatchObject({ name: 'ООО «Кот не знает»', inn: '5001234569' })
-    expect(mapStaffApplication(convert({})).company).toMatchObject({ name: 'Организация №2', inn: '—' })
+    expect(mapStaffApplication(convert({})).company).toMatchObject({ name: 'Название не получено', inn: '—' })
   })
 
   it('shows the signed documents as a final approval and tells an offer from a plain approval', () => {

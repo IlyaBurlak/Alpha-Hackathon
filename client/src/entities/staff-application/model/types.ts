@@ -18,6 +18,10 @@ export const DECISION_TYPES = {
 
 export type DecisionType = (typeof DECISION_TYPES)[keyof typeof DECISION_TYPES]
 
+/** Where the scoring of an application stands: running, done, or finished without a usable result. */
+export const SCORING_STATUSES = { pending: 'pending', ready: 'ready', unavailable: 'unavailable' } as const
+export type ScoringStatus = (typeof SCORING_STATUSES)[keyof typeof SCORING_STATUSES]
+
 export const CHECK_LEVELS = { ok: 'ok', warning: 'warning', fail: 'fail' } as const
 export type CheckLevel = (typeof CHECK_LEVELS)[keyof typeof CHECK_LEVELS]
 
@@ -155,8 +159,11 @@ export interface StaffApplication {
   company: StaffCompany
   applicant: StaffApplicant
   collateral: StaffCollateral | null
-  /** `null` while the model is still calculating. */
+  /** `null` unless `scoringStatus` is `ready`. */
   scoring: StaffScoring | null
+  scoringStatus: ScoringStatus
+  /** Why a finished scoring has no result, for the employee; `null` otherwise. */
+  scoringIssue: string | null
   checks: CheckResult[]
   recommendation: Recommendation | null
   turnover: MonthlyTurnover[]

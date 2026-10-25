@@ -15,6 +15,7 @@ import {
   DECISION_TYPES,
   HISTORY_TONES,
   RISK_CLASSES,
+  SCORING_STATUSES,
   STAFF_STATUSES,
 } from '../model/types'
 import type {
@@ -38,6 +39,7 @@ const STATUS_VALUES = Object.values(STAFF_STATUSES)
 const DECISION_VALUES = Object.values(DECISION_TYPES)
 const CHECK_LEVEL_VALUES = Object.values(CHECK_LEVELS)
 const HISTORY_TONE_VALUES = Object.values(HISTORY_TONES)
+const SCORING_STATUS_VALUES = Object.values(SCORING_STATUSES)
 
 function mapList<Item>(value: unknown, description: string, mapItem: (item: unknown) => Item): Item[] {
   return readArray(value, description).map(mapItem)
@@ -202,6 +204,8 @@ export function mapStaffApplication(value: unknown): StaffApplication {
     applicant: mapApplicant(dto.applicant),
     collateral: mapCollateral(dto.collateral),
     scoring: mapScoring(dto.scoring),
+    scoringStatus: readOneOf(dto, 'scoringStatus', SCORING_STATUS_VALUES),
+    scoringIssue: readOptionalString(dto, 'scoringIssue'),
     checks: mapList(dto.checks, 'checks', mapCheck),
     recommendation: mapRecommendation(dto.recommendation),
     turnover: mapList(dto.turnover, 'turnover', mapTurnover),

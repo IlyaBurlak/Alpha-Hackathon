@@ -177,7 +177,8 @@ const PASSED = 'Пройдена'
 const ATTENTION = 'Внимание'
 const FAILED = 'Не пройдена'
 
-export function buildChecks(input: ReviewInput, rate: number): Check[] {
+/** `rate` is the annual rate of the loan; without it (no scoring result) the check of the new payment is left out. */
+export function buildChecks(input: ReviewInput, rate: number | null): Check[] {
   const { ok, warning, fail } = CHECK_LEVELS
   const checks: Check[] = [
     input.isCompanyActive
@@ -222,6 +223,7 @@ export function buildChecks(input: ReviewInput, rate: number): Check[] {
     checks.push({ title: 'Платёжеспособность', description: 'Нет данных о выручке, платёж оценить нельзя', level: fail, resultLabel: FAILED })
     return checks
   }
+  if (rate === null) return checks
 
   const payment = calculateAnnuityPayment(input.amount, rate, input.termInMonths)
   const paymentShare = payment / (input.annualRevenue / MONTHS_IN_YEAR)
