@@ -46,7 +46,7 @@ export class CreditBureauController extends BaseController implements ICreditBur
                 },
               ],
               bankrupt: false,
-              casesDelayedPayment: 0
+              casesDelayedPayment: 3
             },
             {
               inn: "5001234569", 
