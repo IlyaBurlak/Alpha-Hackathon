@@ -28,7 +28,6 @@ const StaffApplicationPage = lazy(() =>
 
 const router = createBrowserRouter([
   { path: ROUTES.root, element: <RootRedirect /> },
-  { path: ROUTES.admin, element: <AdminPage /> },
   {
     element: <GuestOnly />,
     children: [
@@ -54,6 +53,8 @@ const router = createBrowserRouter([
   {
     element: <RequireRole role={USER_ROLES.employee} />,
     children: [
+      // The panel switches the external systems of the whole environment: only for employees.
+      { path: ROUTES.admin, element: <AdminPage /> },
       {
         element: <StaffLayout />,
         children: [

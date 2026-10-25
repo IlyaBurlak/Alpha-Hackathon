@@ -16,7 +16,7 @@ function lastRequest(): { url: string; init: RequestInit } {
 
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
-  vi.stubGlobal('localStorage', { getItem: vi.fn(() => null) })
+  vi.stubGlobal('sessionStorage', { getItem: vi.fn(() => null) })
 })
 
 afterEach(() => {
@@ -57,7 +57,7 @@ describe('httpClient: requests', () => {
 
 describe('httpClient: authorization', () => {
   it('adds the bearer token when there is one', async () => {
-    vi.stubGlobal('localStorage', { getItem: vi.fn(() => 'secret-token') })
+    vi.stubGlobal('sessionStorage', { getItem: vi.fn(() => 'secret-token') })
     respondWith({})
 
     await httpClient.get('/users/info')
@@ -81,7 +81,7 @@ describe('httpClient: authorization', () => {
     await expect(httpClient.get('/users/info')).rejects.toBeInstanceOf(ApiError)
     expect(handler).not.toHaveBeenCalled()
 
-    vi.stubGlobal('localStorage', { getItem: vi.fn(() => 'expired') })
+    vi.stubGlobal('sessionStorage', { getItem: vi.fn(() => 'expired') })
     respondWith({ error: 'Unauthorized' }, 401)
     await expect(httpClient.get('/users/info')).rejects.toBeInstanceOf(ApiError)
     expect(handler).toHaveBeenCalledOnce()

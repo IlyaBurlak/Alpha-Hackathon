@@ -22,7 +22,7 @@ function createOffer(overrides: Partial<ProductOffer>): ProductOffer {
 const SCORING = (score: number): Scoring => ({ score, factors: [] })
 
 describe('pickVariants', () => {
-  it('takes the cheapest offer of each kind', () => {
+  it('shows every offer: without collateral first, each group from the cheapest', () => {
     const offers = [
       createOffer({ id: 1, collateral: 120_000, interestRate: 10 }),
       createOffer({ id: 2, interestRate: 15 }),
@@ -30,21 +30,19 @@ describe('pickVariants', () => {
       createOffer({ id: 4, interestRate: 5 }),
     ]
 
-    const { plain, secured } = pickVariants(offers)
+    const { offers: shown } = pickVariants(offers)
 
-    expect(plain?.id).toBe(4)
-    expect(secured?.id).toBe(3)
+    expect(shown.map(({ id }) => id)).toEqual([4, 2, 3, 1])
   })
 
-  it('leaves a kind empty when the bank has no such offer', () => {
-    const { plain, secured } = pickVariants([createOffer({ id: 2 })])
+  it('shows what the bank has when it has one kind only', () => {
+    const { offers: shown } = pickVariants([createOffer({ id: 2 })])
 
-    expect(plain?.id).toBe(2)
-    expect(secured).toBeNull()
+    expect(shown.map(({ id }) => id)).toEqual([2])
   })
 
   it('returns nothing for no offers', () => {
-    expect(pickVariants([])).toEqual({ plain: null, secured: null, recommended: null })
+    expect(pickVariants([])).toEqual({ offers: [], recommendedId: null })
   })
 })
 
@@ -52,7 +50,7 @@ describe('pickVariants: recommendation', () => {
   it('does not recommend anything without scoring', () => {
     const offers = [createOffer({ id: 1, collateral: 1000 }), createOffer({ id: 2 })]
 
-    expect(pickVariants(offers).recommended).toBeNull()
+    expect(pickVariants(offers).recommendedId).toBeNull()
   })
 
   it('recommends the variant without collateral when its chance is good', () => {
@@ -61,7 +59,7 @@ describe('pickVariants: recommendation', () => {
       createOffer({ id: 2, scoring: SCORING(60) }),
     ]
 
-    expect(pickVariants(offers).recommended).toBe('plain')
+    expect(pickVariants(offers).recommendedId).toBe(2)
   })
 
   it('recommends collateral when the chance without it is low', () => {
@@ -70,10 +68,10 @@ describe('pickVariants: recommendation', () => {
       createOffer({ id: 2, scoring: SCORING(50) }),
     ]
 
-    expect(pickVariants(offers).recommended).toBe('secured')
+    expect(pickVariants(offers).recommendedId).toBe(1)
   })
 
   it('falls back to the variant without collateral when it is the only one', () => {
-    expect(pickVariants([createOffer({ id: 2, scoring: SCORING(30) })]).recommended).toBe('plain')
+    expect(pickVariants([createOffer({ id: 2, scoring: SCORING(30) })]).recommendedId).toBe(2)
   })
 })

@@ -1,18 +1,14 @@
 import { APPROVAL_SCORE } from './approval-chance'
 import type { ProductOffer } from '../../model/types'
 
-export type VariantKind = 'plain' | 'secured'
-
 export interface CreditVariants {
-  /** The cheapest offer that needs no collateral. */
-  plain: ProductOffer | null
-  /** The cheapest offer that needs collateral. */
-  secured: ProductOffer | null
-  /** The variant the bank advises; `null` while there is no scoring to base advice on. */
-  recommended: VariantKind | null
+  /** Every offer of the bank for the application: the ones without collateral first, each group from the cheapest. */
+  offers: ProductOffer[]
+  /** The offer the bank advises; `null` while there is no scoring to base advice on. */
+  recommendedId: number | null
 }
 
-function isSecuredOffer(offer: ProductOffer): boolean {
+export function isSecuredOffer(offer: ProductOffer): boolean {
   return offer.collateral > 0
 }
 
@@ -23,15 +19,23 @@ function pickCheapest(offers: readonly ProductOffer[]): ProductOffer | null {
   )
 }
 
-function pickRecommended(plain: ProductOffer | null, secured: ProductOffer | null): VariantKind | null {
-  if (!plain?.scoring && !secured?.scoring) return null
-  if (plain?.scoring && plain.scoring.score >= APPROVAL_SCORE) return 'plain'
-  return secured ? 'secured' : 'plain'
+function sortByRate(offers: readonly ProductOffer[]): ProductOffer[] {
+  return [...offers].sort((first, second) => first.interestRate - second.interestRate)
 }
 
-/** The bank may offer several products; the cabinet shows the best of each kind: without and with collateral. */
+/** The advice follows the estimate of the best offer of each kind: without collateral if it is good enough. */
+function pickRecommendedId(plain: ProductOffer | null, secured: ProductOffer | null): number | null {
+  if (!plain?.scoring && !secured?.scoring) return null
+  if (plain?.scoring && plain.scoring.score >= APPROVAL_SCORE) return plain.id
+  return (secured ?? plain)?.id ?? null
+}
+
+/** The cabinet shows every product the bank offers for the sum and the term, however many there are. */
 export function pickVariants(offers: readonly ProductOffer[]): CreditVariants {
-  const plain = pickCheapest(offers.filter((offer) => !isSecuredOffer(offer)))
-  const secured = pickCheapest(offers.filter(isSecuredOffer))
-  return { plain, secured, recommended: pickRecommended(plain, secured) }
+  const plain = offers.filter((offer) => !isSecuredOffer(offer))
+  const secured = offers.filter(isSecuredOffer)
+  return {
+    offers: [...sortByRate(plain), ...sortByRate(secured)],
+    recommendedId: pickRecommendedId(pickCheapest(plain), pickCheapest(secured)),
+  }
 }

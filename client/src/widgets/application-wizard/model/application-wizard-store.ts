@@ -3,7 +3,7 @@ import { makeAutoObservable } from 'mobx'
 import { pickVariants, selectApplicationProduct } from '@/entities/application'
 import type { Application, CreditVariants, ProductOffer } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
-import { formatPhone, groupDigits, normalizeDigits, isRecord, jsonStorage } from '@/shared/lib'
+import { formatPhone, groupDigits, normalizeDigits, isRecord, sessionJsonStorage } from '@/shared/lib'
 
 import { CONSENTS, NOTE_MAX_LENGTH, createInitialForm, isDigitsField, parseForm } from './wizard-form'
 import type {
@@ -226,7 +226,7 @@ export class ApplicationWizardStore {
   }
 
   private restoreDraft(): void {
-    const draft = parseDraft(jsonStorage.read(this.draftKey))
+    const draft = parseDraft(sessionJsonStorage.read(this.draftKey))
     if (draft === null) return
     this.form = draft.form
     const hasSavedOffer = this.offers.some(({ id }) => id === draft.selectedOfferId)
@@ -243,7 +243,7 @@ export class ApplicationWizardStore {
       selectedOfferId: this.selectedOfferId,
       form: this.form,
     }
-    jsonStorage.write(this.draftKey, draft)
+    sessionJsonStorage.write(this.draftKey, draft)
   }
 
   private startSubmitting(): void {
@@ -253,7 +253,7 @@ export class ApplicationWizardStore {
 
   private finishSubmitting(): void {
     this.isSubmitting = false
-    jsonStorage.remove(this.draftKey)
+    sessionJsonStorage.remove(this.draftKey)
   }
 
   private failSubmitting(message: string): void {

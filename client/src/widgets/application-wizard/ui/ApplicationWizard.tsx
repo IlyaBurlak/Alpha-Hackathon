@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 
 import { CREDIT_GOALS, formatCreditTime } from '@/entities/application'
 import type { Application, ProductOffer } from '@/entities/application'
+import { ORGANIZATION_TYPES } from '@/entities/user'
 import type { Organization } from '@/entities/user'
 import { ChangeLoanParamsForm } from '@/features/create-application'
 import { ROUTES } from '@/shared/config'
@@ -89,11 +90,15 @@ export const ApplicationWizard = observer(function ApplicationWizard({
       <WizardStepper currentStep={store.step} canGoToStep={(step) => store.canGoToStep(step)} onGoToStep={(step) => store.goToStep(step)} />
 
       {store.step === 1 && store.isEditingParams && (
-        <ChangeLoanParamsForm application={application} onCreated={onParamsChanged} />
+        <ChangeLoanParamsForm
+          application={application}
+          isLegalEntity={organization.type === ORGANIZATION_TYPES.legalEntity}
+          onCreated={onParamsChanged}
+        />
       )}
 
       {store.step === 1 &&
-        (store.variants.plain === null && store.variants.secured === null ? (
+        (store.variants.offers.length === 0 ? (
           <EmptyState title="Подходящих продуктов нет" text="Для этой суммы и срока банк ничего не предлагает. Попробуйте изменить условия." />
         ) : (
           <VariantStep

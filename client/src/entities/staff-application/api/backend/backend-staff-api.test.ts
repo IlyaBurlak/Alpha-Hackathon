@@ -130,3 +130,19 @@ describe('sendBackendDecision', () => {
     expect(httpClient.post).toHaveBeenCalledWith('/applications/7/solution', { status: 'APPROVED', comment: '' })
   })
 })
+
+describe('the path of a request', () => {
+  it('cannot be changed by an id that came from the address of the page', async () => {
+    const { takeBackendApplication, restartBackendScoring } = await loadModule()
+    vi.mocked(httpClient.post).mockResolvedValue(true)
+
+    await takeBackendApplication('../../users/info')
+    await restartBackendScoring('7/../8')
+
+    expect(vi.mocked(httpClient.post).mock.calls.map(([path]) => path)).toEqual([
+      '/applications/..%2F..%2Fusers%2Finfo/take',
+      '/applications/7%2F..%2F8/restart',
+    ])
+  })
+})
+

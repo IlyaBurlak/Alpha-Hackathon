@@ -1,4 +1,4 @@
-import { formatCreditTime } from '@/entities/application'
+import { formatCreditTime, isSecuredOffer } from '@/entities/application'
 import { formatMoney, formatPercent } from '@/shared/lib'
 
 import type { ComparedVariant } from '../../lib/comparison'
@@ -14,7 +14,7 @@ const ROWS: ReadonlyArray<{ label: string; getValue: (variant: ComparedVariant) 
   { label: 'Платёж в месяц', getValue: ({ loan }) => formatMoney(loan.monthlyPayment) },
   { label: 'Проценты за весь срок', getValue: ({ loan }) => formatMoney(loan.totalInterest) },
   { label: 'Всего выплат', getValue: ({ loan }) => formatMoney(loan.totalPayout) },
-  { label: 'Залог', getValue: ({ kind }) => (kind === 'secured' ? 'Нужен' : 'Не нужен') },
+  { label: 'Залог', getValue: ({ offer }) => (isSecuredOffer(offer) ? 'Нужен' : 'Не нужен') },
   { label: 'Решение', getValue: ({ offer }) => offer.decisionTime ?? '—' },
 ]
 
@@ -40,11 +40,11 @@ export function StructureView({ variants, sum }: StructureViewProps) {
         </span>
       </div>
       <div className={styles.bars}>
-        {variants.map(({ kind, label, loan }) => (
-          <div key={kind} className={styles[kind]}>
+        {variants.map(({ id, tone, label, loan }) => (
+          <div key={id} className={styles[tone]}>
             <div className={styles.barHeader}>
               <b>
-                <VariantSwatch tone={kind} />
+                <VariantSwatch tone={tone} />
                 {label}
               </b>
               <span>{formatMoney(loan.totalPayout)}</span>
@@ -67,9 +67,9 @@ export function StructureView({ variants, sum }: StructureViewProps) {
           <thead>
             <tr>
               <th />
-              {variants.map(({ kind, label }) => (
-                <th key={kind}>
-                  <VariantSwatch tone={kind} className={styles.swatchSpacing} />
+              {variants.map(({ id, tone, label }) => (
+                <th key={id}>
+                  <VariantSwatch tone={tone} className={styles.swatchSpacing} />
                   {label}
                 </th>
               ))}
@@ -80,7 +80,7 @@ export function StructureView({ variants, sum }: StructureViewProps) {
               <tr key={label}>
                 <td>{label}</td>
                 {variants.map((variant) => (
-                  <td key={variant.kind}>{getValue(variant)}</td>
+                  <td key={variant.id}>{getValue(variant)}</td>
                 ))}
               </tr>
             ))}

@@ -26,32 +26,32 @@ const LONG_SECURED = { ...SECURED, creditTime: { unit: 'MONTH', value: 24 } } as
 
 describe('buildComparison', () => {
   it('builds the available variants with cumulative payments', () => {
-    const [plain] = buildComparison({ plain: PLAIN, secured: null, recommended: null })
+    const [plain] = buildComparison({ offers: [PLAIN], recommendedId: null })
 
-    expect(plain.label).toBe('Без залога')
+    expect(plain.label).toBe('Кредит')
     expect(plain.cumulativePayments).toHaveLength(13)
     expect(plain.cumulativePayments[0]).toBe(0)
     expect(plain.cumulativePayments[12]).toBeCloseTo(plain.loan.totalPayout, 4)
   })
 
   it('keeps the order: without collateral first', () => {
-    const compared = buildComparison({ plain: PLAIN, secured: SECURED, recommended: null })
+    const compared = buildComparison({ offers: [PLAIN, SECURED], recommendedId: null })
 
-    expect(compared.map(({ kind }) => kind)).toEqual(['plain', 'secured'])
+    expect(compared.map(({ id }) => id)).toEqual([2, 1])
   })
 
   it('is empty without variants', () => {
-    expect(buildComparison({ plain: null, secured: null, recommended: null })).toEqual([])
+    expect(buildComparison({ offers: [], recommendedId: null })).toEqual([])
   })
 })
 
 describe('getDifference', () => {
   it('is null unless both variants exist', () => {
-    expect(getDifference(buildComparison({ plain: PLAIN, secured: null, recommended: null }))).toBeNull()
+    expect(getDifference(buildComparison({ offers: [PLAIN], recommendedId: null }))).toBeNull()
   })
 
   it('shows how much cheaper the variant with collateral is', () => {
-    const difference = getDifference(buildComparison({ plain: PLAIN, secured: SECURED, recommended: null }))
+    const difference = getDifference(buildComparison({ offers: [PLAIN, SECURED], recommendedId: null }))
 
     expect(difference?.rate).toBe(5)
     expect(difference?.overpayment).toBeGreaterThan(0)
@@ -60,7 +60,7 @@ describe('getDifference', () => {
 
 describe('getScheduleDates', () => {
   it('covers the longest variant', () => {
-    const compared = buildComparison({ plain: PLAIN, secured: LONG_SECURED, recommended: null })
+    const compared = buildComparison({ offers: [PLAIN, LONG_SECURED], recommendedId: null })
 
     expect(getScheduleDates(compared, new Date(2026, 0, 15))).toHaveLength(24)
   })

@@ -104,8 +104,11 @@ export class ApplicationService implements IApplicationService {
         await this.applicationRepository.updateApplicationScoringStatus(application.id, AnalysisStatus.WAITNGSCORING);
         const applicationData = JSON.parse(JSON.stringify(await this.applicationRepository.getApplicationWithScore(application.id)));
         
-
+        console.log('Данные заявки для скоринга: ');
+        console.log(applicationData);
         const scoringResult = await this.gatewayService.getMlScoring(applicationData);
+        console.log('Результат скоринга: ');
+        console.log( scoringResult);
         if (scoringResult) {
             await this.applicationRepository.updateApplicationScore(application.id, scoringResult);
         }

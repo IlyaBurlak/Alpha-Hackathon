@@ -46,6 +46,22 @@ export function selectModeApplications(applications: readonly StaffApplication[]
   return mode === 'mine' ? open.filter((application) => application.assigneeId === employeeId) : open
 }
 
+/**
+ * What the tabs count and the table filters further: the applications of the mode after "only mine" and the search,
+ * before the status tab. The numbers on the tabs then always agree with the rows the tab shows.
+ */
+export function selectScopedApplications(
+  applications: readonly StaffApplication[],
+  { mode, onlyMine, query, employeeId }: Pick<QueueQuery, 'mode' | 'onlyMine' | 'query' | 'employeeId'>,
+): StaffApplication[] {
+  const modeApplications = selectModeApplications(applications, mode, employeeId)
+  const needle = query.trim().toLowerCase()
+  const searched = needle
+    ? modeApplications.filter((application) => [application.number, application.company.name, application.company.inn].join(' ').toLowerCase().includes(needle))
+    : modeApplications
+  return onlyMine && mode === 'queue' ? searched.filter((application) => application.assigneeId === employeeId) : searched
+}
+
 export function countByFilter(applications: readonly StaffApplication[], filter: QueueFilter): number {
   const rule = QUEUE_FILTERS.find((candidate) => candidate.value === filter)
   return rule ? applications.filter(rule.matches).length : 0
@@ -79,15 +95,10 @@ function getSortValue(application: StaffApplication, key: QueueSortKey, now: num
 
 /** The rows of the table after the filter, the search and the sorting. */
 export function selectQueueRows(applications: readonly StaffApplication[], options: QueueQuery): StaffApplication[] {
-  const { mode, filter, onlyMine, query, sortKey, direction, employeeId, now } = options
-  const modeApplications = selectModeApplications(applications, mode, employeeId)
+  const { mode, filter, sortKey, direction, now } = options
+  const scoped = selectScopedApplications(applications, options)
   const rule = QUEUE_FILTERS.find((candidate) => candidate.value === filter)
-  const filtered = mode === 'done' || !rule ? modeApplications : modeApplications.filter(rule.matches)
-  const needle = query.trim().toLowerCase()
-  const searched = needle
-    ? filtered.filter((application) => [application.number, application.company.name, application.company.inn].join(' ').toLowerCase().includes(needle))
-    : filtered
-  const owned = onlyMine && mode === 'queue' ? searched.filter((application) => application.assigneeId === employeeId) : searched
+  const owned = mode === 'done' || !rule ? scoped : scoped.filter(rule.matches)
   const sign = sortKey === 'received' ? -direction : direction
   return [...owned].sort((first, second) => {
     const difference =
@@ -108,12 +119,14 @@ export interface QueueSummary {
 
 /** The four numbers above the queue. */
 export function summarizeQueue(applications: readonly StaffApplication[], employeeId: string, now: number): QueueSummary {
+  // The first tile opens the list "All", which has no answered applications: it counts the same ones.
+  const open = selectModeApplications(applications, 'queue', employeeId)
   return {
-    receivedToday: applications.filter(({ receivedAt }) => now - receivedAt.getTime() < MS_IN_DAY).length,
-    total: applications.length,
-    waitingForDecision: applications.filter(({ status }) => status === STAFF_STATUSES.ready).length,
-    inWorkByEmployee: applications.filter(({ assigneeId, status }) => assigneeId === employeeId && WITHOUT_FINAL_DECISION.includes(status)).length,
-    overdue: applications.filter((application) => getSla(application, now)?.isOverdue === true).length,
+    receivedToday: open.filter(({ receivedAt }) => now - receivedAt.getTime() < MS_IN_DAY).length,
+    total: open.length,
+    waitingForDecision: open.filter(({ status }) => status === STAFF_STATUSES.ready).length,
+    inWorkByEmployee: open.filter(({ assigneeId, status }) => assigneeId === employeeId && WITHOUT_FINAL_DECISION.includes(status)).length,
+    overdue: open.filter((application) => getSla(application, now)?.isOverdue === true).length,
   }
 }
 

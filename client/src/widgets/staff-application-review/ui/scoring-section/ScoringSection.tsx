@@ -8,6 +8,7 @@ import { ReviewSection } from '../review-section/ReviewSection'
 import { FactorRows } from './factor-rows/FactorRows'
 import styles from './ScoringSection.module.css'
 import { StaffScoreGauge } from './score-gauge/StaffScoreGauge'
+import { ScoringProgress } from './scoring-progress/ScoringProgress'
 
 const PERCENT = 100
 
@@ -16,12 +17,24 @@ interface ScoringSectionProps {
   scoringStatus: StaffApplication['scoringStatus']
   /** Why the finished scoring has no result. */
   scoringIssue: StaffApplication['scoringIssue']
+  /** The scoring was restarted just now: the old result is hidden until the new one comes. */
+  isRestarted: boolean
+  /** Looks at the result again. */
+  onRefresh: () => void
   /** An action next to the title, e.g. the restart of the scoring. */
   action?: ReactNode
 }
 
 /** The result of the model: the score and its zone, the probability of default, the risk class and the factors. */
-export function ScoringSection({ scoring, scoringStatus, scoringIssue, action }: ScoringSectionProps) {
+export function ScoringSection({ scoring, scoringStatus, scoringIssue, isRestarted, onRefresh, action }: ScoringSectionProps) {
+  if (isRestarted || scoringStatus === SCORING_STATUSES.pending) {
+    return (
+      <ReviewSection id="s-ml" title="ML-скоринг" aside={action}>
+        <ScoringProgress isRestarted={isRestarted} onRefresh={onRefresh} />
+      </ReviewSection>
+    )
+  }
+
   if (scoringStatus === SCORING_STATUSES.unavailable || (scoringStatus === SCORING_STATUSES.ready && !scoring)) {
     return (
       <ReviewSection id="s-ml" title="ML-скоринг" aside={action}>
@@ -33,16 +46,7 @@ export function ScoringSection({ scoring, scoringStatus, scoringIssue, action }:
     )
   }
 
-  if (!scoring) {
-    return (
-      <ReviewSection id="s-ml" title="ML-скоринг" aside={action}>
-        <div className={styles.pending}>
-          <h3>Скоринг выполняется</h3>
-          <p>Обычно до 15 минут. Результат появится после обновления страницы.</p>
-        </div>
-      </ReviewSection>
-    )
-  }
+  if (!scoring) return null
 
   return (
     <ReviewSection

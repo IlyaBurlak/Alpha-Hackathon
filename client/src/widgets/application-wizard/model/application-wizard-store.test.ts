@@ -61,11 +61,11 @@ function giveAllConsents(store: ApplicationWizardStore): void {
 
 beforeEach(() => {
   vi.mocked(selectApplicationProduct).mockReset()
-  Object.defineProperty(globalThis, 'localStorage', { value: new MemoryStorage(), configurable: true })
+  Object.defineProperty(globalThis, 'sessionStorage', { value: new MemoryStorage(), configurable: true })
 })
 
 afterEach(() => {
-  Reflect.deleteProperty(globalThis, 'localStorage')
+  Reflect.deleteProperty(globalThis, 'sessionStorage')
 })
 
 describe('ApplicationWizardStore: variants and steps', () => {
@@ -74,8 +74,7 @@ describe('ApplicationWizardStore: variants and steps', () => {
 
     expect(store.step).toBe(1)
     expect(store.selectedOffer).toBeNull()
-    expect(store.variants.plain?.id).toBe(2)
-    expect(store.variants.secured?.id).toBe(1)
+    expect(store.variants.offers.map(({ id }) => id)).toEqual([2, 1])
   })
 
   it('moves to the data step after a variant is picked', () => {
@@ -266,7 +265,7 @@ describe('ApplicationWizardStore: draft', () => {
   })
 
   it('ignores a broken draft', () => {
-    localStorage.setItem('application-wizard:7', '{"step":9}')
+    sessionStorage.setItem('application-wizard:7', '{"step":9}')
 
     expect(new ApplicationWizardStore(APPLICATION, [PLAIN]).step).toBe(1)
   })

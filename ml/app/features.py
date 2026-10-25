@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 from datetime import date, datetime
-from math import sqrt
+from math import inf, sqrt
 from typing import Any
 
 from app.schemas import ApplicationIn
@@ -147,7 +147,8 @@ def build_features(application: ApplicationIn) -> tuple[dict[str, Any], list[str
         missing.append("registerInfo.annualIncome")
     else:
         try:
-            if float(annual_income) <= 0:
+            # Нулевая выручка это данные (компания не работает), а не их отсутствие.
+            if float(annual_income) < 0:
                 missing.append("registerInfo.annualIncome")
             else:
                 features["avg_revenue_monthly"] = float(annual_income) / 12.0
@@ -159,16 +160,14 @@ def build_features(application: ApplicationIn) -> tuple[dict[str, Any], list[str
         missing.append("registerInfo.annualExpenses")
     else:
         try:
-            if "avg_revenue_monthly" in features and float(features["avg_revenue_monthly"]) > 0:
-                if annual_income is None:
-                    missing.append("registerInfo.annualIncome")
-                else:
-                    features["expense_ratio"] = float(annual_expenses) / float(annual_income)
-            else:
-                if annual_income is not None and float(annual_income) > 0:
-                    features["expense_ratio"] = float(annual_expenses) / float(annual_income)
-                else:
-                    missing.append("registerInfo.annualIncome")
+            if "avg_revenue_monthly" in features:
+                income = float(annual_income)
+                expenses = float(annual_expenses)
+                if income > 0:
+                    features["expense_ratio"] = expenses / income
+                elif expenses > 0:
+                    features["expense_ratio"] = inf  # расходы при нулевой выручке
+                # при нулевых доходах и расходах отношение не определено: признак не считаем
         except Exception:
             missing.append("registerInfo.annualExpenses")
 
@@ -235,8 +234,12 @@ def build_features(application: ApplicationIn) -> tuple[dict[str, Any], list[str
                     if months < 1.0:
                         months = 1.0
                     total_monthly += float(ssum) / months
-                if "avg_revenue_monthly" in features and float(features["avg_revenue_monthly"]) > 0:
-                    features["debt_service_ratio"] = total_monthly / float(features["avg_revenue_monthly"])
+                if "avg_revenue_monthly" in features:
+                    revenue = float(features["avg_revenue_monthly"])
+                    if revenue > 0:
+                        features["debt_service_ratio"] = total_monthly / revenue
+                    else:
+                        features["debt_service_ratio"] = inf if total_monthly > 0 else 0.0
             except Exception:
                 pass
 
@@ -249,11 +252,12 @@ def build_features(application: ApplicationIn) -> tuple[dict[str, Any], list[str
             except Exception:
                 missing.append("history.casesDelayedPayment")
 
-    if "avg_revenue_monthly" in features and float(features["avg_revenue_monthly"]) > 0:
+    if "avg_revenue_monthly" in features:
         try:
-            features["requested_to_monthly_revenue"] = float(getattr(application, "sum")) / float(
-                features["avg_revenue_monthly"]
-            )
+            revenue = float(features["avg_revenue_monthly"])
+            requested = float(getattr(application, "sum"))
+            # при нулевой выручке отношение бесконечно: модель ограничит его верхней границей
+            features["requested_to_monthly_revenue"] = requested / revenue if revenue > 0 else inf
         except Exception:
             missing.append("sum")
 
