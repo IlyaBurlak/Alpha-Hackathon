@@ -109,12 +109,12 @@ test('getRegisterInfo calls the legal-entity endpoint for OO organizations', asy
   assert.match(lastRequestPath as string, /\/legal\?inn=7701234568$/);
 });
 
-test('getRegisterInfo calls the individual endpoint for sole proprietors', async () => {
+test('getRegisterInfo calls the (misspelled) invidual endpoint for sole proprietors', async () => {
   respondJson(200, { isActive: true });
 
   await new GatewayService().getRegisterInfo('2301234560', OrganizationType.IndividualEntrepreneur);
 
-  assert.match(lastRequestPath as string, /\/individual\?inn=2301234560$/);
+  assert.match(lastRequestPath as string, /\/invidual\?inn=2301234560$/);
 });
 
 test('getRegisterInfo returns undefined when the request fails', async () => {
