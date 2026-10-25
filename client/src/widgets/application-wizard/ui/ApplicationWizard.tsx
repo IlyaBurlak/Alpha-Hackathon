@@ -106,11 +106,11 @@ export const ApplicationWizard = observer(function ApplicationWizard({
             organizationId={application.organizationId}
             sum={application.sum}
             selectedOfferId={store.selectedOfferId}
-            comparisonTab={store.comparisonTab}
-            isScheduleExpanded={store.isScheduleExpanded}
+            comparisonTab={store.comparison.tab}
+            isScheduleExpanded={store.comparison.isScheduleExpanded}
             onPick={(offerId) => store.pickOffer(offerId)}
-            onComparisonTabChange={(tab) => store.setComparisonTab(tab)}
-            onToggleScheduleExpanded={() => store.toggleScheduleExpanded()}
+            onComparisonTabChange={(tab) => store.comparison.setTab(tab)}
+            onToggleScheduleExpanded={() => store.comparison.toggleScheduleExpanded()}
             onApplySuggestedSum={onApplySuggestedSum}
           />
         ))}
