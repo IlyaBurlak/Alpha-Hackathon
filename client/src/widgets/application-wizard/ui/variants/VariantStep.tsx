@@ -1,4 +1,4 @@
-import { ScoreFactors, ScoreGauge, getApprovalChance, suggestLowerSum } from '@/entities/application'
+import { getApprovalChance, suggestLowerSum } from '@/entities/application'
 import type { CreditVariants } from '@/entities/application'
 import { Button } from '@/shared/ui'
 import { formatMoneyShort, formatPercent } from '@/shared/lib'
@@ -32,7 +32,7 @@ function getAdvice({ plain, secured, recommended }: CreditVariants): string | nu
   return null
 }
 
-/** Step 1: the best offer without and with collateral, their comparison and the reasons behind the estimate. */
+/** Step 1: the best offer without and with collateral and their comparison. */
 export function VariantStep({
   variants,
   organizationId,
@@ -94,20 +94,6 @@ export function VariantStep({
         onTabChange={onComparisonTabChange}
         onToggleScheduleExpanded={onToggleScheduleExpanded}
       />
-      {scoring && (
-        <section className={`${styles.scoreBox} ${styles.box}`}>
-          <h2>Как мы оценили заявку</h2>
-          <p className={styles.scoreNote}>
-            Предварительная оценка по данным банка. Итоговое решение принимает банк после проверки.
-          </p>
-          <div className={styles.score}>
-            <ScoreGauge score={scoring.score} />
-            <div>
-              <ScoreFactors factors={scoring.factors} />
-            </div>
-          </div>
-        </section>
-      )}
     </>
   )
 }

@@ -39,5 +39,3 @@ export type {
 export { ApplicationRows } from './ui/application-rows/ApplicationRows'
 export { ApprovalChanceMeter } from './ui/scoring/ApprovalChanceMeter'
 export { PaymentSchedule } from './ui/payment-schedule/PaymentSchedule'
-export { ScoreFactors } from './ui/scoring/ScoreFactors'
-export { ScoreGauge } from './ui/scoring/ScoreGauge'
