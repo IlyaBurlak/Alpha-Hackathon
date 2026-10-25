@@ -140,10 +140,15 @@ def main():
     Path("model").mkdir(parents=True, exist_ok=True)
     joblib.dump(clf, "model/logreg-0.1.joblib")
 
-    # medians
-    medians = {}
-    for f in numeric:
-        medians[f] = float(X_train[f].median()) if f in X_train else 0.0
+    # типичные значения (для баллов факторов) и диапазоны (для ограничения выбросов)
+    medians = {f: float(X_train[f].median()) for f in numeric}
+    modes = {}
+    for f in categorical:
+        top = X_train[f].mode().iloc[0]
+        modes[f] = top.item() if hasattr(top, "item") else top
+    ranges = {
+        f: [float(X_train[f].quantile(0.01)), float(X_train[f].quantile(0.99))] for f in numeric
+    }
 
     meta = {
         "version": "logreg-0.1",
@@ -155,7 +160,8 @@ def main():
         "test_size": int(len(X_test)),
         "default_rate": float(y.mean()),
         "medians": medians,
-        "ranges": {},
+        "modes": modes,
+        "ranges": ranges,
     }
     with open("model/meta.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)

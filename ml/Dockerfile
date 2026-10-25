@@ -8,6 +8,8 @@ ENV PATH="/venv/bin:$PATH" PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY --from=build /venv /venv
 COPY app ./app
+COPY config ./config
+COPY model ./model
 RUN useradd --system --uid 10001 appuser
 USER appuser
 EXPOSE 8000

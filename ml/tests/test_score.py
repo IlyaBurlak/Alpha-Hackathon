@@ -1,4 +1,3 @@
-import copy
 import json
 from datetime import date
 from pathlib import Path
@@ -7,19 +6,22 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import app, service
 from app.schemas import ApplicationIn
 
 client = TestClient(app)
 
 FIXTURES = Path(__file__).parent / "fixtures"
-FIXTURE_NAMES = [
+# Полный режим требует и историю, и реестр; остальные фикстуры проверяются отдельно.
+COMPLETE_FIXTURES = [
     "application_full",
     "application_old_format",
-    "application_no_register",
-    "application_no_history",
     "application_sole_proprietor",
 ]
+
+
+STOP_FEATURES = {"isActive", "bankrupt", "business_age_months", "delayed_payment_cases"}
+HISTORY_ONLY = {"active_loans_count", "debt_service_ratio", "delayed_payment_cases"}
 
 
 def load(name: str) -> dict[str, Any]:
@@ -29,8 +31,8 @@ def load(name: str) -> dict[str, Any]:
 # --- контракт ответа -------------------------------------------------------
 
 
-@pytest.mark.parametrize("name", FIXTURE_NAMES)
-def test_score_accepts_every_fixture(name: str) -> None:
+@pytest.mark.parametrize("name", COMPLETE_FIXTURES)
+def test_score_accepts_complete_fixtures(name: str) -> None:
     response = client.post("/score", json=load(name))
 
     assert response.status_code == 200
@@ -43,9 +45,12 @@ def test_score_accepts_every_fixture(name: str) -> None:
     assert isinstance(body["rate_premium_pp"], (int, float))
     assert body["mode"] == "full"
     assert isinstance(body["factors"], list)
-    assert len(body["factors"]) >= 1
+    assert 1 <= len(body["factors"]) <= 7
     for factor in body["factors"]:
         assert {"feature", "title", "description", "points"} <= factor.keys()
+        assert factor["points"] != 0 or factor["feature"] in STOP_FEATURES
+        # совет обязателен для отрицательных факторов и не нужен для положительных
+        assert bool(factor.get("advice")) == (factor["points"] < 0) or factor["points"] == 0
         assert "label" not in factor
         assert "impact" not in factor
         assert "hint" not in factor
@@ -111,7 +116,7 @@ def test_application_without_score_block_is_accepted() -> None:
     parsed = ApplicationIn.model_validate(payload)
 
     assert parsed.history is None and parsed.register is None
-    assert client.post("/score", json=payload).status_code == 200
+    assert client.post("/score", json=payload).status_code == 422
 
 
 def test_error_and_empty_objects_mean_no_data() -> None:
@@ -151,30 +156,6 @@ def test_numeric_enums_are_accepted() -> None:
     assert client.post("/score", json=payload).status_code == 200
 
 
-# --- заглушка: разные исходы для проверки backend -------------------------
-
-
-def test_stub_default_outcome() -> None:
-    payload = load("application_full")
-    payload["sum"] = 500000  # не больше 3 годовых выручек
-
-    assert client.post("/score", json=payload).json()["pd"] == 0.071
-
-
-def test_stub_large_request_raises_pd() -> None:
-    assert client.post("/score", json=load("application_full")).json()["pd"] == 0.18
-
-
-def test_stub_bankrupt_and_inactive_give_highest_pd() -> None:
-    bankrupt = copy.deepcopy(load("application_full"))
-    bankrupt["applicationScore"]["history"]["bankrupt"] = True
-    inactive = copy.deepcopy(load("application_full"))
-    inactive["applicationScore"]["registerInfo"]["isActive"] = False
-
-    assert client.post("/score", json=bankrupt).json()["pd"] == 0.45
-    assert client.post("/score", json=inactive).json()["pd"] == 0.45
-
-
 # --- некорректные запросы ---------------------------------------------------
 
 
@@ -198,3 +179,126 @@ def test_broken_date_is_422() -> None:
     payload["applicationScore"]["registerInfo"]["registrationDate"] = "вчера"
 
     assert client.post("/score", json=payload).status_code == 422
+
+# --- режимы и нехватка данных -----------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("name", "missing_field"),
+    [
+        ("application_no_history", "history"),
+        ("application_no_register", "registerInfo.registrationDate"),
+    ],
+)
+def test_full_mode_needs_history_and_register(name: str, missing_field: str) -> None:
+    response = client.post("/score", json=load(name))
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail["code"] == "MISSING_DATA"
+    assert missing_field in detail["missing"]
+
+
+def test_preliminary_works_without_history() -> None:
+    response = client.post("/score/preliminary", json=load("application_no_history"))
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["mode"] == "preliminary"
+    assert not {f["feature"] for f in body["factors"]} & HISTORY_ONLY
+
+
+def test_preliminary_ignores_history_even_when_sent() -> None:
+    payload = load("application_full")
+    payload["applicationScore"]["history"]["bankrupt"] = True
+
+    body = client.post("/score/preliminary", json=payload).json()
+
+    assert not {f["feature"] for f in body["factors"]} & (HISTORY_ONLY | {"bankrupt"})
+
+
+def test_preliminary_still_needs_register() -> None:
+    response = client.post("/score/preliminary", json=load("application_no_register"))
+
+    assert response.status_code == 422
+
+
+# --- стоп-факторы ------------------------------------------------------------
+
+
+def _stop_case(mutate) -> dict[str, Any]:
+    payload = load("application_full")
+    mutate(payload["applicationScore"])
+    body = client.post("/score", json=payload).json()
+    assert body["score"] <= 30
+    assert body["risk_class"] == "E"
+    return body
+
+
+def _stop_factor(body: dict[str, Any], feature: str) -> dict[str, Any]:
+    found = [f for f in body["factors"] if f["feature"] == feature]
+    assert len(found) == 1, f"expected one '{feature}' factor"
+    assert found[0]["points"] <= 0
+    assert found[0]["advice"]
+    return found[0]
+
+
+def test_bankrupt_caps_score() -> None:
+    body = _stop_case(lambda block: block["history"].update(bankrupt=True))
+    _stop_factor(body, "bankrupt")
+
+
+def test_inactive_company_caps_score() -> None:
+    body = _stop_case(lambda block: block["registerInfo"].update(isActive=False))
+    _stop_factor(body, "isActive")
+
+
+def test_young_business_caps_score() -> None:
+    body = _stop_case(lambda block: block["registerInfo"].update(registrationDate="2026-08-24"))
+    assert "мес." in _stop_factor(body, "business_age_months")["description"]
+
+
+def test_many_delays_cap_score() -> None:
+    body = _stop_case(lambda block: block["history"].update(casesDelayedPayment=5))
+    assert "5" in _stop_factor(body, "delayed_payment_cases")["description"]
+
+
+def test_stop_factor_is_not_duplicated_by_model_factor() -> None:
+    payload = load("application_full")
+    payload["applicationScore"]["history"]["bankrupt"] = True
+    features = [f["feature"] for f in client.post("/score", json=payload).json()["factors"]]
+
+    assert len(features) == len(set(features))
+
+
+# --- служебное ---------------------------------------------------------------
+
+
+def test_health_reports_model_version() -> None:
+    body = client.get("/health").json()
+
+    assert body["status"] == "ok"
+    assert body["model_version"] == service.model_version
+
+
+def test_unexpected_error_gives_500_without_details(monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("secret internal detail")
+
+    monkeypatch.setattr(service, "score", boom)
+    quiet_client = TestClient(app, raise_server_exceptions=False)
+
+    response = quiet_client.post("/score", json=load("application_full"))
+
+    assert response.status_code == 500
+    assert "secret" not in response.text
+
+
+def test_every_label_renders() -> None:
+    for feature in service.predictor.features:
+        typical = service.predictor.typical[feature]
+        negative = service.describe(feature, -3, typical, clipped=True)
+        positive = service.describe(feature, 3, typical, clipped=False)
+
+        assert negative.advice and negative.description and negative.title
+        assert positive.advice is None
