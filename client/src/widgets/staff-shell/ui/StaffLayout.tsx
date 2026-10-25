@@ -57,10 +57,13 @@ export const StaffLayout = observer(function StaffLayout() {
 
   return (
     <div className={styles.page}>
+      <a className={styles.skipLink} href="#main-content">
+        Перейти к содержимому
+      </a>
       <div className={classNames(styles.shell, STAFF_DENSITY_CLASS_NAME)}>
         <StaffSidebar employee={employee} counters={countNavigation(applications.applications, employee.id)} onLogout={handleLogout} />
         <div ref={panelRef} className={styles.panel}>
-          <main className={styles.main} tabIndex={-1}>
+          <main id="main-content" className={styles.main} tabIndex={-1}>
             <Outlet />
           </main>
         </div>

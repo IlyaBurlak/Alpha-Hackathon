@@ -21,7 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({ user, selectedOrganization, approvedCount, onSelectOrganization, onOpenHelp }: SidebarProps) {
   return (
-    <aside className={styles.side}>
+    <aside className={styles.side} aria-label="Боковое меню">
       <NavLink className={styles.logo} to={ROUTES.cabinet}>
         <i className={styles.logoMark} />
         Бизнес-кредиты

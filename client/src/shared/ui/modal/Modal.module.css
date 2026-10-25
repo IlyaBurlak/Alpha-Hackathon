@@ -24,7 +24,7 @@
 }
 
 .title {
-  margin: 0;
+  margin: 0 0 8px;
 }
 
 .actions {
@@ -33,6 +33,10 @@
   justify-content: flex-end;
   margin-top: 24px;
   flex-wrap: wrap;
+}
+
+.actions > * {
+  min-width: 120px;
 }
 
 @keyframes fade {
@@ -49,6 +53,18 @@
     width: 100vw;
     border-radius: 24px 24px 0 0;
     padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+
+  /* The main action comes first under the thumb, the cancel below it. */
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+    min-height: 48px;
   }
 }
 
