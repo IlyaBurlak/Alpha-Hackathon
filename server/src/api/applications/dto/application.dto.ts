@@ -1,7 +1,7 @@
 import { Exclude, Transform, Type } from "class-transformer"
 import { OrganizationDto } from "../../organizations/dto/organization.dto"
-import { IsEmpty, IsNotEmpty, IsOptional } from "class-validator";
-import { ApplicationStatus, CreditTime, CreditTimeUnits } from "../entity/application.entity";
+import { IsEmpty, IsEnum, IsNotEmpty, IsOptional } from "class-validator";
+import { ApplicationStatus, ApplicationType, CreditTime, CreditTimeUnits } from "../entity/application.entity";
 import { ApplicationScoreDto } from "./application.score";
 import { UserEntity } from "../../user/entity/user.entity";
 import { UserDto } from "../../user/dto/user.dto";
@@ -14,6 +14,9 @@ export class ApplicationCreateDto {
     sum!: number;
     @IsNotEmpty()
     creditTime!: CreditTime;
+    @IsNotEmpty()
+    @IsEnum(ApplicationType)
+    type!: ApplicationType;
 
     @IsEmpty()
     id!: number;
@@ -32,6 +35,11 @@ export class ApplicationCreateDto {
     
 }
 
+export class ApplicationConfirmDto {
+    @IsNotEmpty()
+    reason!: string;
+}
+
 class CreditTimeDto {
   value!: number
   @Transform(({ value }) => CreditTimeUnits[value as keyof typeof CreditTimeUnits] ?? value)
@@ -46,6 +54,8 @@ class ProductDto {
 }
 
 export class ApplicationDto {
+    type!: ApplicationType;
+    reason!: string;
     @Type(() => CreditTimeDto)
     creditTime!: CreditTimeDto;
     

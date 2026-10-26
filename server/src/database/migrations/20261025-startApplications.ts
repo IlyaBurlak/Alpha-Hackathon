@@ -18,6 +18,7 @@ export const up = async ({ context: sequelize }: Ctx): Promise<void> => {
       createdAt: "2026-01-25 13:58:46.472 +00:00" ,
       loanIssuanceDate: "2026-01-25 13:58:46.472 +00:00" ,
       solutionComment: "Одобрено",
+      type: "другое",
       operatorId: 1
     },
     { id: 2, 
@@ -32,6 +33,7 @@ export const up = async ({ context: sequelize }: Ctx): Promise<void> => {
       createdAt: "2026-03-25 13:58:46.472 +00:00" ,
       loanIssuanceDate: "2026-03-25 13:58:46.472 +00:00" ,
       solutionComment: "Одобрено, успехов в бизнесе!",
+      type: "другое",
       operatorId: 1
     }
   ]);
