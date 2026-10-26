@@ -52,7 +52,6 @@ function fillValidData(store: ApplicationWizardStore): void {
   store.setPhone('+7 916 482-17-35')
   store.setText('email', 'a@kolos-bakery.ru')
   store.setDigits('revenue', '48600000')
-  store.setOtherLoans('no')
 }
 
 function giveAllConsents(store: ApplicationWizardStore): void {
@@ -111,7 +110,7 @@ describe('ApplicationWizardStore: data step', () => {
 
     expect(store.step).toBe(2)
     expect(store.getIssue('phone')?.message).toBe('Введите номер полностью, например +7 916 482-17-35')
-    expect(store.getIssue('otherLoans')).toBeDefined()
+    expect(store.getIssue('revenue')).toBeDefined()
     expect(store.invalidAttemptCount).toBe(1)
   })
 

@@ -22,15 +22,6 @@
   grid-column: 1 / -1;
 }
 
-.question {
-  font-weight: 700;
-  margin-top: 24px;
-}
-
-.answers {
-  margin-top: 8px;
-}
-
 .followUp {
   margin-top: 12px;
 }

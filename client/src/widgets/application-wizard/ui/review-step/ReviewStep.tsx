@@ -22,7 +22,6 @@ interface ReviewStepProps {
 export const ReviewStep = observer(function ReviewStep({ store, offer, organizationName, applicantName }: ReviewStepProps) {
   const { form } = store
   const { monthlyPayment } = calculateLoan(offer)
-  const otherLoans = form.otherLoans === 'yes' ? `${formatMoney(parseDigits(form.otherLoanPayments))} в месяц` : 'Нет'
 
   return (
     <>
@@ -57,7 +56,6 @@ export const ReviewStep = observer(function ReviewStep({ store, offer, organizat
           items={[
             { label: 'Выручка за 12 месяцев', value: formatMoney(parseDigits(form.revenue)) },
             { label: 'Сотрудников', value: form.employees || '—' },
-            { label: 'Кредиты в других банках', value: otherLoans },
           ]}
         />
         {store.isSecured && (

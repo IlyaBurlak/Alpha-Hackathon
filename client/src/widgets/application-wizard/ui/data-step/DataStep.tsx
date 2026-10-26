@@ -20,10 +20,6 @@ import styles from './DataStep.module.css'
 const ROLE_OPTIONS: SelectOption[] = APPLICANT_ROLES.map((role) => ({ value: role, label: role }))
 const OWNER_OPTIONS: SelectOption[] = COLLATERAL_OWNERS.map((owner) => ({ value: owner, label: owner }))
 const COLLATERAL_TAGS = COLLATERAL_TYPES.map((type) => ({ value: type, label: type }))
-const LOANS_ANSWERS = [
-  { value: 'no', label: 'Нет' },
-  { value: 'yes', label: 'Есть' },
-] as const
 
 function isApplicantRole(value: string): value is ApplicantRole {
   return APPLICANT_ROLES.some((role) => role === value)
@@ -134,32 +130,6 @@ export const DataStep = observer(function DataStep({ store, organization, applic
             onBlur={() => store.normalizeDigits('employees')}
           />
         </div>
-        <p className={styles.question}>Есть кредиты в других банках?</p>
-        <div className={styles.answers}>
-          <ToggleTags
-            options={LOANS_ANSWERS}
-            value={form.otherLoans}
-            error={store.getIssue('otherLoans')?.message}
-            onChange={(answer) => store.setOtherLoans(answer)}
-          />
-        </div>
-        {form.otherLoans === 'yes' && (
-          <div className={`${styles.grid} ${styles.followUp}`}>
-            <TextField
-              label="Платежи по ним в месяц"
-              suffix="₽"
-              inputMode="numeric"
-              hasDigitMask
-              error={store.getIssue('otherLoanPayments')?.message}
-              onBlur={() => store.touchField('otherLoanPayments')}
-              value={form.otherLoanPayments}
-              onChange={(value) => store.setDigits('otherLoanPayments', value)}
-            />
-          </div>
-        )}
-        <p className={styles.hint}>
-          Кредиты в нашем банке учтём сами. Данные других банков увидим только после вашего согласия на запрос в БКИ.
-        </p>
       </WizardSection>
 
       {store.isSecured && (
