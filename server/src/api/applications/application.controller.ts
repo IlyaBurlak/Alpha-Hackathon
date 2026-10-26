@@ -226,6 +226,12 @@ export class ApplicationController extends BaseController implements IApplicatio
  *         schema:
  *           type: integer
  *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ApplicationConfirm'
  *     responses:
  *       200:
  *         description: Заявка подтверждена
@@ -234,7 +240,7 @@ export class ApplicationController extends BaseController implements IApplicatio
  *             schema:
  *               $ref: '#/components/schemas/Application'
  *       400:
- *         description: Недостаточно данных
+ *         description: Не указаны ID заявки, ID продукта или причина (reason)
  *         content:
  *           application/json:
  *             schema:
