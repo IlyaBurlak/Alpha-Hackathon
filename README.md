@@ -20,10 +20,15 @@
 
 | Участник | Роль | Ссылка |
 | --- | --- | --- |
-| _Имя Фамилия_ | _роль_ | [_профиль_](https://) |
-| _Имя Фамилия_ | _роль_ | [_профиль_](https://) |
-| _Имя Фамилия_ | _роль_ | [_профиль_](https://) |
-| _Имя Фамилия_ | _роль_ | [_профиль_](https://) |
+| Илья Бурлак | Frontend-разработчик, DevOps | [IlyaBurlak](https://github.com/IlyaBurlak) |
+| Ольга Якубова | PM, QA, Аналитик| [OlgaRhythm](https://github.com/OlgaRhythm) |
+| София Васюнина | ML-инженер, | [sofapiano](https://github.com/sofapiano) |
+| Ангелика Василенко | Backend-разработчик | [An-Vas](https://github.com/An-Vas) |
+| Виктория Кулешова | UX/UI-дизайнер | [@vktorriaa](https://t.me/vktorriaa) |
+
+## Стенд
+
+Демо-стенд развёрнут по адресу **http://147.45.79.158**: кабинет предпринимателя `/login`, кабинет сотрудника `/staff/login`, Swagger `/swagger/`.
 
 ## О продукте
 
@@ -52,6 +57,8 @@
 | `externalSystemsMock` | Node.js | мок банка, кредитного бюро и реестра |
 
 Данные о продуктах, компаниях и пользователях сгенерированы и не имеют юридической силы.
+
+Обоснование дизайна — в [docs/design-rationale.md](docs/design-rationale.md).
 
 ## Запуск
 
@@ -83,6 +90,7 @@ docker run -d --name alpha -e JWT_SECRET=любая-строка -p 8080:8080 gh
 ## Документация
 
 - [Описание проекта](docs/project-description.md)
+- [Дизайн-решения](docs/design-rationale.md) — почему интерфейс устроен так: подбор, заявки, скоринг, графики
 - [Тестовые сценарии](docs/test-scenarios.md) — пошаговая проверка основных потоков
 - [Клиент](client/README.md)
 - [Сервер](server/README.md)
