@@ -17,7 +17,7 @@ export function StaffSidebar({ employee, counters, onLogout }: StaffSidebarProps
   const { pathname } = useLocation()
 
   return (
-    <aside className={styles.side}>
+    <aside className={styles.side} aria-label="Боковое меню">
       <Link className={styles.logo} to={ROUTES.staff}>
         <i className={styles.logoMark} />
         Бизнес-кредиты

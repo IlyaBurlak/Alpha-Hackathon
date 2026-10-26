@@ -73,11 +73,14 @@ export const CabinetLayout = observer(function CabinetLayout() {
 
   return (
     <div className={styles.page}>
+      <a className={styles.skipLink} href="#main-content">
+        Перейти к содержимому
+      </a>
       <div className={styles.shell}>
         {navigationProps && <Sidebar {...navigationProps} />}
         <div ref={panelRef} className={styles.panel}>
           {navigationProps && <MobileTopBar {...navigationProps} />}
-          <main className={styles.main} tabIndex={-1}>
+          <main id="main-content" className={styles.main} tabIndex={-1}>
             {renderContent()}
           </main>
         </div>

@@ -1,0 +1,237 @@
+import { test, before } from 'node:test';
+import assert from 'node:assert/strict';
+import { step, description, suite, feature } from 'allure-js-commons';
+import {
+  SERVER_BASE_URL,
+  login,
+  loginOperator,
+  authHeaders,
+  createApplicationId,
+  confirmApplication,
+  getApplicationById,
+  setMockActive,
+  waitForScoreStatus,
+} from './helpers';
+
+let operatorToken: string;
+
+before(async () => {
+  operatorToken = await loginOperator('alfaOperator1', 'alfaOperator1!');
+});
+
+async function confirmAndDrainScoring(token: string, applicationId: number, productId: number): Promise<Response> {
+  const res = await confirmApplication(token, applicationId, productId);
+  if (res.status === 200) {
+    await waitForScoreStatus(operatorToken, applicationId, 'WAITONGOPERATOR');
+  }
+  return res;
+}
+
+test('confirming a product the caller is entitled to succeeds', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description('A fresh application for organization 1, confirmed with product id 2 (which is in range for sum 50000/12 months).');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+
+  const res = await step('PUT /?applicationId&productId=2, then wait for scoring to settle', () =>
+    confirmAndDrainScoring(token, applicationId, 2),
+  );
+
+  await step('response is 200 with productId 2', async () => {
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.productId, 2);
+  });
+});
+
+test('confirming without applicationId or productId in the query is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description('The controller requires both query params before calling the service.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+
+  const res = await step('PUT / with no query params', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/`, { method: 'PUT', headers: authHeaders(token) }),
+  );
+
+  await step('response is 400', () => {
+    assert.equal(res.status, 400);
+  });
+});
+
+test('confirming without a reason is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product — reason');
+  await description('The controller requires a non-empty string `reason` in the body before calling the service.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+
+  const withoutBody = await step('PUT /?applicationId&productId=2 with no body', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=${applicationId}&productId=2`, {
+      method: 'PUT',
+      headers: authHeaders(token),
+    }),
+  );
+  const withBlankReason = await step('PUT with a blank reason', () => confirmApplication(token, applicationId, 2, '   '));
+  const withNonStringReason = await step('PUT with a numeric reason', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=${applicationId}&productId=2`, {
+      method: 'PUT',
+      headers: authHeaders(token),
+      body: JSON.stringify({ reason: 42 }),
+    }),
+  );
+
+  await step('every response is 400', () => {
+    assert.equal(withoutBody.status, 400);
+    assert.equal(withBlankReason.status, 400);
+    assert.equal(withNonStringReason.status, 400);
+  });
+
+  await step('the application is still a draft without a product', async () => {
+    const res = await getApplicationById(token, applicationId);
+    const body = await res.json();
+    assert.equal(body.status, 'DRAFT');
+    assert.ok(!body.productId);
+  });
+});
+
+test('the reason of a confirmed application is saved and returned', async () => {
+  await suite('Applications');
+  await feature('Confirm product — reason');
+  await description('The reason from the body is stored on the application, returned by PUT and by a later GET /:id.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+  const reason = 'Купить печь для новой пекарни';
+
+  const confirmed = await step('confirm with a reason, then wait for scoring to settle', async () => {
+    const res = await confirmApplication(token, applicationId, 2, reason);
+    assert.equal(res.status, 200);
+    await waitForScoreStatus(operatorToken, applicationId, 'WAITONGOPERATOR');
+    return res.json();
+  });
+
+  const loaded = await step('GET /:id', async () => {
+    const res = await getApplicationById(token, applicationId);
+    return res.json();
+  });
+
+  await step('both responses carry the reason', () => {
+    assert.equal(confirmed.reason, reason);
+    assert.equal(loaded.reason, reason);
+  });
+});
+
+test('confirming without a token is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description('Same auth-guard shape as every other protected route.');
+
+  const res = await step('PUT /?applicationId=1&productId=1 with no Authorization header', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=1&productId=1`, { method: 'PUT' }),
+  );
+
+  await step('response is 401', () => {
+    assert.equal(res.status, 401);
+  });
+});
+
+test('confirming someone else\'s (not yet confirmed) application is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product — access control');
+  await description(
+    'application.service checks `application.productId` before ownership, so this needs a freshly ' +
+      'created, still-unconfirmed application to actually exercise the "Нет доступа" branch.',
+  );
+
+  const owner = await step('log in as alfaTest (the owner)', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application as the owner', () => createApplicationId(owner));
+
+  const intruder = await step('log in as alfaIlia (unrelated user)', () => login('alfaIlia', 'alfaIlia!'));
+  const res = await step('PUT /?applicationId&productId=2 as the intruder', () => confirmApplication(intruder, applicationId, 2));
+
+  await step('response is 500', () => {
+    assert.equal(res.status, 500);
+  });
+});
+
+test('confirming an already-confirmed application is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description('A second confirm call on the same application must hit the "Продукт уже выбран" guard.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+
+  await step('confirm it once (expected to succeed), then wait for scoring to settle', async () => {
+    const res = await confirmAndDrainScoring(token, applicationId, 2);
+    assert.equal(res.status, 200);
+  });
+
+  const res = await step('confirm it again', () => confirmApplication(token, applicationId, 2));
+
+  await step('response is 500', () => {
+    assert.equal(res.status, 500);
+  });
+});
+
+test('confirming a product unavailable to the application is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description('Product id 3 ("Деньги на дело") is IE-only (ieAvailable, not ooAvailable) — organization 1 is OO.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+
+  const res = await step('PUT /?applicationId&productId=3', () => confirmApplication(token, applicationId, 3));
+
+  await step('response is 500', () => {
+    assert.equal(res.status, 500);
+  });
+});
+
+test('confirming while the bank mock is down is rejected', async () => {
+  await suite('Applications');
+  await feature('External degradation');
+  await description('confirmApplication re-fetches the available products and explicitly rejects when the gateway call fails.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application while the bank mock is still up', () => createApplicationId(token));
+
+  await step('disable the bank mock', () => setMockActive('banks', false));
+  try {
+    const res = await step('PUT /?applicationId&productId=2', () => confirmApplication(token, applicationId, 2));
+
+    await step('response is 500', () => {
+      assert.equal(res.status, 500);
+    });
+  } finally {
+    await step('re-enable the bank mock', () => setMockActive('banks', true));
+  }
+});
+
+test('confirming triggers the async scoring chain through to WAITONGOPERATOR', async () => {
+  await suite('Applications');
+  await feature('Confirm product');
+  await description(
+    'confirmApplication fires handleApplication without awaiting it. Polling GET /:id/score as an ' +
+      'operator until the scoring status reaches WAITONGOPERATOR proves the fire-and-forget chain ' +
+      '(credit history -> register -> ML scoring) actually ran end to end against the real mocks.',
+  );
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create and confirm a fresh application', async () => {
+    const id = await createApplicationId(token);
+    const res = await confirmApplication(token, id, 2);
+    assert.equal(res.status, 200);
+    return id;
+  });
+
+  await step('poll /:id/score until status is WAITONGOPERATOR', () =>
+    waitForScoreStatus(operatorToken, applicationId, 'WAITONGOPERATOR'),
+  );
+});

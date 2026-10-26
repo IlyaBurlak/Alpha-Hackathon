@@ -12,7 +12,7 @@ import { plainToInstance } from 'class-transformer';
 import { IApplicationController } from './application.controller.interface';
 import { IApplicationService } from './application.service.interface';
 import { ApplicationEntity, ApplicationStatus, CreditTimeUnits } from './entity/application.entity';
-import { ApplicationDto } from './dto/application.dto';
+import { ApplicationConfirmDto, ApplicationDto } from './dto/application.dto';
 import { OperatorSolution } from './entity/operator.solution';
 
 @injectable()
@@ -226,6 +226,12 @@ export class ApplicationController extends BaseController implements IApplicatio
  *         schema:
  *           type: integer
  *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ApplicationConfirm'
  *     responses:
  *       200:
  *         description: Заявка подтверждена
@@ -234,7 +240,7 @@ export class ApplicationController extends BaseController implements IApplicatio
  *             schema:
  *               $ref: '#/components/schemas/Application'
  *       400:
- *         description: Недостаточно данных
+ *         description: Не указаны ID заявки, ID продукта или причина (reason)
  *         content:
  *           application/json:
  *             schema:
@@ -254,7 +260,12 @@ export class ApplicationController extends BaseController implements IApplicatio
                 res.status(400).json({ error: 'Не указан User ID' });
                 return;
             }
-            const result = await this.applicationService.confirmApplication(applicationId, userId, productId);
+            const reason = (req.body as ApplicationConfirmDto)?.reason;
+            if (typeof reason !== 'string' || !reason.trim()) {
+                res.status(400).json({ error: 'Не указана причина подтверждения заявки' });
+                return;
+            }
+            const result = await this.applicationService.confirmApplication(applicationId, userId, productId, reason);
             res.json(plainToInstance(ApplicationDto, result))
         }  catch (err) {
             next(err);

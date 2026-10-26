@@ -1,22 +1,23 @@
-import { makeAutoObservable, observableRef } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 
-import { getErrorMessage } from '@/shared/api'
+import { AsyncResource } from '@/shared/api'
+import type { ResourceState } from '@/shared/api'
 
 import { getCurrentUser } from '../api/get-current-user'
 import type { Organization, User } from './types'
 
-export type UserState =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; user: User }
-  | { status: 'error'; message: string }
+export type UserState = ResourceState<{ user: User }>
 
 export class UserStore {
-  state: UserState = { status: 'idle' }
   selectedOrganizationId: number | null = null
+  private readonly resource = new AsyncResource<{ user: User }>()
 
   constructor() {
-    makeAutoObservable(this, { state: observableRef })
+    makeAutoObservable(this)
+  }
+
+  get state(): UserState {
+    return this.resource.state
   }
 
   /** The organization the cabinet works on: the chosen one, else the first of the user. */
@@ -31,19 +32,10 @@ export class UserStore {
   }
 
   async load(): Promise<void> {
-    this.setState({ status: 'loading' })
-    try {
-      this.setState({ status: 'success', user: await getCurrentUser() })
-    } catch (error) {
-      this.setState({ status: 'error', message: getErrorMessage(error) })
-    }
+    await this.resource.load(async () => ({ user: await getCurrentUser() }))
   }
 
   reset(): void {
-    this.setState({ status: 'idle' })
-  }
-
-  private setState(state: UserState): void {
-    this.state = state
+    this.resource.reset()
   }
 }

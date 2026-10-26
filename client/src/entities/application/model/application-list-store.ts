@@ -1,9 +1,10 @@
-import { makeAutoObservable, observableRef } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 
-import { getErrorMessage } from '@/shared/api'
+import { AsyncResource } from '@/shared/api'
+import type { ResourceState } from '@/shared/api'
 
 import { getMyApplications } from '../api/applications'
-import { settlePayout } from '../api/mocks/mock-enrichment'
+import { settlePayout } from '../lib/status/settle-payout'
 import { APPLICATION_STATUSES } from './types'
 import type { Application, ApplicationStatus } from './types'
 
@@ -13,17 +14,21 @@ const ACTION_STATUSES: readonly ApplicationStatus[] = [
   APPLICATION_STATUSES.offerAccepted,
 ]
 
-export type ApplicationListState =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; applications: Application[] }
-  | { status: 'error'; message: string }
+export type ApplicationListState = ResourceState<{ applications: Application[] }>
+
+async function requestApplications(): Promise<{ applications: Application[] }> {
+  return { applications: await getMyApplications() }
+}
 
 export class ApplicationListStore {
-  state: ApplicationListState = { status: 'idle' }
+  private readonly resource = new AsyncResource<{ applications: Application[] }>()
 
   constructor() {
-    makeAutoObservable(this, { state: observableRef })
+    makeAutoObservable(this)
+  }
+
+  get state(): ApplicationListState {
+    return this.resource.state
   }
 
   /** Applications of one organization, the latest first. */
@@ -41,32 +46,23 @@ export class ApplicationListStore {
 
   /** Loads with a spinner: for the first load and for retries. */
   async load(): Promise<void> {
-    this.setState({ status: 'loading' })
-    try {
-      this.setState({ status: 'success', applications: await getMyApplications() })
-    } catch (error) {
-      this.setState({ status: 'error', message: getErrorMessage(error) })
-    }
+    await this.resource.load(requestApplications)
   }
 
-  /** Updates a shown list quietly; a failed refresh keeps the old data on screen. */
+  /** Updates a shown list quietly; a failed refresh keeps the old data. */
   async refresh(): Promise<void> {
     if (this.state.status !== 'success') {
       await this.load()
       return
     }
-    try {
-      this.setState({ status: 'success', applications: await getMyApplications() })
-    } catch {
-      // The list on screen is still valid; the next refresh or a reload will show a real error.
-    }
+    await this.resource.refresh(requestApplications)
   }
 
   /** Shows loans as issued when their payout timer is over (a client mock, no request). */
   settlePayouts(): void {
     if (this.state.status !== 'success') return
     const now = Date.now()
-    this.setState({ status: 'success', applications: this.state.applications.map((application) => settlePayout(application, now)) })
+    this.resource.set({ applications: this.state.applications.map((application) => settlePayout(application, now)) })
   }
 
   /** Loads only if nobody has asked yet. */
@@ -76,10 +72,6 @@ export class ApplicationListStore {
 
   /** Forgets the loaded list, e.g. when the user signs out. */
   reset(): void {
-    this.setState({ status: 'idle' })
-  }
-
-  private setState(state: ApplicationListState): void {
-    this.state = state
+    this.resource.reset()
   }
 }

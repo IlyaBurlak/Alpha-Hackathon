@@ -1,4 +1,4 @@
-export { countDigits, findCaretWithDigitsAfter, readMaskedEdit } from './text/caret'
+export { findCaretWithDigitsAfter, readMaskedEdit } from './text/caret'
 export { classNames } from './text/class-names'
 export { calculateAnnuityPayment } from './finance/annuity'
 export {

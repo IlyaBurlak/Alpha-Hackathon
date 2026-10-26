@@ -149,7 +149,7 @@ export class ApplicationService implements IApplicationService {
     }
 
 
-    async confirmApplication(applicationId: number, userId: number, productId: number): Promise<ApplicationEntity> {
+    async confirmApplication(applicationId: number, userId: number, productId: number, reason: string): Promise<ApplicationEntity> {
         let applicationForHandler: ApplicationEntity;
         let orgForHandler: OrganizationEntity;
 
@@ -179,7 +179,7 @@ export class ApplicationService implements IApplicationService {
             applicationForHandler = application;
             orgForHandler = org;
 
-            return this.applicationRepository.confirmApplication(applicationId, product, transaction);
+            return this.applicationRepository.confirmApplication(applicationId, product, reason, transaction);
         });
 
         

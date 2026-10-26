@@ -7,7 +7,7 @@ export interface IApplicationRepository {
     createApplication(application: ApplicationEntity, transaction?: Transaction): Promise<ApplicationEntity>;
     getApplicationById(id: number, transaction?: Transaction): Promise<ApplicationEntity>;
     getApplicationByUserId(userId: number): Promise<ApplicationEntity[]>;
-    confirmApplication(applicationId: number, product: any, transaction?: Transaction): Promise<ApplicationEntity>;
+    confirmApplication(applicationId: number, product: any, reason: string, transaction?: Transaction): Promise<ApplicationEntity>;
     updateApplicationScoringStatus(applicationScoreId: number, status: AnalysisStatus): Promise<void> 
     updateApplicationScoringInfo(applicationScoreId: number, info: any): Promise<void>;
     updateApplicationScore(applicationId: number, info: MlScoreEntity): Promise<void>

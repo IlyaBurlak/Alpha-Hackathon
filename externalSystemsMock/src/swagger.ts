@@ -1,4 +1,5 @@
 
+import path from 'node:path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options: swaggerJsdoc.Options = {
@@ -112,7 +113,8 @@ const options: swaggerJsdoc.Options = {
     ],
   },
 
-  apis: ['./src/api/**/*.ts', './src/api/**/**/*.ts'],
+  // Relative to this file: `src/api` when run from the sources, `dist/api` (compiled .js) in the Docker images.
+  apis: [path.join(__dirname, 'api/**/*.{ts,js}')],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

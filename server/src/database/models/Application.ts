@@ -20,6 +20,8 @@ export class Application extends Model {
     public productConditions!: any;
     public solutionComment!: string;
     public operatorId!: number;
+    public type!: string;
+    public reason!: string;
 
 
     static associate(models: { Organization: typeof Organization }) {
@@ -95,6 +97,21 @@ Application.init(
     },
     operatorId: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    type: {
+      type: DataTypes.ENUM(
+        'Пополнить оборотные средства',
+        'транспорт',
+        'спецтехника',
+        'открыть новую точку',
+        'рефинансировать кредиты',
+        'другое',
+      ),
+      allowNull: false,
+    },
+    reason: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },

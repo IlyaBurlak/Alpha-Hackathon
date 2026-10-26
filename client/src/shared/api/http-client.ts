@@ -1,7 +1,7 @@
 import { API_BASE_URL, EXTERNAL_API_BASE_URL, REQUEST_TIMEOUT_MS } from '@/shared/config'
 import { isRecord, tokenStorage } from '@/shared/lib'
 
-import { ApiError, NETWORK_ERROR_STATUS } from './errors'
+import { ApiError, NETWORK_ERROR_STATUS, UnexpectedResponseError } from './errors'
 
 const UNAUTHORIZED_STATUS = 401
 const NETWORK_ERROR_MESSAGE = 'Нет связи с сервером. Проверьте соединение.'
@@ -58,8 +58,8 @@ class HttpClient {
     return this.request(path, { method: 'POST', body })
   }
 
-  put(path: string): Promise<unknown> {
-    return this.request(path, { method: 'PUT' })
+  put(path: string, body?: unknown): Promise<unknown> {
+    return this.request(path, { method: 'PUT', body })
   }
 
   private async request(path: string, { method, body }: RequestOptions): Promise<unknown> {
@@ -85,7 +85,11 @@ class HttpClient {
       throw new ApiError(response.status, await readErrorMessage(response))
     }
 
-    return response.json()
+    try {
+      return await response.json()
+    } catch {
+      throw new UnexpectedResponseError('the body is not valid JSON')
+    }
   }
 }
 

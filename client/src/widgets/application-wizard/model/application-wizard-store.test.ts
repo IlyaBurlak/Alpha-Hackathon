@@ -225,8 +225,31 @@ describe('ApplicationWizardStore: submit', () => {
 
     expect(await store.submit()).toBe(sent)
 
-    expect(selectApplicationProduct).toHaveBeenCalledWith(7, PLAIN)
+    expect(selectApplicationProduct).toHaveBeenCalledWith(7, PLAIN, 'Кредит для бизнеса')
     expect(new ApplicationWizardStore(APPLICATION, [PLAIN, SECURED]).step).toBe(1)
+  })
+
+  it('sends the note of the applicant as the reason', async () => {
+    vi.mocked(selectApplicationProduct).mockResolvedValue({ id: 7, status: 'SUBMITTED' } as Application)
+    const store = new ApplicationWizardStore(APPLICATION, [PLAIN])
+    store.pickOffer(2)
+    store.setText('note', '  Купить печь  ')
+    giveAllConsents(store)
+
+    await store.submit()
+
+    expect(selectApplicationProduct).toHaveBeenCalledWith(7, PLAIN, 'Купить печь')
+  })
+
+  it('uses the goal of the loan as the reason when there is no note', async () => {
+    vi.mocked(selectApplicationProduct).mockResolvedValue({ id: 7, status: 'SUBMITTED' } as Application)
+    const store = new ApplicationWizardStore({ id: 7, goal: 'refinance' } as Application, [PLAIN])
+    store.pickOffer(2)
+    giveAllConsents(store)
+
+    await store.submit()
+
+    expect(selectApplicationProduct).toHaveBeenCalledWith(7, PLAIN, 'Рефинансировать кредиты')
   })
 
   it('shows the backend error and stays on the page', async () => {

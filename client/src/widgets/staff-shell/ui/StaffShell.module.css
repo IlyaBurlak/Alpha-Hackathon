@@ -112,3 +112,19 @@
     padding: 20px 16px 48px;
   }
 }
+
+.skipLink {
+  position: absolute;
+  z-index: 100;
+  left: 12px;
+  top: 12px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-link);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: none;
+}
