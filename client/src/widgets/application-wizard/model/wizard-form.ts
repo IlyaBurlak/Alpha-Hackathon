@@ -32,8 +32,6 @@ export const CONSENTS = [
 ] as const
 export type ConsentKey = (typeof CONSENTS)[number]['key']
 
-export type OtherLoansAnswer = 'yes' | 'no'
-
 /** Everything the user fills in after choosing a variant. Numbers are kept as grouped digit strings, as typed. */
 export interface WizardForm {
   role: ApplicantRole
@@ -41,8 +39,6 @@ export interface WizardForm {
   email: string
   revenue: string
   employees: string
-  otherLoans: OtherLoansAnswer | null
-  otherLoanPayments: string
   collateralType: CollateralType | null
   collateralValue: string
   collateralOwner: CollateralOwner
@@ -50,7 +46,7 @@ export interface WizardForm {
   consents: Record<ConsentKey, boolean>
 }
 
-const DIGITS_FIELDS = ['revenue', 'employees', 'otherLoanPayments', 'collateralValue'] as const
+const DIGITS_FIELDS = ['revenue', 'employees', 'collateralValue'] as const
 
 export type DigitsField = (typeof DIGITS_FIELDS)[number]
 
@@ -82,8 +78,6 @@ export function createInitialForm(defaults: WizardDefaults = EMPTY_DEFAULTS): Wi
     email: defaults.email ?? '',
     revenue: formatPrefill(defaults.revenue),
     employees: formatPrefill(defaults.employees),
-    otherLoans: null,
-    otherLoanPayments: '',
     collateralType: null,
     collateralValue: '',
     collateralOwner: COLLATERAL_OWNERS[0],
@@ -112,18 +106,16 @@ function readConsents(value: unknown): Record<ConsentKey, boolean> | null {
 export function parseForm(value: unknown): WizardForm | null {
   if (!isRecord(value)) return null
   const consents = readConsents(value.consents)
-  const { role, collateralType, collateralOwner, otherLoans } = value
+  const { role, collateralType, collateralOwner } = value
   if (
     consents === null ||
     !isOneOf(APPLICANT_ROLES, role) ||
     !isOneOf(COLLATERAL_OWNERS, collateralOwner) ||
     !(collateralType === null || isOneOf(COLLATERAL_TYPES, collateralType)) ||
-    !(otherLoans === null || otherLoans === 'yes' || otherLoans === 'no') ||
     typeof value.phone !== 'string' ||
     typeof value.email !== 'string' ||
     typeof value.revenue !== 'string' ||
     typeof value.employees !== 'string' ||
-    typeof value.otherLoanPayments !== 'string' ||
     typeof value.collateralValue !== 'string' ||
     typeof value.note !== 'string'
   ) {
@@ -135,8 +127,6 @@ export function parseForm(value: unknown): WizardForm | null {
     email: value.email,
     revenue: value.revenue,
     employees: value.employees,
-    otherLoans,
-    otherLoanPayments: value.otherLoanPayments,
     collateralType,
     collateralValue: value.collateralValue,
     collateralOwner,

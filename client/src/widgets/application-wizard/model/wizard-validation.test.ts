@@ -11,7 +11,6 @@ function createValidForm(): WizardForm {
     email: 'a@kolos-bakery.ru',
     revenue: '48 600 000',
     employees: '34',
-    otherLoans: 'no',
   }
 }
 
@@ -27,7 +26,6 @@ describe('validateWizardForm', () => {
       'phone',
       'email',
       'revenue',
-      'otherLoans',
       'collateralType',
       'collateralValue',
     ])
@@ -41,13 +39,6 @@ describe('validateWizardForm', () => {
     ['zero revenue', { revenue: '0' }, 'revenue'],
   ])('rejects %s', (_case, patch, field) => {
     expect(validateWizardForm({ ...createValidForm(), ...patch }, false).map((issue) => issue.field)).toEqual([field])
-  })
-
-  it('asks for payments only when the user has other loans', () => {
-    expect(validateWizardForm({ ...createValidForm(), otherLoans: 'yes' }, false)).toEqual([
-      { field: 'otherLoanPayments', message: 'Укажите сумму платежей в месяц' },
-    ])
-    expect(validateWizardForm({ ...createValidForm(), otherLoans: 'yes', otherLoanPayments: '50 000' }, false)).toEqual([])
   })
 
   it('asks for collateral only for a secured variant', () => {

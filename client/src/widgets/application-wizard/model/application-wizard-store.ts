@@ -15,7 +15,6 @@ import type {
   CollateralType,
   ConsentKey,
   DigitsField,
-  OtherLoansAnswer,
   WizardDefaults,
   WizardForm,
 } from './wizard-form'
@@ -137,10 +136,6 @@ export class ApplicationWizardStore {
 
   setDigits(field: DigitsField, text: string): void {
     this.updateForm({ [field]: groupDigits(text) })
-  }
-
-  setOtherLoans(answer: OtherLoansAnswer): void {
-    this.updateForm({ otherLoans: answer })
   }
 
   setCollateralType(collateralType: CollateralType): void {
