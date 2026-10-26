@@ -1,6 +1,7 @@
 import { httpClient } from '@/shared/api'
 
 import { readLocalDetails, saveLocalDetails } from '../lib/local-details/local-details'
+import { CREDIT_GOALS } from '../config/loan-form'
 import { APPLICATION_STATUSES } from '../model/types'
 import type { Application, CreateApplicationInput, ProductOffer } from '../model/types'
 import { mapApplication, mapApplications } from './application-mapper'
@@ -20,7 +21,7 @@ function withLocalDetails(application: Application): Application {
   return applyMocks(
     {
       ...application,
-      goal,
+      goal: application.goal ?? goal,
       productChoice: shouldRestoreProduct ? { kind: 'selected', product: selectedProduct } : application.productChoice,
     },
     details,
@@ -34,7 +35,8 @@ export async function createApplication({
   creditTime,
   goal,
 }: CreateApplicationInput): Promise<Application> {
-  const body = { organizationId, sum, creditTime: { units: creditTime.unit, value: creditTime.value } }
+  const type = CREDIT_GOALS.find(({ id }) => id === goal)?.apiType
+  const body = { organizationId, sum, type, creditTime: { units: creditTime.unit, value: creditTime.value } }
   const application = mapApplication(await httpClient.post(APPLICATIONS_PATH, body))
   saveLocalDetails(application.id, { goal })
   return withLocalDetails(application)
@@ -50,10 +52,14 @@ export async function getApplication(applicationId: number): Promise<Application
   return withLocalDetails(mapApplication(await httpClient.get(`${APPLICATIONS_PATH}/${applicationId}`)))
 }
 
-/** Chooses the product; the backend sends the application to review after that. */
-export async function selectApplicationProduct(applicationId: number, offer: ProductOffer): Promise<Application> {
+/** Chooses the product; the backend sends the application to review after that and keeps the reason. */
+export async function selectApplicationProduct(
+  applicationId: number,
+  offer: ProductOffer,
+  reason: string,
+): Promise<Application> {
   const query = new URLSearchParams({ applicationId: String(applicationId), productId: String(offer.id) })
-  const application = mapApplication(await httpClient.put(`${APPLICATIONS_PATH}?${query}`))
+  const application = mapApplication(await httpClient.put(`${APPLICATIONS_PATH}?${query}`, { reason }))
   saveLocalDetails(applicationId, {
     selectedProduct: { name: offer.name, interestRate: offer.interestRate, payments: offer.payments },
     isSecured: offer.collateral > 0,

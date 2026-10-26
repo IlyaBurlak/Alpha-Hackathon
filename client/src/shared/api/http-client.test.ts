@@ -53,6 +53,14 @@ describe('httpClient: requests', () => {
     expect(init.method).toBe('PUT')
     expect(init.body).toBeUndefined()
   })
+
+  it('sends PUT with a JSON body', async () => {
+    respondWith({})
+
+    await httpClient.put('/applications?applicationId=1&productId=2', { reason: 'Купить станок' })
+
+    expect(lastRequest().init.body).toBe(JSON.stringify({ reason: 'Купить станок' }))
+  })
 })
 
 describe('httpClient: authorization', () => {

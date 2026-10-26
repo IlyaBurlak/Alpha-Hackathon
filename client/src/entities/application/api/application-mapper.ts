@@ -1,6 +1,7 @@
 import { UnexpectedResponseError } from '@/shared/api'
 import { isRecord } from '@/shared/lib'
 
+import { creditGoalFromApiType } from '../config/loan-form'
 import { APPLICATION_STATUSES, CREDIT_TIME_UNITS } from '../model/types'
 import type {
   Application,
@@ -171,7 +172,7 @@ export function mapApplication(dto: unknown): Application {
     submittedAt: mapOptionalDate(dto.submittedAt),
     signedAt: mapOptionalDate(dto.signedAt),
     issuedAt: mapOptionalDate(dto.issuedAt),
-    goal: null,
+    goal: creditGoalFromApiType(dto.type),
     productChoice: mapProductChoice(dto, dto.status),
     scoring: mapScoring(dto.scoring),
     reviewStage: mapReviewStage(dto.reviewStage),

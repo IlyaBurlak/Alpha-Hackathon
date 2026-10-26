@@ -41,7 +41,7 @@ afterEach(() => {
 })
 
 describe('createApplication', () => {
-  it('posts the backend request shape: `creditTime.units`, not `unit`, and no goal', async () => {
+  it('posts the backend request shape: `creditTime.units`, not `unit`, and the goal as `type`', async () => {
     vi.mocked(httpClient.post).mockResolvedValue(APPLICATION_WITH_OFFERS_DTO)
 
     const application = await createApplication({
@@ -54,6 +54,7 @@ describe('createApplication', () => {
     expect(httpClient.post).toHaveBeenCalledWith('/applications', {
       organizationId: 1,
       sum: 1_000_000,
+      type: 'спецтехника',
       creditTime: { units: 'YEAR', value: 1 },
     })
     expect(application.productChoice.kind).toBe('offers')
@@ -103,12 +104,14 @@ describe('selectApplicationProduct', () => {
     return productChoice.items[0]
   }
 
-  it('puts applicationId and productId as query params, without a body', async () => {
+  it('puts applicationId and productId as query params and the reason as a body', async () => {
     vi.mocked(httpClient.put).mockResolvedValue(SELECTED_APPLICATION_DTO)
 
-    const application = await selectApplicationProduct(2, await loadOffer())
+    const application = await selectApplicationProduct(2, await loadOffer(), 'Купить станок')
 
-    expect(httpClient.put).toHaveBeenCalledWith('/applications?applicationId=2&productId=1')
+    expect(httpClient.put).toHaveBeenCalledWith('/applications?applicationId=2&productId=1', {
+      reason: 'Купить станок',
+    })
     expect(application.status).toBe('SUBMITTED')
     expect(application.productChoice.kind).toBe('selected')
   })
@@ -116,7 +119,7 @@ describe('selectApplicationProduct', () => {
   it('remembers the chosen product, because the backend does not return it yet', async () => {
     vi.mocked(httpClient.put).mockResolvedValue(SUBMITTED_APPLICATION_WITHOUT_PRODUCT_DTO)
 
-    const application = await selectApplicationProduct(2, await loadOffer())
+    const application = await selectApplicationProduct(2, await loadOffer(), 'Купить станок')
 
     expect(application.productChoice).toEqual({
       kind: 'selected',
