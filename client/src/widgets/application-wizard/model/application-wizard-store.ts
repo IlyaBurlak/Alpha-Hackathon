@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 
-import { pickVariants, selectApplicationProduct } from '@/entities/application'
+import { CREDIT_GOALS, pickVariants, selectApplicationProduct } from '@/entities/application'
 import type { Application, CreditVariants, ProductOffer } from '@/entities/application'
 import { getErrorMessage } from '@/shared/api'
 import { formatPhone, groupDigits, normalizeDigits } from '@/shared/lib'
@@ -164,6 +164,13 @@ export class ApplicationWizardStore {
     this.isEditingParams = !this.isEditingParams
   }
 
+  /** The backend requires a reason: the note of the applicant, else the goal of the loan. */
+  private get submitReason(): string {
+    const note = this.form.note.trim()
+    if (note !== '') return note
+    return CREDIT_GOALS.find(({ id }) => id === this.application.goal)?.label ?? 'Кредит для бизнеса'
+  }
+
   /** Sends the application to the bank. Returns it, or `null` when the request failed (see `errorMessage`). */
   async submit(): Promise<Application | null> {
     const offer = this.selectedOffer
@@ -171,7 +178,7 @@ export class ApplicationWizardStore {
 
     this.startSubmitting()
     try {
-      const application = await selectApplicationProduct(this.application.id, offer)
+      const application = await selectApplicationProduct(this.application.id, offer, this.submitReason)
       this.finishSubmitting()
       return application
     } catch (error) {

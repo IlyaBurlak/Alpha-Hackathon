@@ -2,7 +2,7 @@
  * Turns what the backend sends to an operator (`/applications/all`, `/applications/:id/score`) into the shape the
  * staff mapper reads. The scoring comes only from the ML result the backend sends (ml-scoring.ts): without it the
  * report says so. The figures of the company the backend does not send yet (turnover, credit lines) are filled in from
- * the mock review (api/mocks/mock-review.ts); whatever the backend sends wins (docs/frontend-mocks.md).
+ * the mock review (api/mocks/mock-review.ts); whatever the backend sends wins (docs/frontend-mocks.md). The goal, the applicant contacts and the collateral are mocked too (mocks/mock-applicant.ts).
  */
 import { UnexpectedResponseError, readNumber, readRecord, readString } from '@/shared/api'
 import { isRecord } from '@/shared/lib'
@@ -11,6 +11,7 @@ import { OTHER_REJECTION_REASON, REJECTION_REASONS } from '../../config/review-r
 import { HISTORY_TONES, STAFF_STATUSES } from '../../model/types'
 import type { StaffStatus } from '../../model/types'
 import { recommendDecision } from '../../lib/recommendation'
+import { buildMockApplicant } from '../mocks/mock-applicant'
 import { buildChecks, buildLoans } from '../mocks/mock-review'
 import type { ReviewInput } from '../mocks/mock-review'
 import { SCORING_PENDING, readMlScoring } from './ml-scoring'
@@ -255,6 +256,15 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     account: (register && optionalString(register, 'account')) ?? UNKNOWN,
   }
 
+  const mockApplicant = buildMockApplicant({
+    applicationId: id,
+    inn: company.inn,
+    head: head === UNKNOWN ? null : head,
+    isSoleProprietor,
+    isSecured: product.isSecured,
+    amount,
+  })
+
   const input: ReviewInput = {
     productId: product.reviewProductId,
     isSecured: product.isSecured,
@@ -268,7 +278,7 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     hasStableTurnover: company.hasStableTurnover,
     arbitrationCases: 0,
     taxDebt: 0,
-    collateralValue: null,
+    collateralValue: mockApplicant.collateral?.value ?? null,
     isRegisterReceived,
     isHistoryReceived,
     isCompanyActive: register?.isActive !== false,
@@ -306,12 +316,12 @@ export function toStaffApplicationDto(value: unknown, now: number) {
     status,
     assigneeId,
     product: { id: product.id, name: product.name, shortName: product.shortName, isSecured: product.isSecured },
-    goal: UNKNOWN,
+    goal: mockApplicant.goal,
     amount,
     termInMonths,
     company,
-    applicant: { name: head, role: UNKNOWN, phone: UNKNOWN, email: UNKNOWN },
-    collateral: null,
+    applicant: mockApplicant.applicant,
+    collateral: mockApplicant.collateral,
     scoring,
     scoringStatus: reading.status,
     scoringIssue: reading.issue,

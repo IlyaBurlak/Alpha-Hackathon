@@ -36,21 +36,40 @@ export interface CreditTimeInput {
   value: number;
 }
 
+/** Values of the backend `ApplicationType` enum (the goal of the loan). */
+export const APPLICATION_TYPES = [
+  'Пополнить оборотные средства',
+  'транспорт',
+  'спецтехника',
+  'открыть новую точку',
+  'рефинансировать кредиты',
+  'другое',
+] as const;
+
+export const DEFAULT_APPLICATION_TYPE = 'другое';
+export const DEFAULT_CONFIRM_REASON = 'Нужны средства для развития бизнеса';
+
 export async function createApplication(
   token: string,
-  body: { organizationId: number; sum: number; creditTime: CreditTimeInput },
+  body: { organizationId: number; sum: number; creditTime: CreditTimeInput; type?: string },
 ): Promise<Response> {
   return fetch(`${SERVER_BASE_URL}/api/applications/`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify(body),
+    body: JSON.stringify({ type: DEFAULT_APPLICATION_TYPE, ...body }),
   });
 }
 
-export async function confirmApplication(token: string, applicationId: number, productId: number): Promise<Response> {
+export async function confirmApplication(
+  token: string,
+  applicationId: number,
+  productId: number,
+  reason: string = DEFAULT_CONFIRM_REASON,
+): Promise<Response> {
   return fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=${applicationId}&productId=${productId}`, {
     method: 'PUT',
     headers: authHeaders(token),
+    body: JSON.stringify({ reason }),
   });
 }
 
@@ -120,11 +139,12 @@ export async function waitFor(check: () => Promise<boolean>, { timeoutMs = 10000
   }
 }
 
-export async function createApplicationId(token: string, overrides: { organizationId?: number; sum?: number; creditTime?: CreditTimeInput } = {}): Promise<number> {
+export async function createApplicationId(token: string, overrides: { organizationId?: number; sum?: number; creditTime?: CreditTimeInput; type?: string } = {}): Promise<number> {
   const res = await createApplication(token, {
     organizationId: overrides.organizationId ?? 1,
     sum: overrides.sum ?? 50000,
     creditTime: overrides.creditTime ?? { units: 'MONTH', value: 12 },
+    type: overrides.type ?? DEFAULT_APPLICATION_TYPE,
   });
   if (res.status !== 200) {
     throw new Error(`createApplicationId failed with status ${res.status}`);

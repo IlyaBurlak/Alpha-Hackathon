@@ -58,8 +58,8 @@ class HttpClient {
     return this.request(path, { method: 'POST', body })
   }
 
-  put(path: string): Promise<unknown> {
-    return this.request(path, { method: 'PUT' })
+  put(path: string, body?: unknown): Promise<unknown> {
+    return this.request(path, { method: 'PUT', body })
   }
 
   private async request(path: string, { method, body }: RequestOptions): Promise<unknown> {

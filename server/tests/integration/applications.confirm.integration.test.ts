@@ -8,6 +8,7 @@ import {
   authHeaders,
   createApplicationId,
   confirmApplication,
+  getApplicationById,
   setMockActive,
   waitForScoreStatus,
 } from './helpers';
@@ -58,6 +59,70 @@ test('confirming without applicationId or productId in the query is rejected', a
 
   await step('response is 400', () => {
     assert.equal(res.status, 400);
+  });
+});
+
+test('confirming without a reason is rejected', async () => {
+  await suite('Applications');
+  await feature('Confirm product — reason');
+  await description('The controller requires a non-empty string `reason` in the body before calling the service.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+
+  const withoutBody = await step('PUT /?applicationId&productId=2 with no body', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=${applicationId}&productId=2`, {
+      method: 'PUT',
+      headers: authHeaders(token),
+    }),
+  );
+  const withBlankReason = await step('PUT with a blank reason', () => confirmApplication(token, applicationId, 2, '   '));
+  const withNonStringReason = await step('PUT with a numeric reason', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/?applicationId=${applicationId}&productId=2`, {
+      method: 'PUT',
+      headers: authHeaders(token),
+      body: JSON.stringify({ reason: 42 }),
+    }),
+  );
+
+  await step('every response is 400', () => {
+    assert.equal(withoutBody.status, 400);
+    assert.equal(withBlankReason.status, 400);
+    assert.equal(withNonStringReason.status, 400);
+  });
+
+  await step('the application is still a draft without a product', async () => {
+    const res = await getApplicationById(token, applicationId);
+    const body = await res.json();
+    assert.equal(body.status, 'DRAFT');
+    assert.ok(!body.productId);
+  });
+});
+
+test('the reason of a confirmed application is saved and returned', async () => {
+  await suite('Applications');
+  await feature('Confirm product — reason');
+  await description('The reason from the body is stored on the application, returned by PUT and by a later GET /:id.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const applicationId = await step('create a fresh application', () => createApplicationId(token));
+  const reason = 'Купить печь для новой пекарни';
+
+  const confirmed = await step('confirm with a reason, then wait for scoring to settle', async () => {
+    const res = await confirmApplication(token, applicationId, 2, reason);
+    assert.equal(res.status, 200);
+    await waitForScoreStatus(operatorToken, applicationId, 'WAITONGOPERATOR');
+    return res.json();
+  });
+
+  const loaded = await step('GET /:id', async () => {
+    const res = await getApplicationById(token, applicationId);
+    return res.json();
+  });
+
+  await step('both responses carry the reason', () => {
+    assert.equal(confirmed.reason, reason);
+    assert.equal(loaded.reason, reason);
   });
 });
 
