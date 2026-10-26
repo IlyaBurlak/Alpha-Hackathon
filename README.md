@@ -14,7 +14,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 
-Название команды: _укажите_
+Название команды: Внимание вопрос
 
 ## Команда
 
