@@ -1,4 +1,5 @@
 
+import path from 'node:path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options: swaggerJsdoc.Options = {
@@ -59,13 +60,38 @@ const options: swaggerJsdoc.Options = {
             value: { type: 'integer', minimum: 1, example: 1 },
           },
         },
+        ApplicationType: {
+          type: 'string',
+          description: 'Цель кредита',
+          enum: [
+            'Пополнить оборотные средства',
+            'транспорт',
+            'спецтехника',
+            'открыть новую точку',
+            'рефинансировать кредиты',
+            'другое',
+          ],
+          example: 'Пополнить оборотные средства',
+        },
         ApplicationCreate: {
           type: 'object',
-          required: ['organizationId', 'sum', 'creditTime'],
+          required: ['organizationId', 'sum', 'type', 'creditTime'],
           properties: {
             organizationId: { type: 'integer', example: 2 },
             sum: { type: 'number', format: 'float', example: 100000000 },
+            type: { $ref: '#/components/schemas/ApplicationType' },
             creditTime: { $ref: '#/components/schemas/CreditTime' },
+          },
+        },
+        ApplicationConfirm: {
+          type: 'object',
+          required: ['reason'],
+          properties: {
+            reason: {
+              type: 'string',
+              description: 'Причина выбора продукта, непустая строка',
+              example: 'Нужны дополнительные средства для расширения бизнеса',
+            },
           },
         },
         Application: {
@@ -75,7 +101,22 @@ const options: swaggerJsdoc.Options = {
             userId: { type: 'integer', example: 2 },
             organizationId: { type: 'integer', example: 2 },
             sum: { type: 'number', format: 'float', example: 100000000 },
-            status: { type: 'string', enum: ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'], example: 'DRAFT' },
+            type: { $ref: '#/components/schemas/ApplicationType' },
+            reason: { type: 'string', nullable: true, description: 'Заполняется при подтверждении заявки' },
+            status: {
+              type: 'string',
+              enum: [
+                'DRAFT',
+                'SUBMITTED',
+                'APPROVED',
+                'REJECTED',
+                'SPECIALPRODUCTOFFERED',
+                'SPECIALPRODUCTACCEPTED',
+                'SPECIALPRODUCTREJECTED',
+                'SIGNED',
+              ],
+              example: 'DRAFT',
+            },
             createdAt: { type: 'string', format: 'date-time' },
             creditTime: { $ref: '#/components/schemas/CreditTime' },
             loanIssuanceDate: { type: 'string', format: 'date-time' },
@@ -121,13 +162,13 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT}`,
-        description: 'Локальный сервер',
+        url: '/',
+        description: 'Текущий хост',
       },
     ],
   },
 
-  apis: ['./src/api/**/*.ts', './src/api/**/**/*.ts'], 
+  apis: [path.join(__dirname, 'api/**/*.{ts,js}')],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
