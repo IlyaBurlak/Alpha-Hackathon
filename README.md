@@ -1,5 +1,19 @@
 # Альфа Хакатон
 
+[![CI](https://github.com/IlyaBurlak/Alpha-Hackathon/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/IlyaBurlak/Alpha-Hackathon/actions/workflows/ci.yml)
+[![Версия](https://img.shields.io/github/v/tag/IlyaBurlak/Alpha-Hackathon?label=version&sort=semver)](https://github.com/IlyaBurlak/Alpha-Hackathon/tags)
+[![Docker-образ](https://img.shields.io/badge/ghcr.io-alpha--hackathon-2496ED?logo=docker&logoColor=white)](https://github.com/IlyaBurlak/Alpha-Hackathon/pkgs/container/alpha-hackathon)
+[![Лицензия](https://img.shields.io/github/license/IlyaBurlak/Alpha-Hackathon)](LICENSE)
+[![Последний коммит](https://img.shields.io/github/last-commit/IlyaBurlak/Alpha-Hackathon)](https://github.com/IlyaBurlak/Alpha-Hackathon/commits)
+[![Размер репозитория](https://img.shields.io/github/repo-size/IlyaBurlak/Alpha-Hackathon)](https://github.com/IlyaBurlak/Alpha-Hackathon)
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-ML-009688?logo=fastapi&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
 Название команды: _укажите_
 
 ## Команда
@@ -76,3 +90,4 @@ docker run -d --name alpha -e JWT_SECRET=любая-строка -p 8080:8080 gh
 - [ML-сервис](ml/README.md) и [контракт ML](docs/ml-contract.md)
 - [Мок внешних систем](externalSystemsMock/README.md)
 - [Сторонние компоненты](THIRD_PARTY_NOTICES)
+- [Лицензия](LICENSE) (MIT)
