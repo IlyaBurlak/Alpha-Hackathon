@@ -1,0 +1,1 @@
+{"id":"8f89db1b583f69bcdf2be2d41c11b650.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /:id for a nonexistent application is rejected","name":"GET /:id for a nonexistent application is rejected","status":"passed","testResultsByEnv":{"default":"0ceaeefabdfcefa568fdc2f631c842c6"}}

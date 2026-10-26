@@ -1,1 +1,0 @@
-{"id":"828cc9aae52de2e6ae6cbb2cb8b83f07.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /my returns an empty array for a user with no applications","name":"GET /my returns an empty array for a user with no applications","status":"passed","testResultsByEnv":{"default":"4902771bc0d37cbb30a10bcb71d7e09e"}}

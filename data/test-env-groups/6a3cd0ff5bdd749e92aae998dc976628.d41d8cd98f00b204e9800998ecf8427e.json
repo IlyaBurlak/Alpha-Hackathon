@@ -1,1 +1,0 @@
-{"id":"6a3cd0ff5bdd749e92aae998dc976628.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/auth.integration.test.ts#GET /api/users/admin-info returns the current operator","name":"GET /api/users/admin-info returns the current operator","status":"passed","testResultsByEnv":{"default":"7092384daa54d0667ead7b3cf1486b50"}}

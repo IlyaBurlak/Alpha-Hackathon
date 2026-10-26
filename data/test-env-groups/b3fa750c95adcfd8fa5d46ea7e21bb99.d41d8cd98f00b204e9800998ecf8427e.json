@@ -1,1 +1,0 @@
-{"id":"b3fa750c95adcfd8fa5d46ea7e21bb99.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/auth.integration.test.ts#login with a login that does not exist is rejected","name":"login with a login that does not exist is rejected","status":"passed","testResultsByEnv":{"default":"5b89a4d1634875fb16cf8ad71c158f51"}}

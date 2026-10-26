@@ -1,0 +1,1 @@
+{"id":"7d197dbbee78343b79c497a6f68c672a.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/auth.integration.test.ts#GET /api/users/info returns the current user and their organizations","name":"GET /api/users/info returns the current user and their organizations","status":"passed","testResultsByEnv":{"default":"f32dbb51a054c66284491fad73912352"}}

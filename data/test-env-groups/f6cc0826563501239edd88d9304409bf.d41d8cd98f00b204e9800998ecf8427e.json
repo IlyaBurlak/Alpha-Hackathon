@@ -1,1 +1,0 @@
-{"id":"f6cc0826563501239edd88d9304409bf.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /:id/score with a regular user's token is forbidden","name":"GET /:id/score with a regular user's token is forbidden","status":"passed","testResultsByEnv":{"default":"d7b864e508c964503467484353b171c3"}}

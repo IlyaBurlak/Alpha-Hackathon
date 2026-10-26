@@ -1,1 +1,0 @@
-{"id":"06094b6ed68d479670b19073dbb11983.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /:id/score without a token is rejected","name":"GET /:id/score without a token is rejected","status":"passed","testResultsByEnv":{"default":"43561f67caab7e537e3479a562961326"}}

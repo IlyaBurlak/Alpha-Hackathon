@@ -1,0 +1,1 @@
+{"id":"95dabb44a84ae3f4960dfecc902f7b61.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /my returns an empty array for a user with no applications","name":"GET /my returns an empty array for a user with no applications","status":"passed","testResultsByEnv":{"default":"2c1d7dd26b9c443fa92bcdda9ffa069e"}}

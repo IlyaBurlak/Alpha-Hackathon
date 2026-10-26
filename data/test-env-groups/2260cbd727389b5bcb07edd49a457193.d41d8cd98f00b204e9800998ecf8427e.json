@@ -1,0 +1,1 @@
+{"id":"2260cbd727389b5bcb07edd49a457193.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /:id without a token is rejected","name":"GET /:id without a token is rejected","status":"passed","testResultsByEnv":{"default":"238790af542ba63cd9529714fadc1bb7"}}

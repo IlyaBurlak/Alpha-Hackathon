@@ -1,0 +1,1 @@
+{"id":"dd2e3b739551a459c9fc04e4d89fe0a4.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/external-degradation.integration.test.ts#scoring still completes when every external mock is down at once","name":"scoring still completes when every external mock is down at once","status":"broken","testResultsByEnv":{"default":"069fc1ea79a77e1d28f47f274dad4e5a"}}

@@ -1,0 +1,1 @@
+{"id":"902e88d01d8397208ed08ceb373446e1.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/health.integration.test.ts#POST /api/applications/ without a token is rejected","name":"POST /api/applications/ without a token is rejected","status":"passed","testResultsByEnv":{"default":"bda69efdc6d08bc2e1ffdecea7c9698c"}}

@@ -1,0 +1,1 @@
+{"id":"feb507367aa002b4397f831c3d8cc45f.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /my returns only the authenticated user's applications","name":"GET /my returns only the authenticated user's applications","status":"passed","testResultsByEnv":{"default":"90f6307c57ad21e3885ef2385ec9b309"}}

@@ -1,0 +1,1 @@
+{"id":"1096c2d86735c2b69022045f1eb5d254.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /:id/score with a regular user's token is forbidden","name":"GET /:id/score with a regular user's token is forbidden","status":"passed","testResultsByEnv":{"default":"b2bdea8da319707dc369d3d4ab5db3a8"}}

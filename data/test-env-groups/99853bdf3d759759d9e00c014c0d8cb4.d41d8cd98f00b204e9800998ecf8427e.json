@@ -1,1 +1,0 @@
-{"id":"99853bdf3d759759d9e00c014c0d8cb4.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/applications.integration.test.ts#GET /my returns only the authenticated user's applications","name":"GET /my returns only the authenticated user's applications","status":"passed","testResultsByEnv":{"default":"0bc88424deed6d505673a01395e41e74"}}

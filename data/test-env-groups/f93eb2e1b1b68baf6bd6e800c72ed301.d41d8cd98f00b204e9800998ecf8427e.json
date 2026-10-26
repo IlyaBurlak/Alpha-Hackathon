@@ -1,0 +1,1 @@
+{"id":"f93eb2e1b1b68baf6bd6e800c72ed301.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/auth.integration.test.ts#GET /api/users/admin-info with a regular user's token is forbidden","name":"GET /api/users/admin-info with a regular user's token is forbidden","status":"passed","testResultsByEnv":{"default":"1195ab6c79087155913b5afc7868f5a8"}}

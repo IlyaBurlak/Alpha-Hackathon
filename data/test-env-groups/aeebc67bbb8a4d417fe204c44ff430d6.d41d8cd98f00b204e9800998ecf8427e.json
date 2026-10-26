@@ -1,0 +1,1 @@
+{"id":"aeebc67bbb8a4d417fe204c44ff430d6.d41d8cd98f00b204e9800998ecf8427e","fullName":"alfa-hack:tests/integration/applications.integration.test.ts#GET /:id for another user's application is rejected","name":"GET /:id for another user's application is rejected","status":"passed","testResultsByEnv":{"default":"36f97531cbea808fc42906c109b8941e"}}

@@ -1,1 +1,0 @@
-{"id":"821528e866fca42a964f4ab8ff261b38.d41d8cd98f00b204e9800998ecf8427e","fullName":"kogtechlab:tests/integration/auth.integration.test.ts#GET /api/users/admin-info without a token is rejected","name":"GET /api/users/admin-info without a token is rejected","status":"passed","testResultsByEnv":{"default":"3cfabed41dd95f7968f7f82511b48568"}}
