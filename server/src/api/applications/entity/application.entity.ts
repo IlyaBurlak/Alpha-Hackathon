@@ -24,6 +24,15 @@ export enum ApplicationStatus {
     SIGNED = 8
 }
 
+export enum ApplicationType {
+    WORKING_CAPITAL = "Пополнить оборотные средства",
+    TRANSPORT = "транспорт",
+    SPECIAL_EQUIPMENT = "спецтехника",
+    NEW_POINT = "открыть новую точку",
+    REFINANCE = "рефинансировать кредиты",
+    OTHER = "другое"
+}
+
 export class ApplicationEntity {
     id!: number;
     userId!: number;
@@ -40,6 +49,8 @@ export class ApplicationEntity {
     solutionComment!: string;
     operatorId!: number;
     operator?: UserEntity;
+    type!: ApplicationType;
+    reason!: string;
 
     constructor(model: any) {
         this.id = model.id;
@@ -50,6 +61,8 @@ export class ApplicationEntity {
         this.createdAt = model.createdAt;
         this.solutionComment = model.solutionComment;
         this.operatorId = model.operatorId;
+        this.type = model.type;
+        this.reason = model.reason;
         this.creditTime = {
             units: model.creditTimeUnits,
             value: model.creditValue

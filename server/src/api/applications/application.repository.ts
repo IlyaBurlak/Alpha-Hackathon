@@ -24,6 +24,7 @@ export class ApplicationRepository implements IApplicationRepository {
             sum: application.sum,
             creditTimeUnits: application.creditTime.units,
             creditValue: application.creditTime.value,
+            type: application.type,
             status: ApplicationStatus.DRAFT
         }, { transaction })
 
@@ -31,9 +32,9 @@ export class ApplicationRepository implements IApplicationRepository {
 
     }
 
-    async confirmApplication(applicationId: number, product: any, transaction?: Transaction): Promise<ApplicationEntity> {
+    async confirmApplication(applicationId: number, product: any, reason: string, transaction?: Transaction): Promise<ApplicationEntity> {
         await Application.update(
-            { productId: product.id, productConditions: {name: product.name, persentage: product.persentage, payments: product.payments }, status: ApplicationStatus.SUBMITTED },
+            { productId: product.id, productConditions: {name: product.name, persentage: product.persentage, payments: product.payments }, reason, status: ApplicationStatus.SUBMITTED },
             { where: { id: applicationId }, transaction }
         );
         return await this.getApplicationById(applicationId, transaction);
