@@ -239,6 +239,10 @@ jobs:
       - run: curl --fail http://localhost:8080/api/health
       - run: curl --fail http://localhost:8080/external-api/banks/products
       - run: curl --fail --location http://localhost:8080/swagger/
+      - name: Swagger describes the API (not an empty spec)
+        run: |
+          curl --fail -o swagger-ui-init.js http://localhost:8080/swagger/swagger-ui-init.js
+          grep -q '/api/applications/' swagger-ui-init.js
       - name: Logs on failure
         if: failure()
         run: docker logs demo
