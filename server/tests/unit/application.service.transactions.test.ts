@@ -23,7 +23,9 @@ function stubTransaction(t: { after: (fn: () => void) => void }) {
   t.after(() => txMock.mock.restore());
 }
 
-const LEGAL_ENTITY = new OrganizationEntity({ id: 1, inn: '7701234568', fullName: 'ООО "Ромашка"', type: OrganizationType.OO });
+const CONFIRM_REASON = 'Нужны средства для развития бизнеса';
+
+const LEGAL_ENTITY =new OrganizationEntity({ id: 1, inn: '7701234568', fullName: 'ООО "Ромашка"', type: OrganizationType.OO });
 
 const EMPTY_PRODUCTS_GATEWAY: IGatewayService = {
   getBanksProducts: async () => [],
@@ -41,7 +43,7 @@ function buildService(opts: {
   const fakeAppRepo = {
     createApplication: mock.fn(async (app: ApplicationEntity) => app),
     getApplicationById: mock.fn(async () => buildApplication()),
-    confirmApplication: mock.fn(async (id: number, product: any) => buildApplication({ id, productId: product.id })),
+    confirmApplication: mock.fn(async (id: number, product: any, reason: string) => buildApplication({ id, productId: product.id, reason })),
     createApplicationScore: mock.fn(async () => undefined),
     updateApplicationScoringStatus: mock.fn(async () => undefined),
     updateApplicationScoringInfo: mock.fn(async () => undefined),
@@ -89,7 +91,7 @@ test('confirmApplication rejects when a product was already chosen', async (t) =
     appRepo: { getApplicationById: mock.fn(async () => buildApplication({ productId: 5 })) },
   });
 
-  await assert.rejects(() => service.confirmApplication(1, 1, 1), /Продукт уже выбран/);
+  await assert.rejects(() => service.confirmApplication(1, 1, 1, CONFIRM_REASON), /Продукт уже выбран/);
 });
 
 test('confirmApplication rejects when the application belongs to another user', async (t) => {
@@ -98,7 +100,7 @@ test('confirmApplication rejects when the application belongs to another user', 
     appRepo: { getApplicationById: mock.fn(async () => buildApplication({ userId: 2 })) },
   });
 
-  await assert.rejects(() => service.confirmApplication(1, 1, 1), /Нет доступа к заявке/);
+  await assert.rejects(() => service.confirmApplication(1, 1, 1, CONFIRM_REASON), /Нет доступа к заявке/);
 });
 
 test('confirmApplication rejects when the bank gateway is unavailable', async (t) => {
@@ -107,7 +109,7 @@ test('confirmApplication rejects when the bank gateway is unavailable', async (t
     gateway: { ...EMPTY_PRODUCTS_GATEWAY, getBanksProducts: async () => undefined },
   });
 
-  await assert.rejects(() => service.confirmApplication(1, 1, 1), /Сервисы банка недоступны/);
+  await assert.rejects(() => service.confirmApplication(1, 1, 1, CONFIRM_REASON), /Сервисы банка недоступны/);
 });
 
 test('confirmApplication rejects when the chosen product is not available', async (t) => {
@@ -118,7 +120,7 @@ test('confirmApplication rejects when the chosen product is not available', asyn
     ] },
   });
 
-  await assert.rejects(() => service.confirmApplication(1, 1, 999), /Выбранный продукт недоступен/);
+  await assert.rejects(() => service.confirmApplication(1, 1, 999, CONFIRM_REASON), /Выбранный продукт недоступен/);
 });
 
 test('confirmApplication confirms with a valid product', async (t) => {
@@ -129,14 +131,16 @@ test('confirmApplication confirms with a valid product', async (t) => {
     ] },
   });
 
-  const result = await service.confirmApplication(1, 1, 1);
+  const result = await service.confirmApplication(1, 1, 1, CONFIRM_REASON);
   // confirmApplication fires handleApplication's scoring chain without awaiting
   // it; flush pending microtasks so it settles before the test (and mocks) go away.
   await setImmediate();
 
   const confirmMock = fakeAppRepo.confirmApplication as unknown as ReturnType<typeof mock.fn>;
   assert.equal(confirmMock.mock.callCount(), 1);
+  assert.equal(confirmMock.mock.calls[0].arguments[2], CONFIRM_REASON);
   assert.equal(result.productId, 1);
+  assert.equal(result.reason, CONFIRM_REASON);
 });
 
 test('getApplicationById rejects when the application belongs to another user', async (t) => {

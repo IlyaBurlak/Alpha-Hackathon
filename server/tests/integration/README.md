@@ -59,6 +59,9 @@
 - ✅ Без токена → 401 (`applications.integration.test.ts`)
 - ✅ `organizationId`, не привязанный к текущему пользователю → 500 («Не найдена связь текущего пользователя с организацией») (`applications.integration.test.ts`)
 - ✅ Отсутствует обязательное поле `creditTime` в теле → 500 (error guessing — контроллер читает `creditTime.units` без проверки) (`applications.integration.test.ts`)
+- ✅ Каждое значение `type` (цель кредита: «Пополнить оборотные средства», «транспорт», «спецтехника», «открыть новую точку», «рефинансировать кредиты», «другое») принимается, в ответе `type` совпадает, `reason` пуст (EP, `applications.integration.test.ts`)
+- ✅ `type` сохраняется: `GET /:id` возвращает то же значение (`applications.integration.test.ts`)
+- ✅ Отсутствует обязательное поле `type` в теле → 500 (колонка NOT NULL, валидации на входе нет) (`applications.integration.test.ts`)
 - ✅ BVA: `sum` равна `minSum` продукта → продукт попадает в доступные (`applications.integration.test.ts`)
 - ✅ BVA: `sum` на 1 меньше `minSum` → продукт не попадает в доступные (`applications.integration.test.ts`)
 - ✅ BVA: `sum` равна `maxSum` продукта → продукт попадает в доступные (`applications.integration.test.ts`)
@@ -89,10 +92,12 @@
 - ✅ Токен обычного пользователя → 403 (`applications.integration.test.ts`)
 - ✅ Без токена → 401 (`applications.integration.test.ts`)
 
-## 5. Подтверждение продукта — `PUT /api/applications/?applicationId=&productId=`
+## 5. Подтверждение продукта — `PUT /api/applications/?applicationId=&productId=`, тело `{ "reason": string }`
 
-- ✅ Валидное подтверждение (новая заявка без продукта, подходящий `productId`) → 200, в ответе `productId` совпадает (`applications.confirm.integration.test.ts`)
+- ✅ Валидное подтверждение (новая заявка без продукта, подходящий `productId`, непустой `reason`) → 200, в ответе `productId` совпадает (`applications.confirm.integration.test.ts`)
 - ✅ Без `applicationId` или без `productId` в query → 400 (`applications.confirm.integration.test.ts`)
+- ✅ Без `reason` в теле, с пустым (из пробелов) или нестроковым `reason` → 400, заявка остаётся `DRAFT` без продукта (`applications.confirm.integration.test.ts`)
+- ✅ `reason` сохраняется: он есть и в ответе подтверждения, и в `GET /:id` (`applications.confirm.integration.test.ts`)
 - ✅ Без токена → 401 (`applications.confirm.integration.test.ts`)
 - ✅ Заявка принадлежит другому пользователю → 500 («Нет доступа к заявке») (`applications.confirm.integration.test.ts`)
 - ✅ Повторное подтверждение уже подтверждённой заявки → 500 («Продукт уже выбран») (`applications.confirm.integration.test.ts`)

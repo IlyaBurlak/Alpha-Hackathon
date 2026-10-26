@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { step, description, suite, feature } from 'allure-js-commons';
 import {
+  APPLICATION_TYPES,
+  DEFAULT_APPLICATION_TYPE,
   SERVER_BASE_URL,
   login,
   loginOperator,
@@ -43,7 +45,7 @@ test('creating an application without a token is rejected', async () => {
     fetch(`${SERVER_BASE_URL}/api/applications/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE }),
+      body: JSON.stringify({ organizationId: 1, sum: 50000, type: DEFAULT_APPLICATION_TYPE, creditTime: CREDIT_TIME_WITHIN_RANGE }),
     }),
   );
 
@@ -79,7 +81,69 @@ test('creating an application without creditTime in the body is rejected', async
     fetch(`${SERVER_BASE_URL}/api/applications/`, {
       method: 'POST',
       headers: authHeaders(token),
-      body: JSON.stringify({ organizationId: 1, sum: 50000 }),
+      body: JSON.stringify({ organizationId: 1, sum: 50000, type: DEFAULT_APPLICATION_TYPE }),
+    }),
+  );
+
+  await step('response is 500', () => {
+    assert.equal(res.status, 500);
+  });
+});
+
+test('every goal of the loan is accepted as `type` and returned in the response', async () => {
+  await suite('Applications');
+  await feature('Create — type');
+  await description('`type` is a required enum (the goal of the loan); each of its values must be stored and echoed back.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+
+  for (const type of APPLICATION_TYPES) {
+    await step(`POST / with type "${type}"`, async () => {
+      const res = await createApplication(token, { organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE, type });
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.type, type);
+      assert.equal(body.reason ?? null, null);
+    });
+  }
+});
+
+test('the type of a created application is kept when it is read back', async () => {
+  await suite('Applications');
+  await feature('Create — type');
+  await description('GET /:id returns the same `type` that was sent on creation; `reason` stays empty until a product is confirmed.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+  const created = await step('POST / with type "транспорт"', async () => {
+    const res = await createApplication(token, { organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE, type: 'транспорт' });
+    assert.equal(res.status, 200);
+    return res.json();
+  });
+
+  const loaded = await step('GET /:id', async () => {
+    const res = await getApplicationById(token, created.id);
+    assert.equal(res.status, 200);
+    return res.json();
+  });
+
+  await step('type is "транспорт" and reason is empty', () => {
+    assert.equal(loaded.type, 'транспорт');
+    assert.equal(loaded.reason ?? null, null);
+  });
+});
+
+test('creating an application without type in the body is rejected', async () => {
+  await suite('Applications');
+  await feature('Create — type');
+  await description('`type` is NOT NULL in the database; the request is not validated before it, so the missing field surfaces as a 500, not a 400.');
+
+  const token = await step('log in as alfaTest', () => login('alfaTest', 'alfaTest!'));
+
+  const res = await step('POST / with no type field', () =>
+    fetch(`${SERVER_BASE_URL}/api/applications/`, {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ organizationId: 1, sum: 50000, creditTime: CREDIT_TIME_WITHIN_RANGE }),
     }),
   );
 
